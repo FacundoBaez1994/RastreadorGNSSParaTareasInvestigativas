@@ -7,32 +7,16 @@
 #include "non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "string.h"
+#include "tracker.h"
 
-#define BLINKING_RATE  500
+//=====[Main function, the program entry point after power on or reset]========
 
-
-
-nonBlockingDelay delayLatency (BLINKING_RATE );
-char StringToSend [15] = "Hola Mundo!\n";
-UnbufferedSerial uartUsb(USBTX, USBRX, 115200 ); // debug only
-
-int main()
-{
-    // Initialise the digital pin LED1 as an output
-    DigitalOut led(LED1);
-    DigitalOut led2 (PB_4);
-
+int main() {
+    tracker tracker;
     while (true) {
-        if( delayLatency.read()) {
-            led = !led;
-            led2 = ! led2;
-            uartUsb.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUsb.write ( "\r\n",  3 );  // debug only
-        }
+        tracker.update();
     }
 }
-
-
 
 
 

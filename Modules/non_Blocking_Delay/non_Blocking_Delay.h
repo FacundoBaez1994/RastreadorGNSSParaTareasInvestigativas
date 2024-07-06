@@ -23,7 +23,7 @@ public:
     nonBlockingDelay ( tick_t durationValue);
     bool read( void );
     void write(  tick_t durationValue );
-
+    void restart ();
 private:
 //=====[Declaration of privates atributes]=========================================
     tick_t startTime;

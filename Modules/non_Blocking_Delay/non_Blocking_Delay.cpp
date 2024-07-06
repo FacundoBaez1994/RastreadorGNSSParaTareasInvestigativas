@@ -74,6 +74,15 @@ void nonBlockingDelay::write( tick_t durationValue ) {
    this->duration = durationValue;
 }
 
+/** 
+* @brief sets a new duration value for the delay
+* @note durationValue the new duration to be set into the delay
+*/
+void nonBlockingDelay::restart(  ) {
+    this->startTime = tickCounter;
+    this->isRunning = true;
+}
+
 //=====[Implementations of private functions]==================================
 /** 
 * @brief callback function adds 1 to a counter

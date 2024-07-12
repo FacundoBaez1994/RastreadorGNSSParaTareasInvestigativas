@@ -5,6 +5,7 @@
 
 #include "non_Blocking_Delay.h"
 #include "arm_book_lib.h"
+#include "cellularModule.h"
 
 
 
@@ -29,10 +30,10 @@ public:
     tracker ();
     void update();
 private:
-    trackerState_t trackerState;
-    nonBlockingDelay * powerChangeDurationtimer;
-    BufferedSerial * cellularModuleUART;
-    bool turningPower;
+    cellularModule* cellularTransmitter;
+    nonBlockingDelay * latency;
+    int bufferIndex; // debug
+
 };
 
 

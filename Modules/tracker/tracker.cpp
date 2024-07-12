@@ -5,6 +5,7 @@
 #include "non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "string.h"
+#include "cellularModule.h"
 
 //=====[Declaration of private defines]========================================
 #define LATENCY        50
@@ -29,10 +30,9 @@ UnbufferedSerial uartUSB(USBTX, USBRX, 115200 ); // debug only
 * @brief Contructor method creates a new trackerGPS instance ready to be used
 */
 tracker::tracker () {
-    this->trackerState = TRACKER_STATE_OFF;
-    this->powerChangeDurationtimer = new nonBlockingDelay (POWERCHANGEDURATION  );
-    this->cellularModuleUART = new BufferedSerial  (PA_9, PA_10, 115200);
-    this->turningPower = false;
+    this->latency = new nonBlockingDelay (LATENCY);
+    this->cellularTransmitter = new cellularModule ( );
+    this->bufferIndex = 0;
 }
 /** 
 * @brief Main rutine of the tracker device
@@ -40,43 +40,40 @@ tracker::tracker () {
 *
 */
 void tracker::update () {
-     // // // // MOVER TODO DE ACA, SE RE DEFINE EN CADA PASADA!!
-    nonBlockingDelay delayLatency (LATENCY);
-    char StringToSend [15] = "ATI\n";
-    // UnbufferedSerial uartUsb(USBTX, USBRX, 115200 ); // debug only
+    char StringToSend [15] = "ATI";
+    char StringRead [100] = "";
     DigitalOut led(LED1);
-    DigitalIn celullarModuleStatusInput (PA_8); 
-    DigitalIn powerControlButtonInput (PA_1);
-    DigitalOut powerKeyOutput (PB_4);
-    DigitalOut powerDownOutput(PB_0);
+
     char receivedCharLocal;
-    powerKeyOutput = OFF;
-    powerDownOutput = ON; //ENABLE DE LA ALIMENTACION
+    char buffer[100]; // Buffer to store the received string
 
-    while (true) {
-        if (powerControlButtonInput.read () == OFF  && this->turningPower == false ) {  
-            this->turningPower = true;
-            powerKeyOutput = ON;
-            this->powerChangeDurationtimer->restart ();
-        }  
-        if (this->turningPower == true && this->powerChangeDurationtimer->read() )  {
-            this->turningPower = false;
-            powerKeyOutput = OFF;
-        } 
 
-        if (delayLatency.read()) { // WRITE
-            led = !led;
-            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            this->cellularModuleUART->write (StringToSend, strlen (StringToSend));  // debug only
-            this->cellularModuleUART->write ( "\r\n",  3 );  // debug only
-        }
-        if (this->cellularModuleUART->readable() ) { // READ
-            this->cellularModuleUART->read(&receivedCharLocal, 1);
-            char str[2] = "";
-            sprintf (str, "%c", receivedCharLocal);
-            uartUSB.write( str, strlen(str) ); // debug only
-            uartUSB.write ( "\r\n",  3 ); // debug only
+    if (this->latency->read()) { // WRITE
+        led = !led;
+
+        // // // // // // // // 
+        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+        uartUSB.write ( "\r\n",  2 );  // debug only
+        // // // // // // 
+
+        this->cellularTransmitter->getUART()->write (StringToSend, strlen (StringToSend));  // debug only
+        this->cellularTransmitter->getUART()->write ( "\r\n",  3 );  // debug only
+    }
+
+    this->cellularTransmitter->startStopUpdate();
+    if (this->cellularTransmitter->getUART()->readable()) { // READ
+        this->cellularTransmitter->getUART()->read(&receivedCharLocal, 1);
+        if (receivedCharLocal == '\r' || receivedCharLocal == '\n') { 
+            if (this->bufferIndex > 0) {
+                buffer[bufferIndex] = '\0'; // Null-terminate the string
+                uartUSB.write(buffer, strlen(buffer)); // debug only
+                uartUSB.write("\r\n",  2); // debug only
+                this->bufferIndex = 0; // Reset buffer index for the next string
+                }
+        } else {
+            if (this->bufferIndex < sizeof(buffer) - 1) { // Ensure there is space in the buffer
+                buffer[this->bufferIndex++] = receivedCharLocal;
+            }
         }
     }
 }

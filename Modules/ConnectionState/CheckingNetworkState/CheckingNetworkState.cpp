@@ -1,8 +1,8 @@
 //=====[Libraries]=============================================================
 
-#include "IdleState.h"
+#include "CheckingNetworkState.h"
 #include "CellularModule.h" //debido a declaracion adelantada
-#include "Debugger.h" // due to global usbUart
+#include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
 
@@ -35,19 +35,19 @@
 * 
 * @param 
 */
-IdleState::IdleState () {
-    this->mobileNetworkModule = NULL;
-    this->readyToSend = true;
-}
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
-IdleState::IdleState (CellularModule * mobileModule) {
+CheckingNetworkState::CheckingNetworkState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
+}
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+CheckingNetworkState::~CheckingNetworkState () {
+    this->mobileNetworkModule = NULL;
     this->readyToSend = true;
 }
 
@@ -58,23 +58,12 @@ IdleState::IdleState (CellularModule * mobileModule) {
 * 
 * @returns 
 */
-IdleState::~IdleState () {
-    this->mobileNetworkModule = NULL;
-}
-
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
-void IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
-    char StringToSend [15] = "ATI";
+void CheckingNetworkState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+    char StringToSend [15] = "AT+CSQ";
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
 
-    char StringToSendUSB [40] = "IDLE STATE";
+    char StringToSendUSB [40] = "CHECKING NETWORK STATE";
 
 
 
@@ -96,16 +85,15 @@ void IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refres
         uartUSB.write ( "\r\n",  3 );  // debug only
          ////   ////   ////   ////   ////   ////
 
-        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+       /* if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
             ////   ////   ////   ////   ////   ////
             char StringToSendUSB [40] = "Cambiando de estado";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
-            this->mobileNetworkModule->changeConnectionState 
-            (new CheckingNetworkState (this->mobileNetworkModule));
+            // this->mobileNetworkModule->changeConnectionState (new .... )
         }
-
+*/
 
     }
 

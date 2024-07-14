@@ -10,6 +10,7 @@
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
 #include "Non_Blocking_Delay.h"
+#include "CheckingNetworkState.h"
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
@@ -22,6 +23,7 @@ class CellularModule; //debido a declaracion adelantada
 class IdleState : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
+    IdleState ();
     IdleState (CellularModule * mobileModule);
     virtual ~IdleState ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);

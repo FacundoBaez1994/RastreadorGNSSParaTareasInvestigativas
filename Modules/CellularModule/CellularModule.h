@@ -27,6 +27,7 @@ public:
     virtual ~CellularModule ();
     void startStopUpdate ();
     void connectToMobileNetwork ();
+    void changeConnectionState  (ConnectionState * newConnectionState);
     BufferedSerial* getUART ();
 private:
 //=====[Declaration of privates atributes]=========================================

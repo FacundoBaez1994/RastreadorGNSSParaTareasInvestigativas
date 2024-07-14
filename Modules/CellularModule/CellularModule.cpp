@@ -113,6 +113,17 @@ void CellularModule::connectToMobileNetwork () {
 * 
 * @returns 
 */
+void CellularModule::changeConnectionState  (ConnectionState * newConnectionState) {
+    delete this->currentConnectionState;
+    this->currentConnectionState = newConnectionState;
+}
+
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
  BufferedSerial* CellularModule::getUART () {
      return this->ATHandler->getUART();
 }

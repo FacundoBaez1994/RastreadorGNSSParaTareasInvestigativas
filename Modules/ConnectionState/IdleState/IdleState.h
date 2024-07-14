@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CELLULAR_MODULE_H_
-#define _CELLULAR_MODULE_H_
+#ifndef _IDLE_STATE_H_
+#define _IDLE_STATE_H_
 
 //==================[Libraries]===============================================
 
@@ -9,39 +9,27 @@
 #include "non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "IdleState.h"
+#include "ConnectionState.h"
+#include "non_Blocking_Delay.h"
 
 //=====[Declaration of public data types]======================================
-class ConnectionState; //debido a declaracion adelantada
+class cellularModule; //debido a declaracion adelantada
 
 //=====[Declaration of public classes]=========================================
 /*
- *  
+ *  class - State desing pattern
  * 
  */
-class cellularModule {
+class IdleState : public ConnectionState {
 public:
-
 //=====[Declaration of public methods]=========================================
-    cellularModule ( );
-    virtual ~cellularModule ();
-    void startStopUpdate ();
-    void connectToMobileNetwork ();
-    BufferedSerial* getUART ();
+    IdleState (cellularModule * mobileModule);
+    virtual ~IdleState ();
+    virtual void connect (ATCommandHandler * handler, nonBlockingDelay * refreshTime);
 private:
+    cellularModule * mobileNetworkModule;
+    bool readyToSend;
 //=====[Declaration of privates atributes]=========================================
-    nonBlockingDelay* powerChangeDurationtimer;
-    nonBlockingDelay* refreshTime;
-    ATCommandHandler* ATHandler;
-    ConnectionState* currentConnectionState;
-
-    bool turningPower;
-    DigitalIn* powerStatusInput; // negative value if power on
-    DigitalIn* powerControlButtonInput;
-    DigitalOut* powerKeyOutput; // soft power control
-    DigitalOut* powerDownOutput; // Power source enable - hard power control
-    bool watingForResponse;
-
 
 //=====[Declaration of privates methods]=========================================
 };
@@ -51,4 +39,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif // _CELLULAR_MODULE_H_
+#endif //  _CELLULAR_STATE_H_

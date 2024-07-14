@@ -13,6 +13,7 @@
 
 
 //=====[Declaration of public data types]======================================
+
 typedef enum {
     TRACKER_STATE_ON,
     TRACKER_STATE_TURNING_ON,
@@ -32,8 +33,6 @@ public:
 private:
     cellularModule* cellularTransmitter;
     nonBlockingDelay * latency;
-    int bufferIndex; // debug
-
 };
 
 

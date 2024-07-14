@@ -6,10 +6,10 @@
 //==================[Libraries]===============================================
 
 #include "mbed.h"
-#include "non_Blocking_Delay.h"
+#include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "cellularModule.h"
+#include "CellularModule.h"
 
 //=====[Declaration of public data types]======================================
 
@@ -23,7 +23,7 @@ class ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
     virtual void connect (ATCommandHandler * handler,
-     nonBlockingDelay * refreshTime);
+     NonBlockingDelay * refreshTime);
 private:
 //=====[Declaration of privates atributes]=========================================
 

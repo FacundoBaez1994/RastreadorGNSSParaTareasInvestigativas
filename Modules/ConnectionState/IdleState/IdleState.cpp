@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "IdleState.h"
-#include "cellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
@@ -35,7 +35,7 @@
 * 
 * @param 
 */
-IdleState::IdleState (cellularModule * mobileModule) {
+IdleState::IdleState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
 }
 
@@ -58,7 +58,7 @@ IdleState::~IdleState () {
 * 
 * @returns 
 */
-void IdleState::connect (ATCommandHandler * ATHandler, nonBlockingDelay * refreshTime) {
+void IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
     char StringToSend [15] = "ATI";
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";

@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "non_Blocking_Delay.h"
+#include "Non_Blocking_Delay.h"
 
 //=====[Declaration of private defines]========================================
 
@@ -27,7 +27,7 @@ tick_t tickRead();
 /** 
 * @brief attachs the callback function to the ticker
 */
-void nonBlockingDelay::tickInit() {
+void NonBlockingDelay::tickInit() {
     this->ticker.attach( tickerCallback, 0.01);
 }
 
@@ -37,7 +37,7 @@ void nonBlockingDelay::tickInit() {
 * creates a new nonBlockingDelay instance ready to be used
 * @param durationValue the duration of the delay
 */
-nonBlockingDelay::nonBlockingDelay (tick_t durationValue ) {
+NonBlockingDelay::NonBlockingDelay (tick_t durationValue ) {
     this->tickInit ();
     this->duration = durationValue;
     this->isRunning = false;
@@ -49,7 +49,7 @@ nonBlockingDelay::nonBlockingDelay (tick_t durationValue ) {
 * when the duration of the delay has reach or surpasses the attribute duration the delay will stop and the method returns true
 * @returns true or false if the delay has reach the duration
 */
-bool nonBlockingDelay::read (void) {
+bool NonBlockingDelay::read (void) {
    bool timeArrived = false;
    tick_t elapsedTime;
 
@@ -70,7 +70,7 @@ bool nonBlockingDelay::read (void) {
 * @brief sets a new duration value for the delay
 * @note durationValue the new duration to be set into the delay
 */
-void nonBlockingDelay::write( tick_t durationValue ) {
+void NonBlockingDelay::write( tick_t durationValue ) {
    this->duration = durationValue;
 }
 
@@ -78,7 +78,7 @@ void nonBlockingDelay::write( tick_t durationValue ) {
 * @brief sets a new duration value for the delay
 * @note durationValue the new duration to be set into the delay
 */
-void nonBlockingDelay::restart(  ) {
+void NonBlockingDelay::restart(  ) {
     this->startTime = tickCounter;
     this->isRunning = true;
 }

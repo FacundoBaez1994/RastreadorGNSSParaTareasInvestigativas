@@ -1,5 +1,5 @@
 //=====[Libraries]=============================================================
-#include "cellularModule.h"
+#include "CellularModule.h"
 #include "Debugger.h"
 #include "ConnectionState.h" //debido a declaracion adelantada
 
@@ -40,9 +40,9 @@
 * 
 * 
 */
-cellularModule::cellularModule () {
-    this->powerChangeDurationtimer = new nonBlockingDelay (POWERCHANGEDURATION  );
-    this->refreshTime = new nonBlockingDelay (REFRESHTIME);
+CellularModule::CellularModule () {
+    this->powerChangeDurationtimer = new NonBlockingDelay (POWERCHANGEDURATION  );
+    this->refreshTime = new NonBlockingDelay (REFRESHTIME);
     this->ATHandler = new ATCommandHandler (new BufferedSerial  (CELLULAR_MODULE_TX_UART, 
      CELLULAR_MODULE_RX_UART, CELLULAR_MODULE_BAUD_RATE));
     this->currentConnectionState = new IdleState (this);
@@ -66,7 +66,7 @@ cellularModule::cellularModule () {
 * 
 * 
 */
-cellularModule::~cellularModule () {
+CellularModule::~CellularModule () {
 }
 
 
@@ -75,7 +75,7 @@ cellularModule::~cellularModule () {
 * 
 * SOFT HARDWARE START STOP
 */
-void cellularModule::startStopUpdate () {
+void CellularModule::startStopUpdate () {
     if (this->powerControlButtonInput->read () == OFF  && this->turningPower == false ) {  
         this->turningPower = true;
         *this->powerKeyOutput = ON;
@@ -103,7 +103,7 @@ void cellularModule::startStopUpdate () {
 * 
 * 
 */
-void cellularModule::connectToMobileNetwork () {
+void CellularModule::connectToMobileNetwork () {
     this->currentConnectionState->connect(this->ATHandler, this->refreshTime);
 }
 
@@ -113,7 +113,7 @@ void cellularModule::connectToMobileNetwork () {
 * 
 * @returns 
 */
- BufferedSerial* cellularModule::getUART () {
+ BufferedSerial* CellularModule::getUART () {
      return this->ATHandler->getUART();
 }
 

@@ -10,6 +10,7 @@
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
 #include "Non_Blocking_Delay.h"
+#include <string>
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
@@ -27,11 +28,14 @@ public:
     virtual ~CheckingNetworkState ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
+//=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-//=====[Declaration of privates atributes]=========================================
-
+    bool ATFirstResponseRead;
+    bool signalLevelRetrived;
+    float signalLevel;
 //=====[Declaration of privates methods]=========================================
+    bool checkExpectedResponse (char *response, float &value);
 };
 
 

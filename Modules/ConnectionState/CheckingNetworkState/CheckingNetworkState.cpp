@@ -37,6 +37,9 @@
 */
 CheckingNetworkState::CheckingNetworkState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
+    this->ATFirstResponseRead  = false;
+    this->readyToSend = true;
+    this->signalLevelRetrived = false;
 }
 
 
@@ -48,7 +51,7 @@ CheckingNetworkState::CheckingNetworkState (CellularModule * mobileModule) {
 */
 CheckingNetworkState::~CheckingNetworkState () {
     this->mobileNetworkModule = NULL;
-    this->readyToSend = true;
+    this->signalLevel = NULL;
 }
 
 
@@ -59,13 +62,11 @@ CheckingNetworkState::~CheckingNetworkState () {
 * @returns 
 */
 void CheckingNetworkState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
-    char StringToSend [15] = "AT+CSQ";
-    char StringToBeRead [256];
+
+    static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
-
+     char StringToSend [15] = "AT+CSQ";
     char StringToSendUSB [40] = "CHECKING NETWORK STATE";
-
-
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -75,37 +76,72 @@ void CheckingNetworkState::connect (ATCommandHandler * ATHandler, NonBlockingDel
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
+        refreshTime->restart();
         ////   ////   ////   ////   ////   ////   
     }
 
-
-    if ( ATHandler->readATResponse ( StringToBeRead) == true) {
-         ////   ////   ////   ////   ////   ////
-        uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-         ////   ////   ////   ////   ////   ////
-
-       /* if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+    if ( this->signalLevelRetrived == false) {
+        if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
+        
             ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "Cambiando de estado";
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////            
-            // this->mobileNetworkModule->changeConnectionState (new .... )
+            ////   ////   ////   ////   ////   ////
+            this->ATFirstResponseRead = true;
+             refreshTime->restart();
+            if (this->checkExpectedResponse (StringToBeRead,  this->signalLevel )) {
+                char msgStringSignalQuality [20]= "";
+                sprintf (msgStringSignalQuality, "%.2f",  this->signalLevel );  
+                char msg []  = "signal level: "; 
+                uartUSB.write (msg,  strlen (msg) );  // debug only
+                uartUSB.write (msgStringSignalQuality,  strlen (msgStringSignalQuality) );  // debug only
+                uartUSB.write ( "\r\n",  3 );  // debug only
+                this->signalLevelRetrived = true;
+            }
+        } 
+     } 
+  
+    if (this->signalLevelRetrived == true) {
+        if  (ATHandler->readATResponse ( StringToBeRead) == true) {
+            if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+                ////   ////   ////   ////   ////   ////
+                uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
+                uartUSB.write ( "\r\n",  3 );  // debug only
+                ////   ////   ////   ////   ////   ////     
+                char StringToSendUSB [40] = "Cambiando de estado 2";
+                uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+                uartUSB.write ( "\r\n",  3 );  // debug only
+                ////   ////   ////   ////   ////   ////            
+                // this->mobileNetworkModule->changeConnectionState (new .... )
+            }
         }
-*/
-
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->signalLevelRetrived = false;
     }
-    //
-    //
-    //
 
 }
 
 
 
 //=====[Implementations of private functions]==================================
+bool CheckingNetworkState::checkExpectedResponse(char *response, float &value) {
+    char StringToCompare[15] = "+CSQ:";
+    
+    // Verificar si la respuesta comienza con "+CSQ:"
+    if (strncmp(response, StringToCompare, strlen(StringToCompare)) == 0) {
+        // La respuesta comienza con "+CSQ:"
+        // Extraer la parte numérica después de "+CSQ:"
+        char *numericPart = response + strlen(StringToCompare);
+        
+        // Convertir la parte numérica a float
+        value = std::strtof(numericPart, nullptr);
+        
+        return true;
+    } else {
+        // La respuesta no comienza con "+CSQ:"
+        return false;
+    }
+}

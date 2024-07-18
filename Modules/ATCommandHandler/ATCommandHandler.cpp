@@ -1,7 +1,9 @@
 //=====[Libraries]=============================================================
 
 #include "ATCommandHandler.h"
-
+#include <string>
+#include <cwchar>
+#include "Debugger.h" // due to global usbUart 
 //=====[Declaration of private defines]========================================
 
 //=====[Declaration of private data types]=====================================
@@ -40,6 +42,7 @@ ATCommandHandler::ATCommandHandler ( BufferedSerial * UART) {
 
 
 ATCommandHandler::~ATCommandHandler () {
+    delete  this->serialComunicationUART;
 }
 
 
@@ -77,6 +80,43 @@ bool ATCommandHandler::readATResponse (char * StringToBeRead) {
             }
         }
     }
+    return false;
+}
+
+
+bool ATCommandHandler::retrieveNumericalVauleFromResponse(char *ATResponse, float numberRetrieved) {
+    static std::string strSignalQuality = "";
+    static int responseStringIndex = 0;
+    static int quantityOfDigits = 0;
+
+    if (ATResponse == NULL) {
+        return false;
+    }
+
+    char charReceived = ATResponse[responseStringIndex];
+
+    if (isdigit(charReceived)) {
+        strSignalQuality += charReceived;
+        quantityOfDigits++;
+    }
+
+    if (charReceived == '\r' || charReceived == '\n' || charReceived == ',') { 
+        if (!strSignalQuality.empty() && quantityOfDigits > 0) { 
+            // Debug message
+            uartUSB.write("Final strSignalQuality: ", 24);
+            uartUSB.write(strSignalQuality.c_str(), strSignalQuality.size());
+            uartUSB.write("\r\n", 2);
+
+            numberRetrieved = std::stof(strSignalQuality); // Convert string to float
+       
+            responseStringIndex = 0;
+            quantityOfDigits = 0;
+            strSignalQuality.clear();
+            return true;
+        }
+    }
+
+    responseStringIndex++;
     return false;
 }
 

@@ -102,7 +102,7 @@ void IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refres
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
-            this->mobileNetworkModule->changeConnectionState (new CheckingNetworkState (this->mobileNetworkModule));
+            this->mobileNetworkModule->changeConnectionState (new CheckingSignalStrength (this->mobileNetworkModule));
         }
 
 

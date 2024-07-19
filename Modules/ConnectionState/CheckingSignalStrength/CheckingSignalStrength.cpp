@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "CheckingNetworkState.h"
+#include "CheckingSignalStrength.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart 
 
@@ -35,7 +35,7 @@
 * 
 * @param 
 */
-CheckingNetworkState::CheckingNetworkState (CellularModule * mobileModule) {
+CheckingSignalStrength::CheckingSignalStrength (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->ATFirstResponseRead  = false;
     this->readyToSend = true;
@@ -49,9 +49,8 @@ CheckingNetworkState::CheckingNetworkState (CellularModule * mobileModule) {
 * 
 * @returns 
 */
-CheckingNetworkState::~CheckingNetworkState () {
+CheckingSignalStrength::~CheckingSignalStrength () {
     this->mobileNetworkModule = NULL;
-    this->signalLevel = NULL;
 }
 
 
@@ -61,7 +60,7 @@ CheckingNetworkState::~CheckingNetworkState () {
 * 
 * @returns 
 */
-void CheckingNetworkState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+void CheckingSignalStrength::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
@@ -112,7 +111,7 @@ void CheckingNetworkState::connect (ATCommandHandler * ATHandler, NonBlockingDel
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
-                // this->mobileNetworkModule->changeConnectionState (new .... )
+                this->mobileNetworkModule->changeConnectionState (new ConsultingIMEI (this->mobileNetworkModule) );
             }
         }
     }
@@ -127,7 +126,7 @@ void CheckingNetworkState::connect (ATCommandHandler * ATHandler, NonBlockingDel
 
 
 //=====[Implementations of private functions]==================================
-bool CheckingNetworkState::checkExpectedResponse(char *response, float &value) {
+bool CheckingSignalStrength::checkExpectedResponse(char *response, float &value) {
     char StringToCompare[15] = "+CSQ:";
     
     // Verificar si la respuesta comienza con "+CSQ:"

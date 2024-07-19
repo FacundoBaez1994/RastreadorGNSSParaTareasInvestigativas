@@ -25,7 +25,6 @@ public:
     virtual ~ATCommandHandler();
     void sendATCommand (char * ATCommandToBeSend);
     bool readATResponse (char * StringToBeRead);
-    bool retrieveNumericalVauleFromResponse (  char * ATResponse, float numberRetrieved );
     BufferedSerial* getUART (void);
 
 private:

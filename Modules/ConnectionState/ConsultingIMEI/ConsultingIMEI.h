@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CHECKING_NETWORK_STATE_H_
-#define _CHECKING_NETWORK_STATE_H_
+#ifndef _CONSULTING_IMEI_H_
+#define _CONSULTING_IMEI_H_
 
 //==================[Libraries]===============================================
 
@@ -20,22 +20,22 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class CheckingNetworkState : public ConnectionState {
+class ConsultingIMEI : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    CheckingNetworkState ();
-    CheckingNetworkState(CellularModule * mobileModule);
-    virtual ~CheckingNetworkState ();
+    ConsultingIMEI();
+    ConsultingIMEI(CellularModule * mobileModule);
+    virtual ~ConsultingIMEI ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
 //=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool ATFirstResponseRead;
-    bool signalLevelRetrived;
-    float signalLevel;
+    bool IMEIRetrived;
+    long long int IMEI;
 //=====[Declaration of privates methods]=========================================
-    bool checkExpectedResponse (char *response, float &value);
+    bool RetrivIMEI (char *response, long long int &value);
 };
 
 
@@ -43,4 +43,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _CHECKING_NETWORK_STATE_H_
+#endif //   _CONSULTING_IMEI_H_

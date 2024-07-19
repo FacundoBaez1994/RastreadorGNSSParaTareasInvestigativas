@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _IDLE_STATE_H_
-#define _IDLE_STATE_H_
+#ifndef _CHECKING_SIGNAL_STRENGTH_H_
+#define _CHECKING_SIGNAL_STRENGTH_H_
 
 //==================[Libraries]===============================================
 
@@ -9,8 +9,9 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
+#include "ConsultingIMEI.h"
 #include "Non_Blocking_Delay.h"
-#include "CheckingSignalStrength.h"
+#include <string>
 
 
 //=====[Declaration of public data types]======================================
@@ -21,19 +22,22 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class IdleState : public ConnectionState {
+class CheckingSignalStrength : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    IdleState ();
-    IdleState (CellularModule * mobileModule);
-    virtual ~IdleState ();
+    CheckingSignalStrength ();
+    CheckingSignalStrength(CellularModule * mobileModule);
+    virtual ~CheckingSignalStrength ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
+//=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-//=====[Declaration of privates atributes]=========================================
-
+    bool ATFirstResponseRead;
+    bool signalLevelRetrived;
+    float signalLevel;
 //=====[Declaration of privates methods]=========================================
+    bool checkExpectedResponse (char *response, float &value);
 };
 
 
@@ -41,4 +45,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _CELLULAR_STATE_H_
+#endif // _CHECKING_SIGNAL_STRENGTH_H_

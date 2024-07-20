@@ -19,6 +19,7 @@
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
+DigitalOut led(LED1);
 
 //=====[Declaration and initialization of private global variables]============
 
@@ -38,7 +39,6 @@ tracker::tracker () {
 *
 */
 void tracker::update () {
-    DigitalOut led(LED1);
     this->cellularTransmitter->startStopUpdate();
     
     if (this->latency->read()) { // WRITE

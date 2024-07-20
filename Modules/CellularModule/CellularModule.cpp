@@ -58,9 +58,11 @@ CellularModule::CellularModule () {
     *this->powerKeyOutput = OFF;
     *this->powerDownOutput = ON; 
     *this->simCardSwitchOutput = ON; 
-    this->turningPower = false;
 
+    this->turningPowerManual = false;
+    this->turningPowerAutomatic = false;
     this->watingForResponse = false;
+    this->wasManualyTurnOff = false;
 }
 
 
@@ -79,26 +81,59 @@ CellularModule::~CellularModule () {
 * SOFT HARDWARE START STOP
 */
 void CellularModule::startStopUpdate () {
-    if (this->powerControlButtonInput->read () == OFF  && this->turningPower == false ) {  
-        this->turningPower = true;
+     //////////////////// MANUAL TURN ON // OFF ///////////////////
+    if (this->powerControlButtonInput->read () == OFF  && this->turningPowerManual == false
+    && turningPowerAutomatic == false ) {  
+        if (this->powerStatusInput->read () == OFF) {
+            this->wasManualyTurnOff = true;
+        } else{
+            this->wasManualyTurnOff = false;
+        }
+        this->turningPowerManual = true;
         *this->powerKeyOutput = ON;
         this->powerChangeDurationtimer->restart ();
         ///////////////////////////////////////
-        char StringToSend [15] = "ENCENDIDO ON";
+        char StringToSend [30] = "MANUAL POWER CHANGE INIT";
         uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         ///////////////////////////////////////
     }  
-    if (this->turningPower == true && this->powerChangeDurationtimer->read() )  {
-        this->turningPower = false;
+    if (this->turningPowerManual == true && this->powerChangeDurationtimer->read() )  {
+        this->turningPowerManual = false;
         *this->powerKeyOutput = OFF;
 
         ///////////////////////////////////////
-        char StringToSend [15] = "ENCENDIDO OFF";
+        char StringToSend [30] = "MANUAL POWER CHANGE END";;
         uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         ///////////////////////////////////////
+        this->changeConnectionState(new IdleState (this));
     } 
+
+     //////////////////// AUTOMATIC TURN ON // OFF ///////////////////
+        if ( this->powerStatusInput->read () == ON && this->turningPowerManual == false
+    && turningPowerAutomatic == false &&  this->wasManualyTurnOff == false ) {  
+        this->turningPowerAutomatic = true;
+        *this->powerKeyOutput = ON;
+        this->powerChangeDurationtimer->restart ();
+        ///////////////////////////////////////
+        char StringToSend [40] = "AUTOMATIC POWER CHANGE INIT";
+        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        ///////////////////////////////////////
+    }  
+    if (this->turningPowerAutomatic == true && this->powerChangeDurationtimer->read() )  {
+        this->turningPowerAutomatic = false;
+        *this->powerKeyOutput = OFF;
+
+        ///////////////////////////////////////
+        char StringToSend [40] = "AUTOMATIC POWER CHANGE END";
+        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        ///////////////////////////////////////
+        this->changeConnectionState(new IdleState (this));
+    } 
+
 }
 
 /** 

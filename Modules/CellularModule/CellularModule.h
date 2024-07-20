@@ -37,7 +37,9 @@ private:
     ATCommandHandler* ATHandler;
     ConnectionState* currentConnectionState;
 
-    bool turningPower;
+    bool turningPowerManual;
+    bool turningPowerAutomatic;
+    bool wasManualyTurnOff;
     DigitalIn* powerStatusInput; // negative value if power on
     DigitalIn* powerControlButtonInput;
     DigitalOut* powerKeyOutput; // soft power control

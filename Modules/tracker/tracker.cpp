@@ -9,7 +9,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        100
+#define LATENCY        500
 #define POWERCHANGEDURATION  700
 
 //=====[Declaration of private data types]=====================================

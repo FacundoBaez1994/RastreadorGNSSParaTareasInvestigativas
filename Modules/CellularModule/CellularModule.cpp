@@ -9,10 +9,11 @@
 #define CELLULAR_MODULE_TX_UART PA_9
 #define CELLULAR_MODULE_RX_UART PA_10
 #define CELLULAR_MODULE_BAUD_RATE 115200
-#define CELLULAR_MODULE_POWER_STATUS_SIGNAL_PIN_INPUT PA_8
+#define CELLULAR_MODULE_POWER_STATUS_SIGNAL_PIN_INPUT PB_5
 #define CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT PA_0
 #define CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT PB_4
 #define CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT PB_0
+#define CELLULAR_MODULE_SIMCARD_SWITCH_OUTPUT PA_8
 
 
 //=====[Declaration of private data types]=====================================
@@ -51,10 +52,12 @@ CellularModule::CellularModule () {
     this->powerControlButtonInput = new DigitalIn (CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT);
     this->powerKeyOutput = new DigitalOut (CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT);
     this->powerDownOutput = new DigitalOut (CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT);
+    this->simCardSwitchOutput =  new DigitalOut (CELLULAR_MODULE_SIMCARD_SWITCH_OUTPUT);
 
     this->powerControlButtonInput->mode(PullUp);
     *this->powerKeyOutput = OFF;
     *this->powerDownOutput = ON; 
+    *this->simCardSwitchOutput = ON; 
     this->turningPower = false;
 
     this->watingForResponse = false;
@@ -135,3 +138,8 @@ void CellularModule::changeConnectionState  (ConnectionState * newConnectionStat
 * @brief
 * @note 
 */
+void CellularModule::switchSIMCARD () {
+    *this->simCardSwitchOutput = ! *this->simCardSwitchOutput;
+}
+
+

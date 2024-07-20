@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "ConsultingIMEI.h"
+#include "ConsultingNetworkStatus.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart 
 
@@ -35,7 +35,7 @@
 * 
 * @param 
 */
-ConsultingIMEI::ConsultingIMEI (CellularModule * mobileModule) {
+ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->ATFirstResponseRead  = false;
     this->readyToSend = true;
@@ -49,7 +49,7 @@ ConsultingIMEI::ConsultingIMEI (CellularModule * mobileModule) {
 * 
 * @returns 
 */
-ConsultingIMEI::~ConsultingIMEI () {
+ConsultingNetworkStatus::~ConsultingNetworkStatus () {
     this->mobileNetworkModule = NULL;
 }
 
@@ -60,12 +60,12 @@ ConsultingIMEI::~ConsultingIMEI () {
 * 
 * @returns 
 */
-void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
-     char StringToSend [15] = "AT+CGSN";
-    char StringToSendUSB [40] = "CONSULTING IMEI STATE";
+    char StringToSend [15] = "AT+CREG?";
+    char StringToSendUSB [40] = "CONSULTING NETWORK STATUS";
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -79,7 +79,7 @@ void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * r
         ////   ////   ////   ////   ////   ////   
     }
 
- if ( this->IMEIRetrived == false) {
+    //if ( this->IMEIRetrived == false) {
         if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
         
             ////   ////   ////   ////   ////   ////
@@ -88,7 +88,8 @@ void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * r
             ////   ////   ////   ////   ////   ////
            // this->ATFirstResponseRead = true;
              refreshTime->restart();
-            if (this->RetrivIMEI (StringToBeRead,  this->IMEI )) {
+             }
+    /*        if (this->RetrivIMEI (StringToBeRead,  this->IMEI )) {
                 char msgStringSignalQuality [20]= "";
                 sprintf (msgStringSignalQuality, "%lld",  this->IMEI );  
                 char msg []  = "Module IMEI: "; 
@@ -111,11 +112,11 @@ void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * r
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
-                this->mobileNetworkModule->changeConnectionState (new ConsultingSIMCardStatus (this->mobileNetworkModule) );
+                //this->mobileNetworkModule->changeConnectionState (new ConsultingIMEI (this->mobileNetworkModule) );
             }
         }
     }
-
+*/
     if (refreshTime->read()) {
         this->readyToSend = true;
         this->IMEIRetrived= false;
@@ -126,7 +127,7 @@ void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * r
 
 
 //=====[Implementations of private functions]==================================
-bool ConsultingIMEI::RetrivIMEI(char *response, long long int &value) {
+bool ConsultingNetworkStatus::RetrivIMEI(char *response, long long int &value) {
     // Verificar si los primeros tres caracteres son dígitos
     for (int i = 0; i < 3; ++i) {
         if (!isdigit(response[i])) {

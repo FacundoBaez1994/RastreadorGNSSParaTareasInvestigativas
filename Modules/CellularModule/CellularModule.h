@@ -28,6 +28,7 @@ public:
     void startStopUpdate ();
     void connectToMobileNetwork ();
     void changeConnectionState  (ConnectionState * newConnectionState);
+    void switchSIMCARD ();
     BufferedSerial* getUART ();
 private:
 //=====[Declaration of privates atributes]=========================================
@@ -41,6 +42,7 @@ private:
     DigitalIn* powerControlButtonInput;
     DigitalOut* powerKeyOutput; // soft power control
     DigitalOut* powerDownOutput; // Power source enable - hard power control
+    DigitalOut* simCardSwitchOutput; // Switch between Simcards
     bool watingForResponse;
 
 

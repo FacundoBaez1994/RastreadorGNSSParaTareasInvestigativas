@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONSULTING_NETWORK_STATUS_H_
-#define _CONSULTING_NETWORK_STATUS_H_
+#ifndef _CONSULTING_AVAILABLE_OPERATORS_H_
+#define _CONSULTING_AVAILABLE_OPERATORS_H_
 
 //==================[Libraries]===============================================
 
@@ -20,22 +20,22 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class ConsultingNetworkStatus : public ConnectionState {
+class ConsultingAvailableOperators : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConsultingNetworkStatus();
-    ConsultingNetworkStatus(CellularModule * mobileModule);
-    virtual ~ConsultingNetworkStatus ();
+    ConsultingAvailableOperators();
+    ConsultingAvailableOperators (CellularModule * mobileModule);
+    virtual ~ConsultingAvailableOperators ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
 //=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool ATFirstResponseRead;
-    bool IMEIRetrived;
-    long long int IMEI;
+    bool operatorsInformationRetrived;
+   
+    char * currentOperator;
 //=====[Declaration of privates methods]=========================================
-    bool RetrivIMEI (char *response, long long int &value);
+    bool retrivOperatorsInformation (char *response);
 };
 
 
@@ -43,4 +43,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //   _CONSULTING_NETWORK_STATUS_H_
+#endif //   _CONSULTING_AVAILABLE_OPERATORS_H_

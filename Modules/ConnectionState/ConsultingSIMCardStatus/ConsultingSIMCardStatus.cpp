@@ -115,7 +115,7 @@ void ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlocking
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
-                //this->mobileNetworkModule->changeConnectionState (new ConsultingIMEI (this->mobileNetworkModule) );
+                this->mobileNetworkModule->changeConnectionState (new ConsultingNetworkStatus (this->mobileNetworkModule) );
             }
         }
     }

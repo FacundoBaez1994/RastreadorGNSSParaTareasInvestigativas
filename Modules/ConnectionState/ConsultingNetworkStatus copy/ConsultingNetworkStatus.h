@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONSULTING_SIMCARD_STATUS_H_
-#define _CONSULTING_SIMCARD_STATUS_H_
+#ifndef _CONSULTING_NETWORK_STATUS_H_
+#define _CONSULTING_NETWORK_STATUS_H_
 
 //==================[Libraries]===============================================
 
@@ -9,7 +9,7 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
-#include "ConsultingNetworkStatus.h"
+#include "ConsultingAvailableOperators.h"
 #include "Non_Blocking_Delay.h"
 #include <string>
 
@@ -21,21 +21,25 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class ConsultingSIMCardStatus : public ConnectionState {
+class ConsultingNetworkStatus : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConsultingSIMCardStatus();
-    ConsultingSIMCardStatus(CellularModule * mobileModule);
-    virtual ~ConsultingSIMCardStatus ();
+    ConsultingNetworkStatus();
+    ConsultingNetworkStatus(CellularModule * mobileModule);
+    virtual ~ConsultingNetworkStatus ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
 //=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool ATFirstResponseRead;
-    bool simCardDetected;
-    long long int IMEI;
+    bool cellDataRetrived;
+    int lac;
+    unsigned long cellId; 
+    int accessTechnology;
+    int registrationStatus;
 //=====[Declaration of privates methods]=========================================
+    bool retrivIdCellData (char *response);
 };
 
 
@@ -43,4 +47,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _CONSULTING_SIMCARD_STATUS_H_
+#endif //   _CONSULTING_NETWORK_STATUS_H_

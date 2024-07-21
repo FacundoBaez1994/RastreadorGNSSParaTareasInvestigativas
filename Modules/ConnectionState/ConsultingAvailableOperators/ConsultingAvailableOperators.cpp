@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "ConsultingNetworkStatus.h"
+#include "ConsultingAvailableOperators.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart 
 
@@ -35,11 +35,10 @@
 * 
 * @param 
 */
-ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule) {
+ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
-    this->ATFirstResponseRead  = false;
+    this->operatorsInformationRetrived = false;
     this->readyToSend = true;
-    this->IMEIRetrived = false;
 }
 
 
@@ -49,8 +48,9 @@ ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule)
 * 
 * @returns 
 */
-ConsultingNetworkStatus::~ConsultingNetworkStatus () {
+ConsultingAvailableOperators::~ConsultingAvailableOperators () {
     this->mobileNetworkModule = NULL;
+    this->currentOperator = NULL;
 }
 
 
@@ -60,12 +60,12 @@ ConsultingNetworkStatus::~ConsultingNetworkStatus () {
 * 
 * @returns 
 */
-void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+void ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
-    char StringToSend [15] = "AT+CREG?";
-    char StringToSendUSB [40] = "CONSULTING NETWORK STATUS";
+    char StringToSend [15] = "AT+QNWINFO";
+    char StringToSendUSB [40] = "CONSULTING AVAILABLE OPERATORS";
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -79,36 +79,28 @@ void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlocking
         ////   ////   ////   ////   ////   ////   
     }
 
-    //if ( this->IMEIRetrived == false) {
+    if ( this->operatorsInformationRetrived == false) {
         if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
         
             ////   ////   ////   ////   ////   ////
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////
-           // this->ATFirstResponseRead = true;
              refreshTime->restart();
-             }
-    /*        if (this->RetrivIMEI (StringToBeRead,  this->IMEI )) {
-                char msgStringSignalQuality [20]= "";
-                sprintf (msgStringSignalQuality, "%lld",  this->IMEI );  
-                char msg []  = "Module IMEI: "; 
-                uartUSB.write (msg,  strlen (msg) );  // debug only
-                uartUSB.write (msgStringSignalQuality,  strlen (msgStringSignalQuality) );  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
-                this->IMEIRetrived= true;
+            if (this->retrivOperatorsInformation (StringToBeRead)) {
+                this->operatorsInformationRetrived = true;
            }
         } 
     } 
 
-    if (this->IMEIRetrived == true) {
+    if (this->operatorsInformationRetrived  == true) {
         if  (ATHandler->readATResponse ( StringToBeRead) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////     
-                char StringToSendUSB [40] = "Cambiando de estado 3";
+                char StringToSendUSB [40] = "Cambiando de estado 5";
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
@@ -116,10 +108,10 @@ void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlocking
             }
         }
     }
-*/
+
     if (refreshTime->read()) {
         this->readyToSend = true;
-        this->IMEIRetrived= false;
+        this->operatorsInformationRetrived = false;
     }
 
 }
@@ -127,25 +119,52 @@ void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlocking
 
 
 //=====[Implementations of private functions]==================================
-bool ConsultingNetworkStatus::RetrivIMEI(char *response, long long int &value) {
-    // Verificar si los primeros tres caracteres son dígitos
-    for (int i = 0; i < 3; ++i) {
-        if (!isdigit(response[i])) {
-            return false; // Los primeros tres caracteres no son dígitos
+bool ConsultingAvailableOperators::retrivOperatorsInformation(char *response) {
+    char StringToCompare[10] = "+QNWINFO:";
+
+    if (strncmp(response, StringToCompare, strlen(StringToCompare)) == 0) {
+        char accessTechnology[20] = {0};
+        char operatorCode[10] = {0};
+        char band[20] = {0};
+        int channel;
+        
+        // Parsear la respuesta para obtener MCC, MNC, tecnología de acceso, banda y canal
+        int n = sscanf(response, "+QNWINFO: \"%19[^\"]\",\"%9[^\"]\",\"%19[^\"]\",%d", accessTechnology, operatorCode, band, &channel);
+
+        if (n == 4) {
+            // Extraer MCC y MNC del operatorCode
+            char mcc[4] = {0};
+            char mnc[4] = {0};
+
+            strncpy(mcc, operatorCode, 3);
+            strncpy(mnc, operatorCode + 3, 3);
+
+            // Enviar la información por UART para verificación
+            uartUSB.write("Access Technology: ", strlen("Access Technology: "));
+            uartUSB.write(accessTechnology, strlen(accessTechnology));
+            uartUSB.write("\r\n", 2);
+
+            uartUSB.write("MCC: ", strlen("MCC: "));
+            uartUSB.write(mcc, strlen(mcc));
+            uartUSB.write("\r\n", 2);
+
+            uartUSB.write("MNC: ", strlen("MNC: "));
+            uartUSB.write(mnc, strlen(mnc));
+            uartUSB.write("\r\n", 2);
+
+            uartUSB.write("Band: ", strlen("Band: "));
+            uartUSB.write(band, strlen(band));
+            uartUSB.write("\r\n", 2);
+
+            char channelStr[10];
+            sprintf(channelStr, "%d", channel);
+            uartUSB.write("Channel: ", strlen("Channel: "));
+            uartUSB.write(channelStr, strlen(channelStr));
+            uartUSB.write("\r\n", 2);
+
+            return true;
         }
     }
 
-    // Extraer el número de IMEI de la respuesta
-    char imeiPart[16] = {0}; // Crear un buffer para almacenar el IMEI
-    strncpy(imeiPart, response, 15); // Copiar los primeros 15 caracteres
-
-    // Verificar si la longitud del IMEI es la esperada (15 dígitos)
-    if (strlen(imeiPart) != 15) {
-        return false; // Longitud de IMEI no es válida
-    }
-
-    // Convertir la parte del IMEI a un número entero largo
-    value = std::atoll(imeiPart);
-    
-    return true; // Recuperación exitosa del IMEI
+    return false;
 }

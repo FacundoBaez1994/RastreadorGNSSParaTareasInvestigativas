@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONSULTING_AVAILABLE_OPERATORS_H_
-#define _CONSULTING_AVAILABLE_OPERATORS_H_
+#ifndef _RETRIEVING_TIME_AND_DATE_H_
+#define _RETRIEVING_TIME_AND_DATE_H_
 
 //==================[Libraries]===============================================
 
@@ -9,8 +9,8 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
-#include "RetrievingTimeAndDate.h"
 #include "Non_Blocking_Delay.h"
+#include "AttachingToPacketService.h"
 #include <string>
 
 //=====[Declaration of public data types]======================================
@@ -21,22 +21,22 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class ConsultingAvailableOperators : public ConnectionState {
+class RetrievingTimeAndDate : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConsultingAvailableOperators();
-    ConsultingAvailableOperators (CellularModule * mobileModule);
-    virtual ~ConsultingAvailableOperators ();
+    RetrievingTimeAndDate();
+    RetrievingTimeAndDate (CellularModule * mobileModule);
+    virtual ~RetrievingTimeAndDate();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
 //=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool operatorsInformationRetrived;
+    bool timeAndDateRetrived;
    
-    char * currentOperator;
+    char dateTimeAndTimeZoneString [35];
 //=====[Declaration of privates methods]=========================================
-    bool retrivOperatorsInformation (char *response);
+    bool retrieveNetworkTime (char *response);
 };
 
 
@@ -44,4 +44,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //   _CONSULTING_AVAILABLE_OPERATORS_H_
+#endif //   _RETRIEVING_TIME_AND_DATE_H_

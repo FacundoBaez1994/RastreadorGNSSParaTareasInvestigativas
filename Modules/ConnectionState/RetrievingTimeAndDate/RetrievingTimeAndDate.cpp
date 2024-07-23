@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "ConsultingAvailableOperators.h"
+#include "RetrievingTimeAndDate.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart 
 
@@ -35,9 +35,9 @@
 * 
 * @param 
 */
-ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mobileModule) {
+RetrievingTimeAndDate::RetrievingTimeAndDate (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
-    this->operatorsInformationRetrived = false;
+    this->timeAndDateRetrived = false;
     this->readyToSend = true;
 }
 
@@ -48,9 +48,8 @@ ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mob
 * 
 * @returns 
 */
-ConsultingAvailableOperators::~ConsultingAvailableOperators () {
+RetrievingTimeAndDate::~RetrievingTimeAndDate () {
     this->mobileNetworkModule = NULL;
-    this->currentOperator = NULL;
 }
 
 
@@ -60,12 +59,13 @@ ConsultingAvailableOperators::~ConsultingAvailableOperators () {
 * 
 * @returns 
 */
-void ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+void RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
-    char StringToSend [15] = "AT+QNWINFO";
-    char StringToSendUSB [40] = "CONSULTING AVAILABLE OPERATORS";
+    char StringToSend [15] =  "AT+QLTS=2";
+
+    char StringToSendUSB [40] = "RETRIVING TIME AND DATE ";
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -76,10 +76,10 @@ void ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlo
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         refreshTime->restart();
-        ////   ////   ////   ////   ////   ////   
+        ////   ////   ////   ////   ////   //// 
     }
 
-    if ( this->operatorsInformationRetrived == false) {
+    if ( this->timeAndDateRetrived == false) {
         if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
         
             ////   ////   ////   ////   ////   ////
@@ -87,82 +87,50 @@ void ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlo
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////
              refreshTime->restart();
-            if (this->retrivOperatorsInformation (StringToBeRead)) {
-                this->operatorsInformationRetrived = true;
-           }
+           if (this->retrieveNetworkTime (StringToBeRead)) {
+                this->timeAndDateRetrived = true;
+            }
         } 
     } 
 
-    if (this->operatorsInformationRetrived  == true) {
+    if (this->timeAndDateRetrived  == true) {
         if  (ATHandler->readATResponse ( StringToBeRead) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////     
-                char StringToSendUSB [40] = "Cambiando de estado 5";
+                char StringToSendUSB [40] = "Cambiando de estado 6";
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
-                this->mobileNetworkModule->changeConnectionState (new RetrievingTimeAndDate (this->mobileNetworkModule));
+                this->mobileNetworkModule->changeConnectionState (new AttachingToPacketService (this->mobileNetworkModule) );
             }
         }
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
-        this->operatorsInformationRetrived = false;
+        this->timeAndDateRetrived = false;
     }
 
 }
 
 //=====[Implementations of private functions]==================================
-bool ConsultingAvailableOperators::retrivOperatorsInformation(char *response) {
-    char StringToCompare[10] = "+QNWINFO:";
+bool RetrievingTimeAndDate::retrieveNetworkTime(char *response) {
+    char StringToCompare[8] = "+QLTS: ";
 
     if (strncmp(response, StringToCompare, strlen(StringToCompare)) == 0) {
-        char accessTechnology[20] = {0};
-        char operatorCode[10] = {0};
-        char band[20] = {0};
-        int channel;
-        
-        // Parsear la respuesta para obtener MCC, MNC, tecnología de acceso, banda y canal
-        int n = sscanf(response, "+QNWINFO: \"%19[^\"]\",\"%9[^\"]\",\"%19[^\"]\",%d", accessTechnology, operatorCode, band, &channel);
+        char * DateAndTimePart = response + strlen(StringToCompare);
+        strncpy(this->dateTimeAndTimeZoneString, DateAndTimePart, sizeof(this->dateTimeAndTimeZoneString) - 1);
+        this->dateTimeAndTimeZoneString[sizeof(this->dateTimeAndTimeZoneString) - 1] = '\0';
 
-        if (n == 4) {
-            // Extraer MCC y MNC del operatorCode
-            char mcc[4] = {0};
-            char mnc[4] = {0};
-
-            strncpy(mcc, operatorCode, 3);
-            strncpy(mnc, operatorCode + 3, 3);
-
-            // Enviar la información por UART para verificación
-            uartUSB.write("Access Technology: ", strlen("Access Technology: "));
-            uartUSB.write(accessTechnology, strlen(accessTechnology));
-            uartUSB.write("\r\n", 2);
-
-            uartUSB.write("MCC: ", strlen("MCC: "));
-            uartUSB.write(mcc, strlen(mcc));
-            uartUSB.write("\r\n", 2);
-
-            uartUSB.write("MNC: ", strlen("MNC: "));
-            uartUSB.write(mnc, strlen(mnc));
-            uartUSB.write("\r\n", 2);
-
-            uartUSB.write("Band: ", strlen("Band: "));
-            uartUSB.write(band, strlen(band));
-            uartUSB.write("\r\n", 2);
-
-            char channelStr[10];
-            sprintf(channelStr, "%d", channel);
-            uartUSB.write("Channel: ", strlen("Channel: "));
-            uartUSB.write(channelStr, strlen(channelStr));
-            uartUSB.write("\r\n", 2);
-
-            return true;
-        }
+        uartUSB.write("Time and Date: ", strlen("Time and Date: ")); // debug
+        uartUSB.write(this->dateTimeAndTimeZoneString, strlen(this->dateTimeAndTimeZoneString)); // debug
+        uartUSB.write("\r\n", 2); // debug
+        return true;
     }
 
     return false;
 }
+

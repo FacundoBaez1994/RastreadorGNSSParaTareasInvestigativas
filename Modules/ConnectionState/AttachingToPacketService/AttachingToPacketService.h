@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONSULTING_AVAILABLE_OPERATORS_H_
-#define _CONSULTING_AVAILABLE_OPERATORS_H_
+#ifndef _ATTACHING_TO_PACKET_SERVICE_H_
+#define _ATTACHING_TO_PACKET_SERVICE_H_
 
 //==================[Libraries]===============================================
 
@@ -9,9 +9,9 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
-#include "RetrievingTimeAndDate.h"
 #include "Non_Blocking_Delay.h"
-#include <string>
+#include "DefinePDPContext.h"
+
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
@@ -21,22 +21,19 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class ConsultingAvailableOperators : public ConnectionState {
+class AttachingToPacketService : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConsultingAvailableOperators();
-    ConsultingAvailableOperators (CellularModule * mobileModule);
-    virtual ~ConsultingAvailableOperators ();
+    AttachingToPacketService ();
+    AttachingToPacketService (CellularModule * mobileModule);
+    virtual ~AttachingToPacketService ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
-//=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool operatorsInformationRetrived;
-   
-    char * currentOperator;
+//=====[Declaration of privates atributes]=========================================
+
 //=====[Declaration of privates methods]=========================================
-    bool retrivOperatorsInformation (char *response);
 };
 
 
@@ -44,4 +41,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //   _CONSULTING_AVAILABLE_OPERATORS_H_
+#endif // _ATTACHING_TO_PACKET_SERVICE_H_

@@ -1,7 +1,9 @@
 //=====[Libraries]=============================================================
 #include "CellularModule.h"
 #include "Debugger.h"
-#include "ConnectionState.h" //debido a declaracion adelantada
+#include "IdleState.h"
+#include "TransmissionUnavailable.h"
+
 
 //=====[Declaration of private defines]========================================
 #define POWERCHANGEDURATION  700
@@ -47,6 +49,7 @@ CellularModule::CellularModule () {
     this->ATHandler = new ATCommandHandler (new BufferedSerial  (CELLULAR_MODULE_TX_UART, 
      CELLULAR_MODULE_RX_UART, CELLULAR_MODULE_BAUD_RATE));
     this->currentConnectionState = new IdleState (this);
+    this->currentTransmissionState = new TransmissionUnavailable (this);
  
     this->powerStatusInput = new DigitalIn (CELLULAR_MODULE_POWER_STATUS_SIGNAL_PIN_INPUT); 
     this->powerControlButtonInput = new DigitalIn (CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT);
@@ -108,6 +111,7 @@ void CellularModule::startStopUpdate () {
         uartUSB.write ( "\r\n",  3 );  // debug only
         ///////////////////////////////////////
         this->changeConnectionState(new IdleState (this));
+        this->changeTransmissionState(new TransmissionUnavailable (this));
     } 
 
      //////////////////// AUTOMATIC TURN ON // OFF ///////////////////
@@ -132,6 +136,7 @@ void CellularModule::startStopUpdate () {
         uartUSB.write ( "\r\n",  3 );  // debug only
         ///////////////////////////////////////
         this->changeConnectionState(new IdleState (this));
+        this->changeTransmissionState(new TransmissionUnavailable (this));
     } 
 
 }
@@ -151,10 +156,44 @@ void CellularModule::connectToMobileNetwork () {
 * 
 * @returns 
 */
+void CellularModule::sendMessage (char * message, char * ipDirection, int tcpPort ) {
+    this->currentTransmissionState->send (this->ATHandler,
+    this->refreshTime, message, ipDirection, tcpPort);
+}
+
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
 void CellularModule::changeConnectionState  (ConnectionState * newConnectionState) {
     delete this->currentConnectionState;
     this->currentConnectionState = newConnectionState;
 }
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
+void CellularModule:: enableTransmission () {
+    delete this->currentTransmissionState;
+    this->currentTransmissionState = new ActivatePDP (this);
+}
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
+void CellularModule::changeTransmissionState  (TransmissionState * newTransmissionState) {
+    delete this->currentTransmissionState;
+    this->currentTransmissionState = newTransmissionState;
+}
+
+
+
 
 
 /** 
@@ -166,9 +205,6 @@ void CellularModule::changeConnectionState  (ConnectionState * newConnectionStat
      return this->ATHandler->getUART();
 }
 
-
-
-//=====[Implementations of private functions]==================================
 /** 
 * @brief
 * @note 
@@ -177,4 +213,5 @@ void CellularModule::switchSIMCARD () {
     *this->simCardSwitchOutput = ! *this->simCardSwitchOutput;
 }
 
+//=====[Implementations of private functions]==================================
 

@@ -33,21 +33,23 @@ tracker::tracker () {
     this->latency = new NonBlockingDelay (LATENCY);
     this->cellularTransmitter = new CellularModule ( );
 }
+
 /** 
 * @brief Main rutine of the tracker device
 *   
 *
 */
 void tracker::update () {
-    this->cellularTransmitter->startStopUpdate();
-    
+    char message [15] = "Hola Mundo!";
+    char ipDirection [15] = "186.19.62.251";
+    int tcpPort = 123;
+
     if (this->latency->read()) { // WRITE
         led = !led;
     }
+    this->cellularTransmitter->startStopUpdate();
     this->cellularTransmitter->connectToMobileNetwork();
+    this->cellularTransmitter->sendMessage (message, ipDirection, tcpPort);
 }
-
-
-
 
 //=====[Implementations of private methods]==================================

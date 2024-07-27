@@ -83,6 +83,28 @@ bool ATCommandHandler::readATResponse (char * StringToBeRead) {
     return false;
 }
 
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool ATCommandHandler::readChar (char * charRead) {
+    char receivedCharLocal;
+    char StringToBeSendUSB [2] = "";
+    if (this->serialComunicationUART->readable()) { // READ
+        this->serialComunicationUART->read(&receivedCharLocal, 1);
+        StringToBeSendUSB [0] = receivedCharLocal;
+      //  uartUSB.write(StringToBeSendUSB, strlen(StringToBeSendUSB));  // debug only
+      //  uartUSB.write("\r\n", 3);  // debug only
+
+        *charRead = receivedCharLocal;
+        return true;
+    }
+    return false;
+}
+
 BufferedSerial* ATCommandHandler::getUART (void) {
     return this->serialComunicationUART;
 }

@@ -1,15 +1,15 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _DEFINE_PDP_CONTEXT_H_
-#define _DEFINE_PDP_CONTEXT_H_
+#ifndef _TRANSMISSION_UNAVAILABLE_H_
+#define _TRANSMISSION_UNAVAILABLE_H_
+
 //==================[Libraries]===============================================
 
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "ConnectionState.h"
+#include "TransmissionState.h"
 #include "Non_Blocking_Delay.h"
-#include "ConnectedState.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -20,13 +20,14 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class DefinePDPContext : public ConnectionState {
+class TransmissionUnavailable : public TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
-    DefinePDPContext ();
-    DefinePDPContext (CellularModule * mobileModule);
-    virtual ~DefinePDPContext ();
-    virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
+    TransmissionUnavailable();
+    TransmissionUnavailable (CellularModule * mobileModule);
+    virtual ~TransmissionUnavailable ();
+    virtual void send (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
@@ -40,4 +41,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif // _DEFINE_PDP_CONTEXT_H_
+#endif //  _CONNECTED_STATE_H_

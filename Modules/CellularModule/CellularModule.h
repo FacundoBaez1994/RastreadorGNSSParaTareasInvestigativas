@@ -9,7 +9,9 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "IdleState.h"
+#include "ConnectionState.h"
+#include "TransmissionState.h"
+#include "ActivatePDP.h"
 
 //=====[Declaration of public data types]======================================
 class ConnectionState; //debido a declaracion adelantada
@@ -27,7 +29,10 @@ public:
     virtual ~CellularModule ();
     void startStopUpdate ();
     void connectToMobileNetwork ();
+    void sendMessage (char * message, char * ipDirection, int tcpPort );
     void changeConnectionState  (ConnectionState * newConnectionState);
+    void enableTransmission ();
+    void changeTransmissionState  (TransmissionState * newTransmissionState);
     void switchSIMCARD ();
     BufferedSerial* getUART ();
 private:
@@ -36,6 +41,7 @@ private:
     NonBlockingDelay* refreshTime;
     ATCommandHandler* ATHandler;
     ConnectionState* currentConnectionState;
+    TransmissionState* currentTransmissionState;
 
     bool turningPowerManual;
     bool turningPowerAutomatic;

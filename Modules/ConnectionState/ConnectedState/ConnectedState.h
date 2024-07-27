@@ -1,7 +1,8 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _DEFINE_PDP_CONTEXT_H_
-#define _DEFINE_PDP_CONTEXT_H_
+#ifndef _CONNECTED_STATE_H_
+#define _CONNECTED_STATE_H_
+
 //==================[Libraries]===============================================
 
 #include "mbed.h"
@@ -9,7 +10,6 @@
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
 #include "Non_Blocking_Delay.h"
-#include "ConnectedState.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -20,16 +20,17 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class DefinePDPContext : public ConnectionState {
+class ConnectedState : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    DefinePDPContext ();
-    DefinePDPContext (CellularModule * mobileModule);
-    virtual ~DefinePDPContext ();
+    ConnectedState();
+    ConnectedState (CellularModule * mobileModule);
+    virtual ~ConnectedState ();
     virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
+    bool enableTransmission;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -40,4 +41,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif // _DEFINE_PDP_CONTEXT_H_
+#endif //  _CONNECTED_STATE_H_

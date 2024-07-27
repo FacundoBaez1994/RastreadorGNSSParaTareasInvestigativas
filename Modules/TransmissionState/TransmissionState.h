@@ -1,42 +1,31 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _AT_COMMAND_HANDLER_H_
-#define _AT_COMMAND_HANDLER_H_
+#ifndef _TRANSMISSION_STATE_H_
+#define _TRANSMISSION_STATE_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
-
-#include <string>
+#include "Non_Blocking_Delay.h"
+#include "arm_book_lib.h"
+#include "ATCommandHandler.h"
 
 //=====[Declaration of public data types]======================================
 
 
-
 //=====[Declaration of public classes]=========================================
 /*
+ *  Interface - State desing pattern
  * 
  */
-class ATCommandHandler {
+class TransmissionState {
 public:
-
 //=====[Declaration of public methods]=========================================
-    ATCommandHandler (BufferedSerial * UART);
-    virtual ~ATCommandHandler();
-    void sendATCommand (char * ATCommandToBeSend);
-    bool readATResponse (char * StringToBeRead);
-    BufferedSerial* getUART (void);
-    bool readChar (char * charRead);
-
-private:
+    virtual void send (ATCommandHandler * handler,
+     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
 //=====[Declaration of privates atributes]=========================================
-    BufferedSerial* serialComunicationUART;
-    int bufferIndex; // debug
-    char StringRead [100];
-    char buffer[100];
-    
-//=====[Declaration of privates methods]=========================================
 
+//=====[Declaration of privates methods]=========================================
 };
 
 
@@ -44,4 +33,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif // _AT_COMMAND_HANDLER_H_
+#endif //  _CELLULAR_STATE_H_

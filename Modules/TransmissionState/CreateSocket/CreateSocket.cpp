@@ -1,13 +1,12 @@
 //=====[Libraries]=============================================================
 
-#include "DefinePDPContext.h"
+#include "CreateSocket.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define APN_MOVISTAR "AT+CGDCONT=1,\"IP\",\"internet.movistar.com.ar\"" //APN / username / password   internet.gprs.unifon.com.ar
 
-//=====[Declaration of private sdata types]=====================================
+//=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
 
@@ -36,7 +35,7 @@
 * 
 * @param 
 */
-DefinePDPContext::DefinePDPContext () {
+CreateSocket::CreateSocket () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
 }
@@ -47,7 +46,7 @@ DefinePDPContext::DefinePDPContext () {
 * 
 * @param 
 */
-DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
+CreateSocket::CreateSocket (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
 }
@@ -59,7 +58,7 @@ DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
 * 
 * @returns 
 */
-DefinePDPContext::~DefinePDPContext () {
+CreateSocket::~CreateSocket () {
     this->mobileNetworkModule = NULL;
 }
 
@@ -70,20 +69,31 @@ DefinePDPContext::~DefinePDPContext () {
 * 
 * @returns 
 */
-void DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
-    char StringToBeRead [256];
-    char ExpectedResponse [15] = "OK";
-    char StringToSend [50] = APN_MOVISTAR;
-    char StringToSendUSB [40] = "DEFINING PDP CONTEXT";
+void CreateSocket::send (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
+    char StringToBeSend [120];
+    char StringToBeRead [20];
+    char StringToBeSendUSB []  = "CREATE TCP SOCKET"; 
+    char ExpectedResponseFirstPart [30] = "+QIOPEN: ";
+    char ExpectedResponse [30]; 
+    char ATcommand[] = "AT+QIOPEN=";
+    char protocol[] = "\"TCP\"";
+    int noErrorCode = 0;
+    int contextID = 1; // Usualmente 1
+    int connectID = 0; // Puede ser entre 0 y 11
+    int access_mode = 0; // Modo de acceso al buffer
 
+    // Formatear la cadena final
+    int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d,%s,\"%s\",%d,%d", ATcommand, contextID, connectID, protocol, ipDirection, tcpPort, access_mode);
+    snprintf(ExpectedResponse, sizeof(ExpectedResponse), "+QIOPEN: %d,%d", connectID, noErrorCode);
 
     if (this->readyToSend == true) {
-        ATHandler->sendATCommand(APN_MOVISTAR);
+        ATHandler->sendATCommand(StringToBeSend);
         this->readyToSend  = false;
         ////   ////   ////   ////   ////   ////
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write (StringToBeSendUSB , strlen (StringToBeSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-        uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
+        uartUSB.write (StringToBeSend  , strlen (StringToBeSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         ////   ////   ////   ////   ////   ////   
     }
@@ -95,14 +105,13 @@ void DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay *
         uartUSB.write ( "\r\n",  3 );  // debug only
          ////   ////   ////   ////   ////   ////
 
-        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+        if ((strstr(StringToBeRead, ExpectedResponse) != NULL) ) {
             ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "Cambiando de estado 7";
+            char StringToSendUSB [40] = "Cambiando de estado 2";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////    
-            this->mobileNetworkModule->enableTransmission();        
-            this->mobileNetworkModule->changeConnectionState (new ConnectedState (this->mobileNetworkModule));
+            this->mobileNetworkModule->changeTransmissionState (new Sending (this->mobileNetworkModule));
         }
 
 
@@ -111,7 +120,6 @@ void DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay *
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
-
 }
 
 

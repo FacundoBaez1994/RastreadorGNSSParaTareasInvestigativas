@@ -29,7 +29,7 @@ public:
     virtual ~CellularModule ();
     void startStopUpdate ();
     void connectToMobileNetwork ();
-    void sendMessage (char * message, char * ipDirection, int tcpPort );
+    bool sendMessage (char * message, char * ipDirection, int tcpPort );
     void changeConnectionState  (ConnectionState * newConnectionState);
     void enableTransmission ();
     void changeTransmissionState  (TransmissionState * newTransmissionState);

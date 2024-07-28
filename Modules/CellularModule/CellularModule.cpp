@@ -156,9 +156,14 @@ void CellularModule::connectToMobileNetwork () {
 * 
 * @returns 
 */
-void CellularModule::sendMessage (char * message, char * ipDirection, int tcpPort ) {
-    this->currentTransmissionState->send (this->ATHandler,
-    this->refreshTime, message, ipDirection, tcpPort);
+bool CellularModule::sendMessage (char * message, char * ipDirection, int tcpPort ) {
+    if (this->currentTransmissionState->send (this->ATHandler,
+    this->refreshTime, message, ipDirection, tcpPort) == true) {
+        this->changeConnectionState(new IdleState (this));
+        this->changeTransmissionState(new TransmissionUnavailable (this));
+        return true;
+    }
+    return false;
 }
 
 

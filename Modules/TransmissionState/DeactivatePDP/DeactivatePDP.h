@@ -27,7 +27,7 @@ public:
     DeactivatePDP();
     DeactivatePDP (CellularModule * mobileModule);
     virtual ~DeactivatePDP ();
-    virtual void send (ATCommandHandler * ATHandler,
+    virtual bool send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
 private:
     CellularModule * mobileNetworkModule;

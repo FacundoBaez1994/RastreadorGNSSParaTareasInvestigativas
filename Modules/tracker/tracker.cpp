@@ -43,13 +43,22 @@ void tracker::update () {
     char message [15] = "Hola Mundo!";
     char ipDirection [15] = "186.19.62.251";
     int tcpPort = 123;
+    static bool enableTransmission = false;
 
-    if (this->latency->read()) { // WRITE
-        led = !led;
-    }
     this->cellularTransmitter->startStopUpdate();
-    this->cellularTransmitter->connectToMobileNetwork();
-    this->cellularTransmitter->sendMessage (message, ipDirection, tcpPort);
+
+    if (this->latency->read() && enableTransmission == false) { // WRITE
+        led = !led;
+        enableTransmission = true;
+    }
+    
+    if (enableTransmission == true ) {
+        this->cellularTransmitter->connectToMobileNetwork();
+        if (this->cellularTransmitter->sendMessage (message, ipDirection, tcpPort) == true) {
+            enableTransmission = false;
+        }
+    }
+
 }
 
 //=====[Implementations of private methods]==================================

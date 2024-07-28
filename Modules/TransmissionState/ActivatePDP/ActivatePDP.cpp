@@ -69,7 +69,7 @@ ActivatePDP::~ActivatePDP () {
 * 
 * @returns 
 */
-void ActivatePDP::send (ATCommandHandler * ATHandler,
+bool ActivatePDP::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
     char StringToBeRead [20];
     char ExpectedResponse [15] = "OK";
@@ -110,6 +110,8 @@ void ActivatePDP::send (ATCommandHandler * ATHandler,
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
+
+    return false;
 }
 
 

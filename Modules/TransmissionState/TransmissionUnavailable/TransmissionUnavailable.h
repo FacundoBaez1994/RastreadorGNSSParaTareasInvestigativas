@@ -26,7 +26,7 @@ public:
     TransmissionUnavailable();
     TransmissionUnavailable (CellularModule * mobileModule);
     virtual ~TransmissionUnavailable ();
-    virtual void send (ATCommandHandler * handler,
+    virtual bool send (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
 private:
     CellularModule * mobileNetworkModule;

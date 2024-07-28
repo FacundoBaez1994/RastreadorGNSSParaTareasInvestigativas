@@ -69,7 +69,7 @@ CreateSocket::~CreateSocket () {
 * 
 * @returns 
 */
-void CreateSocket::send (ATCommandHandler * ATHandler,
+bool CreateSocket::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
     char StringToBeSend [120];
     char StringToBeRead [20];
@@ -120,6 +120,8 @@ void CreateSocket::send (ATCommandHandler * ATHandler,
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
+
+    return false;
 }
 
 

@@ -69,7 +69,7 @@ DeactivatePDP::~DeactivatePDP () {
 * 
 * @returns 
 */
-void DeactivatePDP::send (ATCommandHandler * ATHandler,
+bool DeactivatePDP::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
     char StringToBeRead [20];
     char ExpectedResponse [15] = "OK";
@@ -105,13 +105,15 @@ void DeactivatePDP::send (ATCommandHandler * ATHandler,
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////     
-            this->mobileNetworkModule->changeTransmissionState (new TransmissionUnavailable (this->mobileNetworkModule));
+           return true;
         }
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
+
+    return false;
 }
 
 

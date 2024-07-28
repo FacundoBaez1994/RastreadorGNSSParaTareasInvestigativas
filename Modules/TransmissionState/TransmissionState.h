@@ -21,7 +21,7 @@
 class TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual void send (ATCommandHandler * handler,
+    virtual bool send (ATCommandHandler * handler,
      NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
 //=====[Declaration of privates atributes]=========================================
 

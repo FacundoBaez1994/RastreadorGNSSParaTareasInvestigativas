@@ -69,12 +69,12 @@ TransmissionUnavailable::~TransmissionUnavailable () {
 * 
 * @returns 
 */
-void TransmissionUnavailable::send (ATCommandHandler * handler,
+bool TransmissionUnavailable::send (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
    // char StringToSendUSB [40] = "TRANSMISSION UNAVAILABLE STATE";
    // uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
     //uartUSB.write ( "\r\n",  3 );  // debug only
-    return;
+    return false;
 }
 
 

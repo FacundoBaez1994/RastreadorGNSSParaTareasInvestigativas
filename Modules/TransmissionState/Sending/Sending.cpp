@@ -73,7 +73,7 @@ Sending::~Sending () {
 * 
 * @returns 
 */
-void Sending::send(ATCommandHandler *ATHandler,
+bool Sending::send(ATCommandHandler *ATHandler,
     NonBlockingDelay *refreshTime, char *message, char *ipDirection, int tcpPort) {
     char StringToBeSend[100];
     char StringToBeRead[100];
@@ -147,6 +147,8 @@ void Sending::send(ATCommandHandler *ATHandler,
             this->watingForConfirmation = false;
         }
     }
+
+    return false;
 }
 
 

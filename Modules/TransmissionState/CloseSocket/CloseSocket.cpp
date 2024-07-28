@@ -69,7 +69,7 @@ CloseSocket::~CloseSocket () {
 * 
 * @returns 
 */
-void CloseSocket::send (ATCommandHandler * ATHandler,
+bool CloseSocket::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
     char StringToBeSend [120];
     char StringToBeRead [20];
@@ -111,6 +111,8 @@ void CloseSocket::send (ATCommandHandler * ATHandler,
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
+
+    return false;
 }
 
 

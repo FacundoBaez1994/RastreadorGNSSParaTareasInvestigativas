@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _ACTIVATE_PDP_H_
-#define _ACTIVATE_PDP_H_
+#ifndef _CLOSE_SOCKET_H_
+#define _CLOSE_SOCKET_H_
 
 //==================[Libraries]===============================================
 
@@ -10,8 +10,7 @@
 #include "ATCommandHandler.h"
 #include "TransmissionState.h"
 #include "Non_Blocking_Delay.h"
-#include "CreateSocket.h"
-#include "TransmissionUnavailable.h"
+#include "DeactivatePDP.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -22,12 +21,12 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class ActivatePDP : public TransmissionState {
+class CloseSocket : public TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
-    ActivatePDP();
-    ActivatePDP (CellularModule * mobileModule);
-    virtual ~ActivatePDP ();
+    CloseSocket();
+    CloseSocket(CellularModule * mobileModule);
+    virtual ~CloseSocket ();
     virtual void send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
 private:

@@ -10,6 +10,7 @@
 #include "ATCommandHandler.h"
 #include "TransmissionState.h"
 #include "Non_Blocking_Delay.h"
+#include "CloseSocket.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -32,6 +33,7 @@ private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool transmissionEnable;
+    bool watingForConfirmation;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

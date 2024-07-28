@@ -10,7 +10,6 @@
 #include "ATCommandHandler.h"
 #include "TransmissionState.h"
 #include "Non_Blocking_Delay.h"
-#include "CreateSocket.h"
 #include "TransmissionUnavailable.h"
 
 
@@ -22,12 +21,12 @@ class CellularModule; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class ActivatePDP : public TransmissionState {
+class DeactivatePDP : public TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
-    ActivatePDP();
-    ActivatePDP (CellularModule * mobileModule);
-    virtual ~ActivatePDP ();
+    DeactivatePDP();
+    DeactivatePDP (CellularModule * mobileModule);
+    virtual ~DeactivatePDP ();
     virtual void send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
 private:

@@ -39,6 +39,7 @@ Sending::Sending () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
     this->transmissionEnable = false;
+    this->watingForConfirmation = false;
 }
 
 
@@ -51,6 +52,7 @@ Sending::Sending (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
     this->transmissionEnable = false;
+    this->watingForConfirmation = false;
 }
 
 
@@ -77,6 +79,7 @@ void Sending::send(ATCommandHandler *ATHandler,
     char StringToBeRead[100];
     char StringToBeSendUSB[] = "SENDING DATA"; 
     char ATcommand[] = "AT+QISEND=";
+    char ExpectedResponse [] = "SEND OK";
     int connectID = 0; // Puede ser entre 0 y 11
     char confirmationToSend[] = "\x1a";
     char confirmationChar = '>';
@@ -99,6 +102,7 @@ void Sending::send(ATCommandHandler *ATHandler,
                 ATHandler->sendATCommand(confirmationToSend);
                 this->transmissionEnable = false;  // Reiniciar la bandera después de enviar //CAMBIO
                 this->readyToSend = false;
+                this->watingForConfirmation = true;
             }
         }
     }
@@ -115,12 +119,32 @@ void Sending::send(ATCommandHandler *ATHandler,
         this->transmissionEnable = true;
     }
 
+
+    if (this->watingForConfirmation == true) {
+        if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            ////   ////   ////   ////   ////   ////
+            uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            ////   ////   ////   ////   ////   ////
+            if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+                ////   ////   ////   ////   ////   ////
+                char StringToSendUSB [40] = "Cambiando de estado 3";
+                uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+                uartUSB.write ( "\r\n",  3 );  // debug only
+                ////   ////   ////   ////   ////   ////     
+                this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule));
+            }
+        }
+    }
+
+
     if (refreshTime->read()) {
         counter++;
         if (counter > 5) {
             this->readyToSend = true;
             counter = 0;
             this->transmissionEnable = false;
+            this->watingForConfirmation = false;
         }
     }
 }

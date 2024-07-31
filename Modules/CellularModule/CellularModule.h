@@ -12,6 +12,7 @@
 #include "ConnectionState.h"
 #include "TransmissionState.h"
 #include "ActivatePDP.h"
+#include "PowerManager.h"
 
 //=====[Declaration of public data types]======================================
 class ConnectionState; //debido a declaracion adelantada
@@ -34,24 +35,20 @@ public:
     void enableTransmission ();
     void changeTransmissionState  (TransmissionState * newTransmissionState);
     void switchSIMCARD ();
+    void reboot ();
+    PowerManager* getPowerManager ();
     BufferedSerial* getUART ();
 private:
 //=====[Declaration of privates atributes]=========================================
-    NonBlockingDelay* powerChangeDurationtimer;
     NonBlockingDelay* refreshTime;
     ATCommandHandler* ATHandler;
     ConnectionState* currentConnectionState;
     TransmissionState* currentTransmissionState;
+    PowerManager * modulePowerManager;
 
-    bool turningPowerManual;
-    bool turningPowerAutomatic;
-    bool wasManualyTurnOff;
-    DigitalIn* powerStatusInput; // negative value if power on
-    DigitalIn* powerControlButtonInput;
-    DigitalOut* powerKeyOutput; // soft power control
-    DigitalOut* powerDownOutput; // Power source enable - hard power control
     DigitalOut* simCardSwitchOutput; // Switch between Simcards
     bool watingForResponse;
+    powerStatus_t currentPowerStatus;
 
 
 //=====[Declaration of privates methods]=========================================

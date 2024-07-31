@@ -2,19 +2,16 @@
 #include "CellularModule.h"
 #include "Debugger.h"
 #include "IdleState.h"
+#include "PowerOFFState.h"
+#include "PowerState.h"
 #include "TransmissionUnavailable.h"
 
 
 //=====[Declaration of private defines]========================================
-#define POWERCHANGEDURATION  700
 #define REFRESHTIME  1000
 #define CELLULAR_MODULE_TX_UART PA_9
 #define CELLULAR_MODULE_RX_UART PA_10
 #define CELLULAR_MODULE_BAUD_RATE 115200
-#define CELLULAR_MODULE_POWER_STATUS_SIGNAL_PIN_INPUT PB_5
-#define CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT PA_0
-#define CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT PB_4
-#define CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT PB_0
 #define CELLULAR_MODULE_SIMCARD_SWITCH_OUTPUT PA_8
 
 
@@ -44,28 +41,15 @@
 * 
 */
 CellularModule::CellularModule () {
-    this->powerChangeDurationtimer = new NonBlockingDelay (POWERCHANGEDURATION  );
     this->refreshTime = new NonBlockingDelay (REFRESHTIME);
     this->ATHandler = new ATCommandHandler (new BufferedSerial  (CELLULAR_MODULE_TX_UART, 
      CELLULAR_MODULE_RX_UART, CELLULAR_MODULE_BAUD_RATE));
     this->currentConnectionState = new IdleState (this);
     this->currentTransmissionState = new TransmissionUnavailable (this);
- 
-    this->powerStatusInput = new DigitalIn (CELLULAR_MODULE_POWER_STATUS_SIGNAL_PIN_INPUT); 
-    this->powerControlButtonInput = new DigitalIn (CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT);
-    this->powerKeyOutput = new DigitalOut (CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT);
-    this->powerDownOutput = new DigitalOut (CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT);
+    this->modulePowerManager = new PowerManager (this->ATHandler);
+
     this->simCardSwitchOutput =  new DigitalOut (CELLULAR_MODULE_SIMCARD_SWITCH_OUTPUT);
-
-    this->powerControlButtonInput->mode(PullUp);
-    *this->powerKeyOutput = OFF;
-    *this->powerDownOutput = ON; 
-    *this->simCardSwitchOutput = ON; 
-
-    this->turningPowerManual = false;
-    this->turningPowerAutomatic = false;
-    this->watingForResponse = false;
-    this->wasManualyTurnOff = false;
+    this->currentPowerStatus = POWER_OFF;
 }
 
 
@@ -84,61 +68,26 @@ CellularModule::~CellularModule () {
 * SOFT HARDWARE START STOP
 */
 void CellularModule::startStopUpdate () {
-     //////////////////// MANUAL TURN ON // OFF ///////////////////
-    if (this->powerControlButtonInput->read () == OFF  && this->turningPowerManual == false
-    && turningPowerAutomatic == false ) {  
-        if (this->powerStatusInput->read () == OFF) {
-            this->wasManualyTurnOff = true;
-        } else{
-            this->wasManualyTurnOff = false;
-        }
-        this->turningPowerManual = true;
-        *this->powerKeyOutput = ON;
-        this->powerChangeDurationtimer->restart ();
-        ///////////////////////////////////////
-        char StringToSend [30] = "MANUAL POWER CHANGE INIT";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        ///////////////////////////////////////
-    }  
-    if (this->turningPowerManual == true && this->powerChangeDurationtimer->read() )  {
-        this->turningPowerManual = false;
-        *this->powerKeyOutput = OFF;
+    powerStatus_t newPowerStatus;
+    newPowerStatus = this->modulePowerManager->startStopUpdate();
+    if (this->currentPowerStatus != newPowerStatus) {
+       this->currentPowerStatus = newPowerStatus;
+       if (this->currentPowerStatus != POWER_ON) {
+            this->changeConnectionState (new IdleState (this));
+            this->changeTransmissionState  (new TransmissionUnavailable (this));
+       }
+    }
+}
 
-        ///////////////////////////////////////
-        char StringToSend [30] = "MANUAL POWER CHANGE END";;
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        ///////////////////////////////////////
-        this->changeConnectionState(new IdleState (this));
-        this->changeTransmissionState(new TransmissionUnavailable (this));
-    } 
 
-     //////////////////// AUTOMATIC TURN ON // OFF ///////////////////
-        if ( this->powerStatusInput->read () == ON && this->turningPowerManual == false
-    && turningPowerAutomatic == false &&  this->wasManualyTurnOff == false ) {  
-        this->turningPowerAutomatic = true;
-        *this->powerKeyOutput = ON;
-        this->powerChangeDurationtimer->restart ();
-        ///////////////////////////////////////
-        char StringToSend [40] = "AUTOMATIC POWER CHANGE INIT";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        ///////////////////////////////////////
-    }  
-    if (this->turningPowerAutomatic == true && this->powerChangeDurationtimer->read() )  {
-        this->turningPowerAutomatic = false;
-        *this->powerKeyOutput = OFF;
 
-        ///////////////////////////////////////
-        char StringToSend [40] = "AUTOMATIC POWER CHANGE END";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        ///////////////////////////////////////
-        this->changeConnectionState(new IdleState (this));
-        this->changeTransmissionState(new TransmissionUnavailable (this));
-    } 
-
+/** 
+* 
+* 
+* SOFT HARDWARE START STOP
+*/
+void CellularModule::reboot () {
+    this->modulePowerManager->reboot();
 }
 
 /** 
@@ -198,9 +147,6 @@ void CellularModule::changeTransmissionState  (TransmissionState * newTransmissi
 }
 
 
-
-
-
 /** 
 * @brief 
 * 
@@ -216,6 +162,10 @@ void CellularModule::changeTransmissionState  (TransmissionState * newTransmissi
 */
 void CellularModule::switchSIMCARD () {
     *this->simCardSwitchOutput = ! *this->simCardSwitchOutput;
+}
+
+ PowerManager* CellularModule::getPowerManager (){
+    return this->modulePowerManager;
 }
 
 //=====[Implementations of private functions]==================================

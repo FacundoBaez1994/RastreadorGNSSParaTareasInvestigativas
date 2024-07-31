@@ -40,6 +40,7 @@ ConsultingSIMCardStatus::ConsultingSIMCardStatus (CellularModule * mobileModule)
     this->ATFirstResponseRead  = false;
     this->readyToSend = true;
     this->simCardDetected = false;
+    this->rebootCounter = 0;
 }
 
 
@@ -61,7 +62,6 @@ ConsultingSIMCardStatus::~ConsultingSIMCardStatus () {
 * @returns 
 */
 void ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
-
     static char StringToBeRead [256];
     char expectedResponse [15] = "OK";
     char noSimCardError [20] = "+CME ERROR: 10";
@@ -123,6 +123,10 @@ void ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlocking
     if (refreshTime->read()) {
         this->readyToSend = true;
         this->simCardDetected= false;
+        this->rebootCounter ++;
+    }
+    if ( this->rebootCounter >= 5) {
+        this->mobileNetworkModule->reboot();
     }
 
 }

@@ -1,41 +1,45 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONSULTING_SIMCARD_STATUS_H_
-#define _CONSULTING_SIMCARD_STATUS_H_
+#ifndef _POWER_ON_STATE_H_
+#define _POWER_ON_STATE_H_
 
 //==================[Libraries]===============================================
 
+#include "PowerManager.h"
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "ConnectionState.h"
-#include "ConsultingNetworkStatus.h"
+#include "PowerState.h"
 #include "Non_Blocking_Delay.h"
-#include <string>
+#include "ManualPowerOFFState.h"
+
 
 //=====[Declaration of public data types]======================================
-class CellularModule; //debido a declaracion adelantada
+class PowerManager; //debido a declaracion adelantada
 
 //=====[Declaration of public classes]=========================================
 /*
  *  class - State desing pattern
  * 
  */
-class ConsultingSIMCardStatus : public ConnectionState {
+class PowerONState : public PowerState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConsultingSIMCardStatus();
-    ConsultingSIMCardStatus(CellularModule * mobileModule);
-    virtual ~ConsultingSIMCardStatus ();
-    virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
+    PowerONState ();
+    PowerONState (PowerManager * newManager);
+    virtual ~PowerONState ();
+    powerStatus_t startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    void reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    void goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    void awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
 private:
+    PowerManager * manager;
+    powerStatus_t status;
+    bool ManualTurningPower;
+    bool SignalTurningPowerUp;
+    bool TurningDown;
 //=====[Declaration of privates atributes]=========================================
-    CellularModule * mobileNetworkModule;
-    bool readyToSend;
-    bool ATFirstResponseRead;
-    bool simCardDetected;
-    long long int IMEI;
-    int rebootCounter;
+
 //=====[Declaration of privates methods]=========================================
 };
 
@@ -44,4 +48,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _CONSULTING_SIMCARD_STATUS_H_
+#endif //  _POWER_ON_STATE_H_

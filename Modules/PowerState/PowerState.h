@@ -1,41 +1,38 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONSULTING_SIMCARD_STATUS_H_
-#define _CONSULTING_SIMCARD_STATUS_H_
+#ifndef _POWER_STATE_H_
+#define _POWER_STATE_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
+#include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "ConnectionState.h"
-#include "ConsultingNetworkStatus.h"
-#include "Non_Blocking_Delay.h"
-#include <string>
 
 //=====[Declaration of public data types]======================================
-class CellularModule; //debido a declaracion adelantada
+typedef enum {
+    POWER_OFF,
+    MANUAL_POWER_OFF,
+    POWER_ON,
+    SLEEP,
+} powerStatus_t;
+
 
 //=====[Declaration of public classes]=========================================
 /*
- *  class - State desing pattern
+ *  Interface - State desing pattern
  * 
  */
-class ConsultingSIMCardStatus : public ConnectionState {
+class PowerState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConsultingSIMCardStatus();
-    ConsultingSIMCardStatus(CellularModule * mobileModule);
-    virtual ~ConsultingSIMCardStatus ();
-    virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
-private:
+    virtual powerStatus_t startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    virtual void reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    virtual void goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    virtual void awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
 //=====[Declaration of privates atributes]=========================================
-    CellularModule * mobileNetworkModule;
-    bool readyToSend;
-    bool ATFirstResponseRead;
-    bool simCardDetected;
-    long long int IMEI;
-    int rebootCounter;
+
 //=====[Declaration of privates methods]=========================================
 };
 
@@ -44,4 +41,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _CONSULTING_SIMCARD_STATUS_H_
+#endif //  _POWER_STATE_H_

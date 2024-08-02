@@ -1,7 +1,7 @@
 {
     "requires": ["bare-metal"],
     "target_overrides": {
-        "*": {
+        "*": {       
             "target.features_add": ["RTOS", "STORAGE"],
             "target.extra_labels_add": ["NFC"],
             "target.c_lib": "std",

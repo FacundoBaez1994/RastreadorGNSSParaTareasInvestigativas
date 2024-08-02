@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CELLULAR_MODULE_H_
-#define _CELLULAR_MODULE_H_
+#ifndef _GNSS_MODULE_H_
+#define _GNSS_MODULE_H_
 
 //==================[Libraries]===============================================
 
@@ -9,48 +9,37 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "ConnectionState.h"
-#include "TransmissionState.h"
-#include "ActivatePDP.h"
+#include "GeopositioningState.h"
 #include "PowerManager.h"
+#include "TurningOnGNSS.h"
 
 //=====[Declaration of public data types]======================================
-class ConnectionState; //debido a declaracion adelantada
+// class ConnectionState; //debido a declaracion adelantada
 
 //=====[Declaration of public classes]=========================================
 /*
  *  
  * 
  */
-class CellularModule {
+class GNSSModule {
 public:
 
 //=====[Declaration of public methods]=========================================
-    CellularModule ( );
-    virtual ~CellularModule ();
+    GNSSModule (PowerManager * aPowerManager, ATCommandHandler* ATHandler);
+    virtual ~GNSSModule ();
     void startStopUpdate ();
-    void connectToMobileNetwork ();
-    bool sendMessage (char * message, char * ipDirection, int tcpPort );
-    void changeConnectionState  (ConnectionState * newConnectionState);
-    void enableTransmission ();
-    void changeTransmissionState  (TransmissionState * newTransmissionState);
-    void switchSIMCARD ();
     void reboot ();
+    bool retrivGeopositioning (char * message);
+    void changeGeopositioningState  (GeopositioningState* newGeopositioningState);
     PowerManager* getPowerManager ();
     BufferedSerial* getUART ();
-    ATCommandHandler* getATHandler ();
 private:
 //=====[Declaration of privates atributes]=========================================
     NonBlockingDelay* refreshTime;
     ATCommandHandler* ATHandler;
-    ConnectionState* currentConnectionState;
-    TransmissionState* currentTransmissionState;
     PowerManager * modulePowerManager;
-
-    DigitalOut* simCardSwitchOutput; // Switch between Simcards
-    bool watingForResponse;
     powerStatus_t currentPowerStatus;
-
+    GeopositioningState * currentGeopositioningState;
 
 //=====[Declaration of privates methods]=========================================
 };
@@ -60,4 +49,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif // _CELLULAR_MODULE_H_
+#endif // _GNSS_MODULE_H_

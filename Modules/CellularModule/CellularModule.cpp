@@ -1,5 +1,6 @@
 //=====[Libraries]=============================================================
 #include "CellularModule.h"
+#include "ATCommandHandler.h"
 #include "Debugger.h"
 #include "IdleState.h"
 #include "PowerOFFState.h"
@@ -87,7 +88,7 @@ void CellularModule::startStopUpdate () {
 * SOFT HARDWARE START STOP
 */
 void CellularModule::reboot () {
-    this->modulePowerManager->reboot();
+    this->modulePowerManager->reboot ();
 }
 
 /** 
@@ -167,6 +168,11 @@ void CellularModule::switchSIMCARD () {
  PowerManager* CellularModule::getPowerManager (){
     return this->modulePowerManager;
 }
+
+ATCommandHandler* CellularModule::getATHandler (){
+    return this->ATHandler;
+}
+
 
 //=====[Implementations of private functions]==================================
 

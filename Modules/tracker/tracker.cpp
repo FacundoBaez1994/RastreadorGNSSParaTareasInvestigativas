@@ -19,7 +19,6 @@
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
-DigitalOut led(LED1);
 
 //=====[Declaration and initialization of private global variables]============
 
@@ -32,6 +31,9 @@ DigitalOut led(LED1);
 tracker::tracker () {
     this->latency = new NonBlockingDelay (LATENCY);
     this->cellularTransmitter = new CellularModule ( );
+    this->currentGNSSModule = new GNSSModule (this->cellularTransmitter->getPowerManager()
+    , this->cellularTransmitter->getATHandler());
+    //both share the same power manager and ATHandler (uart)
 }
 
 /** 
@@ -41,16 +43,21 @@ tracker::tracker () {
 */
 void tracker::update () {
     char message [15] = "Hola Mundo!";
+    char GNSSstring [30];
     char ipDirection [15] = "186.19.62.251";
     int tcpPort = 123;
     static bool enableTransmission = false;
 
-    this->cellularTransmitter->startStopUpdate();
+    //this->cellularTransmitter->startStopUpdate();
+    this->currentGNSSModule->startStopUpdate();
 
-    if (this->latency->read() && enableTransmission == false) { // WRITE
-        led = !led;
-        enableTransmission = true;
+    if (this->latency->read() /* && enableTransmission == false*/) { // WRITE
+       enableTransmission = true;
     }
+    
+    this->currentGNSSModule->retrivGeopositioning(GNSSstring);
+
+/*
     
     if (enableTransmission == true ) {
         this->cellularTransmitter->connectToMobileNetwork();
@@ -58,7 +65,7 @@ void tracker::update () {
             enableTransmission = false;
         }
     }
-
+*/
 }
 
 //=====[Implementations of private methods]==================================

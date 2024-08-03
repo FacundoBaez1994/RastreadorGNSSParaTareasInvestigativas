@@ -133,8 +133,8 @@ void CellularModule::changeConnectionState  (ConnectionState * newConnectionStat
 * @returns 
 */
 void CellularModule:: enableTransmission () {
-    delete this->currentTransmissionState;
-    this->currentTransmissionState = new ActivatePDP (this);
+    delete this->currentTransmissionState;  
+    this->currentTransmissionState = new ActivatePDP (this); // QUIZA CONVENGA DELEGAR EN LOS ESTADOS?
 }
 
 /** 

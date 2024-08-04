@@ -32,6 +32,7 @@ public:
     tracker ();
     void update();
 private:
+    char* formMessage (GNSSData * GNSSInfo );
     CellularModule* cellularTransmitter;
     GNSSModule* currentGNSSModule;
     NonBlockingDelay * latency;

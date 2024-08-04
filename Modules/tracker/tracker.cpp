@@ -6,6 +6,7 @@
 #include "arm_book_lib.h"
 #include "string.h"
 #include "CellularModule.h"
+#include "Debugger.h" // due to global usbUart
 
 
 //=====[Declaration of private defines]========================================
@@ -43,16 +44,18 @@ tracker::tracker () {
 */
 void tracker::update () {
     char message [15] = "Hola Mundo!";
+    char* formattedMessage;
     GNSSData Geodata;
     char ipDirection [15] = "186.19.62.251";
     int tcpPort = 123;
     static bool enableGNSSAdquisition = false;
     static bool enableTransmission = false; 
 
-    //this->cellularTransmitter->startStopUpdate();
+    this->cellularTransmitter->startStopUpdate();
     this->currentGNSSModule->startStopUpdate();
 
-    if (this->latency->read() && enableGNSSAdquisition == false) { // WRITE
+    if (this->latency->read() && enableGNSSAdquisition == false
+    && enableTransmission == false) { // WRITE
        enableGNSSAdquisition = true;
     }
     
@@ -60,19 +63,25 @@ void tracker::update () {
         this->currentGNSSModule->enableGNSS();
         if (this->currentGNSSModule->retrivGeopositioning(&Geodata)) {
             enableGNSSAdquisition = false;
+            enableTransmission = true;
+            formattedMessage = this->formMessage(&Geodata);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
         }
     }
-
-
-/*
     
     if (enableTransmission == true ) {
         this->cellularTransmitter->connectToMobileNetwork();
-        if (this->cellularTransmitter->sendMessage (message, ipDirection, tcpPort) == true) {
+        if (this->cellularTransmitter->sendMessage (formattedMessage, ipDirection, tcpPort) == true) {
             enableTransmission = false;
+            this->latency->restart();
         }
     }
-*/
 }
 
 //=====[Implementations of private methods]==================================
+char* tracker::formMessage(GNSSData* GNSSInfo) {
+    static char message[50]; // Asegúrate de que el tamaño sea suficiente para contener el mensaje
+    snprintf(message, sizeof(message), "%.6f,%.6f", GNSSInfo->latitude, GNSSInfo->longitude);
+    return message;
+}

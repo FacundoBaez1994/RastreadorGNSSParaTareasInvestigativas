@@ -41,7 +41,7 @@ GNSSModule::GNSSModule (PowerManager * aPowerManager, ATCommandHandler * ATHandl
     this->refreshTime = new NonBlockingDelay (REFRESHTIME);
     this->ATHandler =  ATHandler;
     this->modulePowerManager = aPowerManager;
-    this->currentGeopositioningState = new TurningOnGNSS (this);
+    this->currentGeopositioningState = new GNSSUnavailable (this);
 
     this->currentPowerStatus = POWER_OFF;
 }
@@ -70,12 +70,10 @@ void GNSSModule::startStopUpdate () {
     if (this->currentPowerStatus != newPowerStatus) {
         this->currentPowerStatus = newPowerStatus;
         if (this->currentPowerStatus != POWER_ON) {
-            this->changeGeopositioningState (new TurningOnGNSS (this));
+            this->changeGeopositioningState (new GNSSUnavailable (this));
        }
     }
 }
-
-
 
 /** 
 * 
@@ -97,8 +95,8 @@ void GNSSModule::reboot () {
 * 
 * @returns 
 */
-bool GNSSModule::retrivGeopositioning (char * message ) {
-    if (this->currentGeopositioningState->retrivGeopositioning (message, this->ATHandler,
+bool GNSSModule::retrivGeopositioning (GNSSData * Geodata) {
+    if (this->currentGeopositioningState->retrivGeopositioning (Geodata, this->ATHandler,
     this->refreshTime) == true) {
         return true;
     }
@@ -122,11 +120,10 @@ void GNSSModule::changeGeopositioningState  (GeopositioningState* newGeoposition
 * 
 * @returns 
 */
-/*
-void CellularModule::enableTransmission () {
-    delete this->currentTransmissionState;
-    this->currentTransmissionState = new ActivatePDP (this);
-}*/
+
+void GNSSModule::enableGNSS () {
+    this->currentGeopositioningState->enableGNSS();
+}
 
 /** 
 * @brief 

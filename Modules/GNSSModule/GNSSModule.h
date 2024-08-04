@@ -11,10 +11,22 @@
 #include "ATCommandHandler.h"
 #include "GeopositioningState.h"
 #include "PowerManager.h"
-#include "TurningOnGNSS.h"
+#include "GNSSUnavailable.h"
 
 //=====[Declaration of public data types]======================================
-// class ConnectionState; //debido a declaracion adelantada
+ struct GNSSData {
+    char utc[10];          // <UTC> en formato HHMMSS.SS
+    float latitude;        // <latitude> en formato decimal
+    float longitude;       // <longitude> en formato decimal
+    float hdop;            // <hdop>
+    float altitude;        // <altitude>
+    int fix;               // <fix>
+    float cog;             // <cog>
+    float spkm;            // <spkm>
+    float spkn;            // <spkn>
+    char date[7];          // <date> en formato DDMMYY
+    int nsat;              // <nsat>
+ };
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -29,8 +41,9 @@ public:
     virtual ~GNSSModule ();
     void startStopUpdate ();
     void reboot ();
-    bool retrivGeopositioning (char * message);
+    bool retrivGeopositioning (GNSSData * Geodata);
     void changeGeopositioningState  (GeopositioningState* newGeopositioningState);
+    void enableGNSS ();
     PowerManager* getPowerManager ();
     BufferedSerial* getUART ();
 private:

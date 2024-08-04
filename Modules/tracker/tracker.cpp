@@ -9,7 +9,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        500
+#define LATENCY        2000
 #define POWERCHANGEDURATION  700
 
 //=====[Declaration of private data types]=====================================
@@ -43,19 +43,26 @@ tracker::tracker () {
 */
 void tracker::update () {
     char message [15] = "Hola Mundo!";
-    char GNSSstring [30];
+    GNSSData Geodata;
     char ipDirection [15] = "186.19.62.251";
     int tcpPort = 123;
-    static bool enableTransmission = false;
+    static bool enableGNSSAdquisition = false;
+    static bool enableTransmission = false; 
 
     //this->cellularTransmitter->startStopUpdate();
     this->currentGNSSModule->startStopUpdate();
 
-    if (this->latency->read() /* && enableTransmission == false*/) { // WRITE
-       enableTransmission = true;
+    if (this->latency->read() && enableGNSSAdquisition == false) { // WRITE
+       enableGNSSAdquisition = true;
     }
     
-    this->currentGNSSModule->retrivGeopositioning(GNSSstring);
+    if (enableGNSSAdquisition == true) {
+        this->currentGNSSModule->enableGNSS();
+        if (this->currentGNSSModule->retrivGeopositioning(&Geodata)) {
+            enableGNSSAdquisition = false;
+        }
+    }
+
 
 /*
     

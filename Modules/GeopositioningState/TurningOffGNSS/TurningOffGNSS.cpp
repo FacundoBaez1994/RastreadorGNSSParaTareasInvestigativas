@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "TurningOnGNSS.h" 
+#include "TurningOffGNSS.h" 
 #include "GNSSModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 
@@ -35,7 +35,7 @@
 * 
 * @param 
 */
-TurningOnGNSS::TurningOnGNSS () {
+TurningOffGNSS::TurningOffGNSS () {
     this->currentGNSSModule = NULL;
     this->readyToSend = true;
 }
@@ -46,7 +46,7 @@ TurningOnGNSS::TurningOnGNSS () {
 * 
 * @param 
 */
-TurningOnGNSS::TurningOnGNSS   (GNSSModule * aGNSSModule) {
+TurningOffGNSS::TurningOffGNSS   (GNSSModule * aGNSSModule) {
     this->currentGNSSModule = aGNSSModule;
     this->readyToSend = true;
 }
@@ -58,7 +58,7 @@ TurningOnGNSS::TurningOnGNSS   (GNSSModule * aGNSSModule) {
 * 
 * @returns 
 */
-TurningOnGNSS::~TurningOnGNSS  () {
+TurningOffGNSS::~TurningOffGNSS  () {
     this->currentGNSSModule = NULL;
 }
 
@@ -69,15 +69,14 @@ TurningOnGNSS::~TurningOnGNSS  () {
 * 
 * @returns 
 */
-bool TurningOnGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+bool TurningOffGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
  
-    char StringToSend [15] = "AT+QGPS=1";
+    char StringToSend [15] = "AT+QGPS=0";
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
-    char AlreadyLockResponse [20] = "+CME ERROR: 504";
-    char StringToSendUSB [40] = "TURNING ON GNSS";
-
+    char AlreadyTurnOffResponse [20] = "+CME ERROR: 505";
+    char StringToSendUSB [40] = "TURNING OFF GNSS";
 
 
     if (this->readyToSend == true) {
@@ -97,16 +96,15 @@ bool TurningOnGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler *
         uartUSB.write ( "\r\n",  3 );  // debug only
          ////   ////   ////   ////   ////   ///
         if (strcmp (StringToBeRead, ExpectedResponse) == 0
-        ||strcmp (StringToBeRead, AlreadyLockResponse )  ) {
+        ||strcmp (StringToBeRead, AlreadyTurnOffResponse )  ) {
             ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "GNSS Locked!";
+            char StringToSendUSB [40] = "GNSS turned OFF";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
-            this->currentGNSSModule->changeGeopositioningState (new ObtainingPositionInformation (this->currentGNSSModule));
+            this->currentGNSSModule->changeGeopositioningState (new GNSSUnavailable (this->currentGNSSModule));
+            return true;
         }
-
-
     }
 
     if (refreshTime->read()) {
@@ -118,7 +116,7 @@ bool TurningOnGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler *
     return false;
 }
 
-void TurningOnGNSS::enableGNSS ()  {
+void TurningOffGNSS::enableGNSS ()  {
     return;
 }
 

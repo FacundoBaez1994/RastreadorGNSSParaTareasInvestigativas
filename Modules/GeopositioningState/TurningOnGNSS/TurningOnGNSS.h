@@ -16,6 +16,7 @@
 
 //=====[Declaration of public data types]======================================
 class GNSSModule; //debido a declaracion adelantada
+struct GNSSData;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -28,8 +29,9 @@ public:
     TurningOnGNSS  ();
     TurningOnGNSS  (GNSSModule * aGNSSModule);
     virtual ~TurningOnGNSS   ();
-    bool retrivGeopositioning (char * message, ATCommandHandler * ATHandler,
-     NonBlockingDelay * refreshTime) ;
+    bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime);
+    void enableGNSS ();
 private:
     GNSSModule * currentGNSSModule;
     bool readyToSend;

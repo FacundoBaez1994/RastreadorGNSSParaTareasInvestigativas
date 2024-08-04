@@ -1,30 +1,41 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _GEOPOSITIONING_STATE_H_
-#define _GEOPOSITIONING_STATE_H_
+#ifndef _TURNING_OFF_GNSS_H_
+#define _TURNING_OFF_GNSS_H_
 
 //==================[Libraries]===============================================
 
+#include "GNSSModule.h"
+#include "GeopositioningState.h"
 #include "mbed.h"
-#include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "GNSSModule.h"
+#include "Non_Blocking_Delay.h"
+#include "GNSSUnavailable.h" 
+
+
 
 //=====[Declaration of public data types]======================================
+class GNSSModule; //debido a declaracion adelantada
 struct GNSSData;
 
 //=====[Declaration of public classes]=========================================
 /*
- *  Interface - State desing pattern
+ *  class - State desing pattern
  * 
  */
-class  GeopositioningState {
+class TurningOffGNSS : public GeopositioningState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * handler,
-     NonBlockingDelay * refreshTime) ;
-    virtual void enableGNSS ();
+    TurningOffGNSS  ();
+    TurningOffGNSS  (GNSSModule * aGNSSModule);
+    virtual ~TurningOffGNSS   ();
+    bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+     NonBlockingDelay * refreshTime);
+    void enableGNSS ();
+private:
+    GNSSModule * currentGNSSModule;
+    bool readyToSend;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -35,4 +46,4 @@ public:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _GEOPOSITIONING_STATE_H_
+#endif //   _TURNING_OFF_GNSS_H_

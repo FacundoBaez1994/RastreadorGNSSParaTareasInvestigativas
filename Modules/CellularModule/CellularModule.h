@@ -27,8 +27,21 @@ class ConnectionState; //debido a declaracion adelantada
  };
 
   struct CellInformation {
-    char IpDirection [15]; // IPV4
-     int TcpPort;        // 
+    float signalLevel;
+    long long int IMEI;
+    int accessTechnology;
+    int registrationStatus;
+    int channel;
+    char * currentOperator;
+    char *  dateTimeAndTimeZoneString;
+    char *  band;
+    // Cell identifiers codes ////
+    int lac;
+    unsigned long cellId; 
+    char *  mcc;
+    char * mnc;
+    //////////////////////////////
+
  };
 
 

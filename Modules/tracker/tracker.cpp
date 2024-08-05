@@ -1,6 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "tracker.h"
+#include "GNSSModule.h"
 #include "mbed.h"
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
@@ -40,10 +41,22 @@ tracker::tracker () {
     this->socketTargetted->IpDirection = new char[16]; // 
     strcpy(this->socketTargetted->IpDirection, "186.19.62.251");
     this->socketTargetted->TcpPort = 123;
+
+    this->currentCellInformation = new CellInformation;
+    this->currentCellInformation->currentOperator = new char [50];
+    this->currentCellInformation->dateTimeAndTimeZoneString  = new char [35];
+    this->currentCellInformation->band = new char [20];
+    this->currentCellInformation->mcc = new char [4];
+    this->currentCellInformation->mnc = new char [4];
+
+
+    this->currentGNSSdata = new GNSSData;
+
 }
 
 
 tracker::~tracker() {
+    delete this->currentGNSSdata;
     delete[] this->socketTargetted->IpDirection; // Libera la memoria asignada a IpDirection
     this->socketTargetted->IpDirection = NULL;
     delete this->socketTargetted; // Libera la memoria asignada al socketTargetted
@@ -65,7 +78,6 @@ tracker::~tracker() {
 void tracker::update () {
     
     char* formattedMessage;
-    GNSSData Geodata;
 
     static bool enableGNSSAdquisition = false;
     static bool enableTransmission = false; 
@@ -80,10 +92,10 @@ void tracker::update () {
     
     if (enableGNSSAdquisition == true) {
         this->currentGNSSModule->enableGNSS();
-        if (this->currentGNSSModule->retrivGeopositioning(&Geodata)) {
+        if (this->currentGNSSModule->retrivGeopositioning(this->currentGNSSdata)) {
             enableGNSSAdquisition = false;
             enableTransmission = true;
-            formattedMessage = this->formMessage(&Geodata);
+            formattedMessage = this->formMessage(this->currentGNSSdata);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
         }

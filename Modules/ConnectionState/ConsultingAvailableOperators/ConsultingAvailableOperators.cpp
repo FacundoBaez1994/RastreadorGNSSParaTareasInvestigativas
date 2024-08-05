@@ -136,6 +136,8 @@ bool ConsultingAvailableOperators::retrivOperatorsInformation(char *response) {
 
             strncpy(mcc, operatorCode, 3);
             strncpy(mnc, operatorCode + 3, 3);
+            strcpy(this->mcc, mcc);
+            strcpy(this->mnc, mnc);
 
             // Enviar la información por UART para verificación
             uartUSB.write("Access Technology: ", strlen("Access Technology: "));

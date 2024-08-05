@@ -33,7 +33,8 @@ private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool operatorsInformationRetrived;
-   
+    char mcc[4];
+    char mnc[4];
     char * currentOperator;
 //=====[Declaration of privates methods]=========================================
     bool retrivOperatorsInformation (char *response);

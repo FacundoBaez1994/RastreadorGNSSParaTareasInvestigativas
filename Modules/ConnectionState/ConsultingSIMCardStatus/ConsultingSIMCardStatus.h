@@ -34,7 +34,6 @@ private:
     bool readyToSend;
     bool ATFirstResponseRead;
     bool simCardDetected;
-    long long int IMEI;
     int rebootCounter;
 //=====[Declaration of privates methods]=========================================
 };

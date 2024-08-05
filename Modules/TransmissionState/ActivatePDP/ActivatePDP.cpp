@@ -70,7 +70,7 @@ ActivatePDP::~ActivatePDP () {
 * @returns 
 */
 bool ActivatePDP::send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     char StringToBeRead [20];
     char ExpectedResponse [15] = "OK";
     char StringToSendUSB [15] =  "ACTIVATE PDP";

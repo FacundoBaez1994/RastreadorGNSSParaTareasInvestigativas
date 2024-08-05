@@ -74,7 +74,7 @@ Sending::~Sending () {
 * @returns 
 */
 bool Sending::send(ATCommandHandler *ATHandler,
-    NonBlockingDelay *refreshTime, char *message, char *ipDirection, int tcpPort) {
+    NonBlockingDelay *refreshTime, char *message, TcpSocket * socketTargetted) {
     char StringToBeSend[100];
     char StringToBeRead[100];
     char StringToBeSendUSB[] = "SENDING DATA"; 

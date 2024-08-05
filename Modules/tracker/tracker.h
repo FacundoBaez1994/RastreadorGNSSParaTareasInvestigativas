@@ -15,11 +15,13 @@
 
 //=====[Declaration of public data types]======================================
 
+/*
 typedef enum {
     TRACKER_STATE_ON,
     TRACKER_STATE_TURNING_ON,
     TRACKER_STATE_OFF,
 } trackerState_t;
+*/
 
 //=====[Declaration of public classes]=========================
 /*
@@ -30,12 +32,14 @@ typedef enum {
 class tracker {
 public:
     tracker ();
+    virtual ~tracker ();
     void update();
 private:
     char* formMessage (GNSSData * GNSSInfo );
     CellularModule* cellularTransmitter;
     GNSSModule* currentGNSSModule;
     NonBlockingDelay * latency;
+    TcpSocket * socketTargetted;
 };
 
 

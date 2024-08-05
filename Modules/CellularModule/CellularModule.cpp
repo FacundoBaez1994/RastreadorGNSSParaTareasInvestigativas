@@ -1,11 +1,6 @@
 //=====[Libraries]=============================================================
 #include "CellularModule.h"
-#include "ATCommandHandler.h"
 #include "Debugger.h"
-#include "IdleState.h"
-#include "PowerOFFState.h"
-#include "PowerState.h"
-#include "TransmissionUnavailable.h"
 
 
 //=====[Declaration of private defines]========================================
@@ -106,9 +101,9 @@ void CellularModule::connectToMobileNetwork () {
 * 
 * @returns 
 */
-bool CellularModule::sendMessage (char * message, char * ipDirection, int tcpPort ) {
+bool CellularModule::sendMessage (char * message, TcpSocket * socketTargetted) {
     if (this->currentTransmissionState->send (this->ATHandler,
-    this->refreshTime, message, ipDirection, tcpPort) == true) {
+    this->refreshTime, message, socketTargetted) == true) {
         this->changeConnectionState(new IdleState (this));
         this->changeTransmissionState(new TransmissionUnavailable (this));
         return true;

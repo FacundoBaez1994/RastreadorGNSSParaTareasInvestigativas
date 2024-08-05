@@ -35,7 +35,27 @@ tracker::tracker () {
     this->currentGNSSModule = new GNSSModule (this->cellularTransmitter->getPowerManager()
     , this->cellularTransmitter->getATHandler());
     //both share the same power manager and ATHandler (uart)
+
+    this->socketTargetted = new TcpSocket;
+    this->socketTargetted->IpDirection = new char[16]; // 
+    strcpy(this->socketTargetted->IpDirection, "186.19.62.251");
+    this->socketTargetted->TcpPort = 123;
 }
+
+
+tracker::~tracker() {
+    delete[] this->socketTargetted->IpDirection; // Libera la memoria asignada a IpDirection
+    this->socketTargetted->IpDirection = NULL;
+    delete this->socketTargetted; // Libera la memoria asignada al socketTargetted
+    this->socketTargetted = NULL;
+    delete this->latency;
+    this->latency = NULL; 
+    delete this->currentGNSSModule;
+    this->currentGNSSModule = NULL;
+    delete this->cellularTransmitter;
+    this->cellularTransmitter = NULL;
+}
+
 
 /** 
 * @brief Main rutine of the tracker device
@@ -43,11 +63,10 @@ tracker::tracker () {
 *
 */
 void tracker::update () {
-    char message [15] = "Hola Mundo!";
+    
     char* formattedMessage;
     GNSSData Geodata;
-    char ipDirection [15] = "186.19.62.251";
-    int tcpPort = 123;
+
     static bool enableGNSSAdquisition = false;
     static bool enableTransmission = false; 
 
@@ -72,7 +91,7 @@ void tracker::update () {
     
     if (enableTransmission == true ) {
         this->cellularTransmitter->connectToMobileNetwork();
-        if (this->cellularTransmitter->sendMessage (formattedMessage, ipDirection, tcpPort) == true) {
+        if (this->cellularTransmitter->sendMessage (formattedMessage, this->socketTargetted) == true) {
             enableTransmission = false;
             this->latency->restart();
         }

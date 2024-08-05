@@ -70,7 +70,7 @@ TransmissionUnavailable::~TransmissionUnavailable () {
 * @returns 
 */
 bool TransmissionUnavailable::send (ATCommandHandler * handler,
-    NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     return false;
 }
 

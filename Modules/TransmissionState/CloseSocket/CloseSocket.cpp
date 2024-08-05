@@ -70,7 +70,7 @@ CloseSocket::~CloseSocket () {
 * @returns 
 */
 bool CloseSocket::send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     char StringToBeSend [120];
     char StringToBeRead [20];
     char StringToBeSendUSB []  = "CLOSING TCP SOCKET"; 

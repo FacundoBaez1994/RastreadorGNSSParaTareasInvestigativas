@@ -15,6 +15,7 @@
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
+struct TcpSocket;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -28,7 +29,7 @@ public:
     CreateSocket (CellularModule * mobileModule);
     virtual ~CreateSocket ();
     virtual bool send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;

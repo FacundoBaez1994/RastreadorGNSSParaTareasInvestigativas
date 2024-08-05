@@ -13,9 +13,24 @@
 #include "TransmissionState.h"
 #include "ActivatePDP.h"
 #include "PowerManager.h"
+#include "TransmissionUnavailable.h"
+#include "IdleState.h"
+#include "PowerOFFState.h"
+#include "PowerState.h"
 
 //=====[Declaration of public data types]======================================
 class ConnectionState; //debido a declaracion adelantada
+
+ struct TcpSocket {
+    char * IpDirection; // IPV4
+    int TcpPort;        // 
+ };
+
+  struct CellInformation {
+    char IpDirection [15]; // IPV4
+     int TcpPort;        // 
+ };
+
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -30,7 +45,7 @@ public:
     virtual ~CellularModule ();
     void startStopUpdate ();
     void connectToMobileNetwork ();
-    bool sendMessage (char * message, char * ipDirection, int tcpPort );
+    bool sendMessage (char * message, TcpSocket * socketTargetted);
     void changeConnectionState  (ConnectionState * newConnectionState);
     void enableTransmission ();
     void changeTransmissionState  (TransmissionState * newTransmissionState);

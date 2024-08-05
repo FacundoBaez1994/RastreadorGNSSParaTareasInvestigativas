@@ -70,7 +70,7 @@ CreateSocket::~CreateSocket () {
 * @returns 
 */
 bool CreateSocket::send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort) {
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     char StringToBeSend [120];
     char StringToBeRead [20];
     char StringToBeSendUSB []  = "CREATE TCP SOCKET"; 
@@ -84,7 +84,8 @@ bool CreateSocket::send (ATCommandHandler * ATHandler,
     int access_mode = 0; // Modo de acceso al buffer
 
     // Formatear la cadena final
-    int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d,%s,\"%s\",%d,%d", ATcommand, contextID, connectID, protocol, ipDirection, tcpPort, access_mode);
+    int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d,%s,\"%s\",%d,%d", ATcommand, contextID,
+     connectID, protocol, socketTargetted->IpDirection , socketTargetted->TcpPort , access_mode);
     snprintf(ExpectedResponse, sizeof(ExpectedResponse), "+QIOPEN: %d,%d", connectID, noErrorCode);
 
     if (this->readyToSend == true) {

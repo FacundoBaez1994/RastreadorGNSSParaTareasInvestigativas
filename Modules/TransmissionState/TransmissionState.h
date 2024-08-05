@@ -11,7 +11,7 @@
 #include "ATCommandHandler.h"
 
 //=====[Declaration of public data types]======================================
-
+struct TcpSocket;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -22,7 +22,7 @@ class TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
     virtual bool send (ATCommandHandler * handler,
-     NonBlockingDelay * refreshTime, char * message, char * ipDirection, int tcpPort);
+     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

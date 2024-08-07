@@ -61,7 +61,8 @@ ConsultingSIMCardStatus::~ConsultingSIMCardStatus () {
 * 
 * @returns 
 */
-void ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellInformation * currentCellInformation) {
     static char StringToBeRead [256];
     char expectedResponse [15] = "OK";
     char noSimCardError [20] = "+CME ERROR: 10";
@@ -116,6 +117,7 @@ void ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlocking
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
                 this->mobileNetworkModule->changeConnectionState (new ConsultingNetworkStatus (this->mobileNetworkModule) );
+                return false;
             }
         }
     }
@@ -128,5 +130,6 @@ void ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlocking
     if ( this->rebootCounter >= 5) {
         this->mobileNetworkModule->reboot();
     }
+    return false;
 
 }

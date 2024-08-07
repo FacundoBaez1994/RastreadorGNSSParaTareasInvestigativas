@@ -29,19 +29,17 @@ class ConnectionState; //debido a declaracion adelantada
   struct CellInformation {
     float signalLevel;
     long long int IMEI;
-    int accessTechnology;
-    int registrationStatus;
+    int accessTechnology; //
+    int registrationStatus; // pass as int in order to decrese data lenght (translate in server)
     int channel;
-    char * currentOperator;
     char *  dateTimeAndTimeZoneString;
-    char *  band;
+    char * band;
     // Cell identifiers codes ////
-    int lac;
-    unsigned long cellId; 
-    char *  mcc;
-    char * mnc;
+    char * lac;
+    char * cellId; 
+    int  mcc; // with mnc identifies operator
+    int mnc; // 
     //////////////////////////////
-
  };
 
 
@@ -57,7 +55,7 @@ public:
     CellularModule ( );
     virtual ~CellularModule ();
     void startStopUpdate ();
-    void connectToMobileNetwork ();
+    bool connectToMobileNetwork (CellInformation * currentCellInformation);
     bool sendMessage (char * message, TcpSocket * socketTargetted);
     void changeConnectionState  (ConnectionState * newConnectionState);
     void enableTransmission ();

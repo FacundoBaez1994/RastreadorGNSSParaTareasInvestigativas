@@ -91,8 +91,8 @@ void CellularModule::reboot () {
 * 
 * 
 */
-void CellularModule::connectToMobileNetwork () {
-    this->currentConnectionState->connect(this->ATHandler, this->refreshTime);
+bool CellularModule::connectToMobileNetwork (CellInformation * currentCellInformation) {
+    return this->currentConnectionState->connect(this->ATHandler, this->refreshTime, currentCellInformation);
 }
 
 

@@ -12,10 +12,11 @@
 #include "ConsultingIMEI.h"
 #include "Non_Blocking_Delay.h"
 #include <string>
-
+#include "CellularModule.h"
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
+struct CellInformation;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -28,7 +29,8 @@ public:
     CheckingSignalStrength ();
     CheckingSignalStrength(CellularModule * mobileModule);
     virtual ~CheckingSignalStrength ();
-    virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
+    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;

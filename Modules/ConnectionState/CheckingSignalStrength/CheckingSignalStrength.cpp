@@ -60,7 +60,8 @@ CheckingSignalStrength::~CheckingSignalStrength () {
 * 
 * @returns 
 */
-void CheckingSignalStrength::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool CheckingSignalStrength::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
@@ -111,7 +112,9 @@ void CheckingSignalStrength::connect (ATCommandHandler * ATHandler, NonBlockingD
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
+                currentCellInformation->signalLevel = this->signalLevel;
                 this->mobileNetworkModule->changeConnectionState (new ConsultingIMEI (this->mobileNetworkModule) );
+                return false;
             }
         }
     }
@@ -120,7 +123,7 @@ void CheckingSignalStrength::connect (ATCommandHandler * ATHandler, NonBlockingD
         this->readyToSend = true;
         this->signalLevelRetrived = false;
     }
-
+    return false;
 }
 
 

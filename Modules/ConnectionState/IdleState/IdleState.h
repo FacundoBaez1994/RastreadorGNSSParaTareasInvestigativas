@@ -11,10 +11,12 @@
 #include "ConnectionState.h"
 #include "Non_Blocking_Delay.h"
 #include "CheckingSignalStrength.h"
+#include "CellularModule.h"
 
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
+struct CellInformation;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -27,7 +29,8 @@ public:
     IdleState ();
     IdleState (CellularModule * mobileModule);
     virtual ~IdleState ();
-    virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
+    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    CellInformation * currentCellInformation);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;

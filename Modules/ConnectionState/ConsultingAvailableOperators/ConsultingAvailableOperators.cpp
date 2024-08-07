@@ -60,7 +60,8 @@ ConsultingAvailableOperators::~ConsultingAvailableOperators () {
 * 
 * @returns 
 */
-void ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
@@ -103,8 +104,13 @@ void ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlo
                 char StringToSendUSB [40] = "Cambiando de estado 5";
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////            
+                ////   ////   ////   ////   ////   ////
+                currentCellInformation->mcc = this->mcc;
+                currentCellInformation->mnc = this->mnc;
+                currentCellInformation->channel = this->channel;
+                currentCellInformation->band = this->band;             
                 this->mobileNetworkModule->changeConnectionState (new RetrievingTimeAndDate (this->mobileNetworkModule));
+                return false;
             }
         }
     }
@@ -113,7 +119,7 @@ void ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlo
         this->readyToSend = true;
         this->operatorsInformationRetrived = false;
     }
-
+    return false;
 }
 
 //=====[Implementations of private functions]==================================
@@ -136,8 +142,10 @@ bool ConsultingAvailableOperators::retrivOperatorsInformation(char *response) {
 
             strncpy(mcc, operatorCode, 3);
             strncpy(mnc, operatorCode + 3, 3);
-            strcpy(this->mcc, mcc);
-            strcpy(this->mnc, mnc);
+            strcpy (this->band, band);
+
+            this->mcc = atoi(mcc);
+            this->mnc = atoi(mnc);
 
             // Enviar la información por UART para verificación
             uartUSB.write("Access Technology: ", strlen("Access Technology: "));

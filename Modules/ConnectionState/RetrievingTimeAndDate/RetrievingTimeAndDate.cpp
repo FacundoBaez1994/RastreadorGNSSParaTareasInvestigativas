@@ -59,11 +59,12 @@ RetrievingTimeAndDate::~RetrievingTimeAndDate () {
 * 
 * @returns 
 */
-void RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler,
+ NonBlockingDelay * refreshTime, CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
-    char StringToSend [15] =  "AT+QLTS=2";
+    char StringToSend [15] =  "AT+QLTS=1";
 
     char StringToSendUSB [40] = "RETRIVING TIME AND DATE ";
 
@@ -104,7 +105,10 @@ void RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler, NonBlockingDe
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
-                this->mobileNetworkModule->changeConnectionState (new AttachingToPacketService (this->mobileNetworkModule) );
+                strcpy (currentCellInformation->dateTimeAndTimeZoneString, this->dateTimeAndTimeZoneString);
+                this->mobileNetworkModule->changeConnectionState 
+                (new AttachingToPacketService (this->mobileNetworkModule) );
+                return false; 
             }
         }
     }
@@ -113,7 +117,7 @@ void RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler, NonBlockingDe
         this->readyToSend = true;
         this->timeAndDateRetrived = false;
     }
-
+    return false; 
 }
 
 //=====[Implementations of private functions]==================================
@@ -125,7 +129,7 @@ bool RetrievingTimeAndDate::retrieveNetworkTime(char *response) {
         strncpy(this->dateTimeAndTimeZoneString, DateAndTimePart, sizeof(this->dateTimeAndTimeZoneString) - 1);
         this->dateTimeAndTimeZoneString[sizeof(this->dateTimeAndTimeZoneString) - 1] = '\0';
 
-        uartUSB.write("Time and Date: ", strlen("Time and Date: ")); // debug
+        uartUSB.write("Time (UTC) and Date: ", strlen("Time (UTC) and Date: ")); // debug
         uartUSB.write(this->dateTimeAndTimeZoneString, strlen(this->dateTimeAndTimeZoneString)); // debug
         uartUSB.write("\r\n", 2); // debug
         return true;

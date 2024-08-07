@@ -70,7 +70,8 @@ DefinePDPContext::~DefinePDPContext () {
 * 
 * @returns 
 */
-void DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellInformation * currentCellInformation) {
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
     char StringToSend [50] = APN_MOVISTAR;
@@ -103,6 +104,7 @@ void DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay *
             ////   ////   ////   ////   ////   ////    
             this->mobileNetworkModule->enableTransmission();        
             this->mobileNetworkModule->changeConnectionState (new ConnectedState (this->mobileNetworkModule));
+            return true;
         }
 
 
@@ -111,6 +113,7 @@ void DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay *
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
+    return false;
 
 }
 

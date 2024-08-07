@@ -69,14 +69,13 @@ IdleState::~IdleState () {
 * 
 * @returns 
 */
-void IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellInformation * currentCellInformation) {
     char StringToSend [15] = "ATI";
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
 
     char StringToSendUSB [40] = "IDLE STATE";
-
-
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -88,7 +87,6 @@ void IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refres
         uartUSB.write ( "\r\n",  3 );  // debug only
         ////   ////   ////   ////   ////   ////   
     }
-
 
     if ( ATHandler->readATResponse ( StringToBeRead) == true) {
          ////   ////   ////   ////   ////   ////
@@ -103,18 +101,14 @@ void IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refres
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
             this->mobileNetworkModule->changeConnectionState (new CheckingSignalStrength (this->mobileNetworkModule));
+        return false;
         }
-
-
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
-    //
-    //
-    //
-
+    return false;
 }
 
 

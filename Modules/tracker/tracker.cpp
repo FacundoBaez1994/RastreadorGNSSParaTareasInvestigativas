@@ -43,12 +43,10 @@ tracker::tracker () {
     this->socketTargetted->TcpPort = 123;
 
     this->currentCellInformation = new CellInformation;
-    this->currentCellInformation->currentOperator = new char [50];
     this->currentCellInformation->dateTimeAndTimeZoneString  = new char [35];
     this->currentCellInformation->band = new char [20];
-    this->currentCellInformation->mcc = new char [4];
-    this->currentCellInformation->mnc = new char [4];
-
+    this->currentCellInformation->lac = new char [10];
+    this->currentCellInformation->cellId = new char [20];
 
     this->currentGNSSdata = new GNSSData;
 
@@ -89,30 +87,52 @@ void tracker::update () {
     && enableTransmission == false) { // WRITE
        enableGNSSAdquisition = true;
     }
-    
+    /*
     if (enableGNSSAdquisition == true) {
         this->currentGNSSModule->enableGNSS();
         if (this->currentGNSSModule->retrivGeopositioning(this->currentGNSSdata)) {
             enableGNSSAdquisition = false;
             enableTransmission = true;
-            formattedMessage = this->formMessage(this->currentGNSSdata);
-            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
+           // formattedMessage = this->formMessage(this->currentGNSSdata);
+           // uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+           // uartUSB.write ( "\r\n",  3 );  // debug only
         }
     }
+    */
+    enableTransmission = true; // ELIMINAR LUEGO
     
     if (enableTransmission == true ) {
-        this->cellularTransmitter->connectToMobileNetwork();
-        if (this->cellularTransmitter->sendMessage (formattedMessage, this->socketTargetted) == true) {
-            enableTransmission = false;
-            this->latency->restart();
+        if (this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation)) {
+            formattedMessage = this->formMessage(this->currentCellInformation);
+            if (this->cellularTransmitter->sendMessage
+            (formattedMessage, this->socketTargetted) == true) {
+                enableTransmission = false;
+                this->latency->restart();
+            }
         }
     }
 }
 
 //=====[Implementations of private methods]==================================
 char* tracker::formMessage(GNSSData* GNSSInfo) {
-    static char message[50]; // Asegúrate de que el tamaño sea suficiente para contener el mensaje
+    static char message[50]; 
     snprintf(message, sizeof(message), "%.6f,%.6f", GNSSInfo->latitude, GNSSInfo->longitude);
+    return message;
+}
+
+char* tracker::formMessage(CellInformation* aCellInfo) {
+    static char message[200]; 
+    snprintf(message, sizeof(message), 
+             "%s,%s,%d,%d,%.2f,%d,%d,%d,%s,%s", 
+             aCellInfo->lac,
+             aCellInfo->cellId,
+             aCellInfo->mcc,
+             aCellInfo->mnc,
+             aCellInfo->signalLevel,
+             aCellInfo->accessTechnology,
+             aCellInfo->registrationStatus,
+             aCellInfo->channel,
+             aCellInfo->band,
+             aCellInfo->dateTimeAndTimeZoneString);
     return message;
 }

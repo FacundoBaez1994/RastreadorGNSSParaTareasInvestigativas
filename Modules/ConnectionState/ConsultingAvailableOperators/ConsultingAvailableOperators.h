@@ -12,9 +12,11 @@
 #include "RetrievingTimeAndDate.h"
 #include "Non_Blocking_Delay.h"
 #include <string>
+#include "CellularModule.h"
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
+struct CellInformation;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -27,15 +29,18 @@ public:
     ConsultingAvailableOperators();
     ConsultingAvailableOperators (CellularModule * mobileModule);
     virtual ~ConsultingAvailableOperators ();
-    virtual void connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime);
+    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+     CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool operatorsInformationRetrived;
-    char mcc[4];
-    char mnc[4];
+    int mcc;
+    int mnc;
     char * currentOperator;
+    int channel;
+    char band [20];
 //=====[Declaration of privates methods]=========================================
     bool retrivOperatorsInformation (char *response);
 };

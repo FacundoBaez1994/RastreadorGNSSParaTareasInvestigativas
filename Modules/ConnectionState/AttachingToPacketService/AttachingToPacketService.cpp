@@ -69,14 +69,13 @@ AttachingToPacketService::~AttachingToPacketService () {
 * 
 * @returns 
 */
-void AttachingToPacketService::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool AttachingToPacketService::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+ CellInformation * currentCellInformation) {
     char StringToSend [15] = "AT+CGATT=1";
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
 
     char StringToSendUSB [40] = "ATTACHING TO PACKET SERVICE DOMAIN";
-
-
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -103,6 +102,7 @@ void AttachingToPacketService::connect (ATCommandHandler * ATHandler, NonBlockin
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
             this->mobileNetworkModule->changeConnectionState (new DefinePDPContext (this->mobileNetworkModule));
+            return false;
         }
 
 
@@ -111,10 +111,7 @@ void AttachingToPacketService::connect (ATCommandHandler * ATHandler, NonBlockin
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
-    //
-    //
-    //
-
+    return false;
 }
 
 

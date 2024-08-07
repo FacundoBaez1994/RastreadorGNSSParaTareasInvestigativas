@@ -60,7 +60,8 @@ ConsultingIMEI::~ConsultingIMEI () {
 * 
 * @returns 
 */
-void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
@@ -110,8 +111,10 @@ void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * r
                 char StringToSendUSB [40] = "Cambiando de estado 3";
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////            
+                ////   ////   ////   ////   ////   //// 
+                currentCellInformation->IMEI = this->IMEI;      
                 this->mobileNetworkModule->changeConnectionState (new ConsultingSIMCardStatus (this->mobileNetworkModule) );
+                return false;
             }
         }
     }
@@ -120,6 +123,7 @@ void ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * r
         this->readyToSend = true;
         this->IMEIRetrived= false;
     }
+    return false;
 
 }
 

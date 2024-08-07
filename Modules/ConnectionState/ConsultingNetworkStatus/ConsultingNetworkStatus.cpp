@@ -60,7 +60,8 @@ ConsultingNetworkStatus::~ConsultingNetworkStatus () {
 * 
 * @returns 
 */
-void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
+bool ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+ CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
@@ -108,8 +109,13 @@ void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlocking
                 char StringToSendUSB [40] = "Cambiando de estado 4";
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////            
+                ////   ////   ////   ////   ////   ////   
+                strcpy (currentCellInformation->cellId, this->cellId);
+                strcpy (currentCellInformation->lac, this->lac);
+                currentCellInformation->accessTechnology = this->accessTechnology;
+                currentCellInformation->registrationStatus = this->registrationStatus;         
                 this->mobileNetworkModule->changeConnectionState (new ConsultingAvailableOperators (this->mobileNetworkModule) );
+                return false;
             }
         }
     }
@@ -118,49 +124,46 @@ void ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlocking
         this->readyToSend = true;
         this->cellDataRetrived = false;
     }
-
+    return false;
 }
 
 
 
 //=====[Implementations of private functions]==================================
 bool ConsultingNetworkStatus::retrivIdCellData(char *response) {
-       char StringToCompare[8] = "+CREG: ";
+    char StringToCompare[8] = "+CREG: ";
 
     // Verificar si la respuesta comienza con "+CREG: "
     if (strncmp(response, StringToCompare, strlen(StringToCompare)) == 0) {
         // Variables para almacenar los campos parseados
-        int n, stat, tac, act;
-        unsigned long ci;
+        int stat, act;
+        char tac[10];
+        char ci[20];
         
         // Parsear la respuesta
-        n = sscanf(response, "+CREG: %*d,%d,\"%x\",\"%lx\",%d", &stat, &tac, &ci, &act);
+        int n = sscanf(response, "+CREG: %*d,%d,\"%9[^\"]\",\"%19[^\"]\",%d", &stat, tac, ci, &act);
         
         // Verificar que se hayan parseado correctamente los 4 valores
         if (n == 4) {
             this->registrationStatus = stat;
-            this->lac = tac;
-            this->cellId = ci;
+            strncpy(this->lac, tac, sizeof(this->lac) - 1);
+            strncpy(this->cellId, ci, sizeof(this->cellId) - 1);
             this->accessTechnology = act;
 
-            char lacStr[10];
-            char cellIdStr[20];
-            char regStatusStr[10];
-            char accessTechStr[10];
-
-            sprintf(lacStr, "%d", this->lac);
-            sprintf(cellIdStr, "%lu", this->cellId);
-            sprintf(regStatusStr, "%d", this->registrationStatus);
-            sprintf(accessTechStr, "%d", this->accessTechnology);
-
-            // debugging //
+            // Debugging
             uartUSB.write("LAC: ", strlen("LAC: "));
-            uartUSB.write(lacStr, strlen(lacStr));
+            uartUSB.write(this->lac, strlen(this->lac));
             uartUSB.write("\r\n", 2);
 
             uartUSB.write("Cell ID: ", strlen("Cell ID: "));
-            uartUSB.write(cellIdStr, strlen(cellIdStr));
+            uartUSB.write(this->cellId, strlen(this->cellId));
             uartUSB.write("\r\n", 2);
+
+            char regStatusStr[10];
+            char accessTechStr[10];
+
+            sprintf(regStatusStr, "%d", this->registrationStatus);
+            sprintf(accessTechStr, "%d", this->accessTechnology);
 
             uartUSB.write("Registration Status: ", strlen("Registration Status: "));
             uartUSB.write(regStatusStr, strlen(regStatusStr));

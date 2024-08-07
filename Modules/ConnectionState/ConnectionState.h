@@ -11,7 +11,7 @@
 #include "ATCommandHandler.h"
 
 //=====[Declaration of public data types]======================================
-
+struct CellInformation;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -21,8 +21,8 @@
 class ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual void connect (ATCommandHandler * handler,
-     NonBlockingDelay * refreshTime);
+    virtual bool connect (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, CellInformation * currentCellInformation);
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

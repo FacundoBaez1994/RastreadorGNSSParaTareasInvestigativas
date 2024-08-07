@@ -36,6 +36,7 @@ public:
     void update();
 private:
     char* formMessage (GNSSData * GNSSInfo );
+    char* formMessage(CellInformation* aCellInfo);
     CellularModule* cellularTransmitter;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 

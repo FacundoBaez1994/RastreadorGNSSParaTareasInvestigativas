@@ -69,20 +69,9 @@ ConnectedState::~ConnectedState () {
 * 
 * @returns 
 */
-void ConnectedState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime) {
-  //  char StringToSendUSB [40] = "CONNECTED STATE";
-    char StringToSendUSB2 [40] = "ENABLING TRANSMISSION";
-  //  uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-  //  uartUSB.write ( "\r\n",  3 );  // debug only
-
-    if (this->enableTransmission == false) {
-
-        uartUSB.write (StringToSendUSB2 , strlen (StringToSendUSB2 ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-         //   this->mobileNetworkModule->changeTransmissionState (new ConnectedState (this->mobileNetworkModule));
-        this->enableTransmission = true;
-    }
-    return;
+bool ConnectedState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+    CellInformation * currentCellInformation) {
+    return true;
 }
 
 

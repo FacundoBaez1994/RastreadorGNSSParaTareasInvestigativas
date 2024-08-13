@@ -105,7 +105,8 @@ bool RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler,
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
-                strcpy (currentCellInformation->dateTimeAndTimeZoneString, this->dateTimeAndTimeZoneString);
+                strcpy (currentCellInformation->date, this->date);
+                strcpy (currentCellInformation->time, this->time);
                 this->mobileNetworkModule->changeConnectionState 
                 (new AttachingToPacketService (this->mobileNetworkModule) );
                 return false; 
@@ -125,16 +126,41 @@ bool RetrievingTimeAndDate::retrieveNetworkTime(char *response) {
     char StringToCompare[8] = "+QLTS: ";
 
     if (strncmp(response, StringToCompare, strlen(StringToCompare)) == 0) {
-        char * DateAndTimePart = response + strlen(StringToCompare);
-        strncpy(this->dateTimeAndTimeZoneString, DateAndTimePart, sizeof(this->dateTimeAndTimeZoneString) - 1);
-        this->dateTimeAndTimeZoneString[sizeof(this->dateTimeAndTimeZoneString) - 1] = '\0';
+        char *DateAndTimePart = response + strlen(StringToCompare) + 1;
+        
+        // Extraer la fecha
+        char year[3], month[3], day[3];
+        strncpy(year, DateAndTimePart + 2, 2);   // "24" (últimos dos dígitos del año)
+        year[2] = '\0';
+        strncpy(month, DateAndTimePart + 5, 2);  // "08" (mes)
+        month[2] = '\0';
+        strncpy(day, DateAndTimePart + 8, 2);    // "13" (día)
+        day[2] = '\0';
 
-        uartUSB.write("Time (UTC) and Date: ", strlen("Time (UTC) and Date: ")); // debug
-        uartUSB.write(this->dateTimeAndTimeZoneString, strlen(this->dateTimeAndTimeZoneString)); // debug
-        uartUSB.write("\r\n", 2); // debug
+        snprintf(this->date, 7, "%s%s%s", day, month, year);
+
+        // Extraer la hora en formato HHMMSS
+        char hour[3], minute[3], second[3];
+        strncpy(hour, DateAndTimePart + 11, 2);   // "19" (hora)
+        hour[2] = '\0';
+        strncpy(minute, DateAndTimePart + 14, 2); // "56" (minuto)
+        minute[2] = '\0';
+        strncpy(second, DateAndTimePart + 17, 2); // "05" (segundo)
+        second[2] = '\0';
+
+        snprintf(this->time, 7, "%s%s%s", hour, minute, second);
+
+        // Mostrar la fecha y hora en el formato deseado (debug)
+        uartUSB.write("Date: ", strlen("Date: ")); 
+        uartUSB.write(this->date, strlen(this->date)); 
+        uartUSB.write("\r\n", 2);
+
+        uartUSB.write("Time: ", strlen("Time: ")); 
+        uartUSB.write(this->time, strlen(this->time)); 
+        uartUSB.write("\r\n", 2);
+
         return true;
     }
 
     return false;
 }
-

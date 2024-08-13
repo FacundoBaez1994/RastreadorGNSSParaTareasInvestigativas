@@ -69,7 +69,7 @@ TurningOffGNSS::~TurningOffGNSS  () {
 * 
 * @returns 
 */
-bool TurningOffGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+GNSSState_t TurningOffGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
  
     char StringToSend [15] = "AT+QGPS=0";
@@ -103,7 +103,7 @@ bool TurningOffGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler 
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
             this->currentGNSSModule->changeGeopositioningState (new GNSSUnavailable (this->currentGNSSModule));
-            return true;
+            return GNSS_STATE_DISCONNECTED;
         }
     }
 
@@ -113,7 +113,7 @@ bool TurningOffGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler 
     //
     //
     //
-    return false;
+    return GNSS_STATE_DISCONNECTED;
 }
 
 void TurningOffGNSS::enableGNSS ()  {

@@ -12,11 +12,13 @@
 #include "ATCommandHandler.h"
 #include "Non_Blocking_Delay.h"
 #include "TurningOnGNSS.h"
+#include "GNSSState.h"
 
 
 //=====[Declaration of public data types]======================================
 class GNSSModule; //debido a declaracion adelantada
 struct GNSSData;
+
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -29,11 +31,12 @@ public:
     GNSSUnavailable ();
     GNSSUnavailable  (GNSSModule * aGNSSModule);
     virtual ~GNSSUnavailable   ();
-    bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+    GNSSState_t retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime);
     void enableGNSS ();
 private:
     GNSSModule * currentGNSSModule;
+    GNSSState_t * disconnectionState;
     bool readyToSend;
 //=====[Declaration of privates atributes]=========================================
 

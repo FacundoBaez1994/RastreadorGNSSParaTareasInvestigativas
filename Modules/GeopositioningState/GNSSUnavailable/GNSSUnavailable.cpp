@@ -69,9 +69,9 @@ GNSSUnavailable::~GNSSUnavailable  () {
 * 
 * @returns 
 */
-bool GNSSUnavailable::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+GNSSState_t GNSSUnavailable::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
-    return false;
+    return GNSS_STATE_DISCONNECTED;
 }
 
 void GNSSUnavailable::enableGNSS ()  {

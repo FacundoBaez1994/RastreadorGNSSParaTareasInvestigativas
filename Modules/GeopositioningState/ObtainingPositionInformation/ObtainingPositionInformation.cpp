@@ -6,6 +6,7 @@
 #include "TurningOffGNSS.h"
 
 //=====[Declaration of private defines]========================================
+#define MAXRETRIES  50
 
 //=====[Declaration of private data types]=====================================
 
@@ -39,6 +40,10 @@
 ObtainingPositionInformation::ObtainingPositionInformation () {
     this->currentGNSSModule = NULL;
     this->readyToSend = true;
+
+    this->numberOfTries = 0;
+    this->maxTries = MAXRETRIES;
+    
 }
 
 
@@ -50,6 +55,9 @@ ObtainingPositionInformation::ObtainingPositionInformation () {
 ObtainingPositionInformation::ObtainingPositionInformation  (GNSSModule * aGNSSModule) {
     this->currentGNSSModule = aGNSSModule;
     this->readyToSend = true;
+
+    this->numberOfTries = 0;
+    this->maxTries = MAXRETRIES;
 }
 
 
@@ -70,7 +78,7 @@ ObtainingPositionInformation::~ObtainingPositionInformation  () {
 * 
 * @returns 
 */
-bool ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
  
     char StringToSend [15] = "AT+QGPSLOC?";
@@ -79,8 +87,6 @@ bool ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geodata, ATC
     char ExpectedResponse [15] = "OK";
     char sessionNoTActive [20] = "+CME ERROR: 505";
     char StringToSendUSB [40] = "OBTAINING POSITION INFO";
-
-
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(ChangeLatLongFormat);
@@ -119,6 +125,7 @@ bool ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geodata, ATC
             strncpy( Geodata->date, this->date, sizeof(Geodata->date));
             Geodata->nsat = this->nsat; 
             this->currentGNSSModule->changeGeopositioningState (new TurningOffGNSS (this->currentGNSSModule));
+            return GNSS_STATE_CONNECTION_OBTAIN;
         }
         if (strcmp (StringToBeRead, sessionNoTActive) == 0 ) {
             ////   ////   ////   ////   ////   ////
@@ -127,16 +134,31 @@ bool ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geodata, ATC
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
             this->currentGNSSModule->changeGeopositioningState (new TurningOnGNSS (this->currentGNSSModule));
+             return GNSS_STATE_TRYING_TO_CONNECT;
         }
     }
 
     if (refreshTime->read()) {
-        this->readyToSend = true;
+        this->readyToSend = true;    
+        this->numberOfTries ++;
+    
+        char StringToSendUSB [40] = "+1 counter retry";
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        if (this->numberOfTries >= this->maxTries) {
+             ////   ////   ////   ////   ////   ////
+            char StringToSendUSB [40] = "GNSS UNAVAILABLE, TURNING OFF";
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            ////   ////   ////   ////   ////   ////    
+            this->numberOfTries = 0;
+            this->currentGNSSModule->changeGeopositioningState (new TurningOffGNSS (this->currentGNSSModule));
+            return GNSS_STATE_CONNECTION_UNAVAILABLE;
+        }
+       
     }
-    //
-    //
-    //
-    return false;
+
+    return GNSS_STATE_TRYING_TO_CONNECT;
 }
 
 

@@ -127,5 +127,14 @@ void PowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * pow
     return;
 }
 
-
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerOFFState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
+    ,  BatteryData * currentBatteryData) {
+    return false;
+}
 //=====[Implementations of private functions]==================================

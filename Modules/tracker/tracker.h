@@ -37,6 +37,7 @@ public:
 private:
     char* formMessage (GNSSData * GNSSInfo );
     char* formMessage(CellInformation* aCellInfo);
+    char* formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo);
     CellularModule* cellularTransmitter;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 
@@ -44,6 +45,7 @@ private:
     GNSSModule* currentGNSSModule;
     GNSSData * currentGNSSdata;
     NonBlockingDelay * latency;
+    BatteryData  * batteryStatus;
 
 };
 

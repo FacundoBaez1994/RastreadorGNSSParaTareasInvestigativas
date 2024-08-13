@@ -95,12 +95,9 @@ void GNSSModule::reboot () {
 * 
 * @returns 
 */
-bool GNSSModule::retrivGeopositioning (GNSSData * Geodata) {
-    if (this->currentGeopositioningState->retrivGeopositioning (Geodata, this->ATHandler,
-    this->refreshTime) == true) {
-        return true;
-    }
-    return false;
+GNSSState_t GNSSModule::retrivGeopositioning (GNSSData * Geodata) {
+    return this->currentGeopositioningState->retrivGeopositioning (Geodata, this->ATHandler,
+    this->refreshTime);
 }
 
 

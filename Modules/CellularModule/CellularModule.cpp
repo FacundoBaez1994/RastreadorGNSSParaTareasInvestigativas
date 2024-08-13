@@ -115,6 +115,16 @@ bool CellularModule::sendMessage (char * message, TcpSocket * socketTargetted) {
 /** 
 * @brief 
 * 
+* 
+* @returns 
+*/
+bool CellularModule::measureBattery (BatteryData * currentBatteryData) {
+    return this->modulePowerManager->measureBattery(currentBatteryData);
+}
+
+/** 
+* @brief 
+* 
 * @returns 
 */
 void CellularModule::changeConnectionState  (ConnectionState * newConnectionState) {

@@ -36,8 +36,8 @@ private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool timeAndDateRetrived;
-   
-    char dateTimeAndTimeZoneString [35];
+    char time [20];
+    char date [20]; 
 //=====[Declaration of privates methods]=========================================
     bool retrieveNetworkTime (char *response);
 };

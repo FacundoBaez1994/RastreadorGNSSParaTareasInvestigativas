@@ -12,8 +12,10 @@
 #include "GeopositioningState.h"
 #include "PowerManager.h"
 #include "GNSSUnavailable.h"
+#include "GNSSState.h"
 
 //=====[Declaration of public data types]======================================
+
  struct GNSSData {
     char utc[10];          // <UTC> en formato HHMMSS.SS
     float latitude;        // <latitude> en formato decimal
@@ -41,7 +43,7 @@ public:
     virtual ~GNSSModule ();
     void startStopUpdate ();
     void reboot ();
-    bool retrivGeopositioning (GNSSData * Geodata);
+    GNSSState_t retrivGeopositioning (GNSSData * Geodata);
     void changeGeopositioningState  (GeopositioningState* newGeopositioningState);
     void enableGNSS ();
     PowerManager* getPowerManager ();

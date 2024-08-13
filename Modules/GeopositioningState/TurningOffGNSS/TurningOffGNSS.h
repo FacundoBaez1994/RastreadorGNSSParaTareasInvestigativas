@@ -12,6 +12,7 @@
 #include "ATCommandHandler.h"
 #include "Non_Blocking_Delay.h"
 #include "GNSSUnavailable.h" 
+#include "GNSSState.h"
 
 
 
@@ -30,7 +31,7 @@ public:
     TurningOffGNSS  ();
     TurningOffGNSS  (GNSSModule * aGNSSModule);
     virtual ~TurningOffGNSS   ();
-    bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+    GNSSState_t retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime);
     void enableGNSS ();
 private:

@@ -10,6 +10,7 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "GNSSModule.h"
+#include "GNSSState.h"
 
 //=====[Declaration of public data types]======================================
 struct GNSSData;
@@ -22,7 +23,7 @@ struct GNSSData;
 class  GeopositioningState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * handler,
+    virtual GNSSState_t retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * handler,
      NonBlockingDelay * refreshTime) ;
     virtual void enableGNSS ();
 //=====[Declaration of privates atributes]=========================================

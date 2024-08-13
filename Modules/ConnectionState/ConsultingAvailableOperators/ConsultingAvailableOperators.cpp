@@ -146,6 +146,7 @@ bool ConsultingAvailableOperators::retrivOperatorsInformation(char *response) {
 
             this->mcc = atoi(mcc);
             this->mnc = atoi(mnc);
+            this->channel = channel;
 
             // Enviar la información por UART para verificación
             uartUSB.write("Access Technology: ", strlen("Access Technology: "));

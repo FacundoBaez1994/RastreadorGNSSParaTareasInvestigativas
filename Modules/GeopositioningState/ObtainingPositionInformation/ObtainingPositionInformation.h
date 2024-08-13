@@ -12,6 +12,7 @@
 #include "ATCommandHandler.h"
 #include "Non_Blocking_Delay.h"
 #include "TurningOnGNSS.h"
+#include "GNSSState.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -29,7 +30,7 @@ public:
     ObtainingPositionInformation ();
     ObtainingPositionInformation  (GNSSModule * aGNSSModule);
     virtual ~ObtainingPositionInformation   ();
-    bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+    GNSSState_t retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime) ;
     void enableGNSS ();
 private:
@@ -47,6 +48,9 @@ private:
     float spkn;            // <spkn> speed in knots
     char date[7];  // <date> in format DDMMYY
     int nsat;         // <nsat> number of satelites
+
+    int numberOfTries;
+    int maxTries;
 
 //=====[Declaration of privates atributes]=========================================
 

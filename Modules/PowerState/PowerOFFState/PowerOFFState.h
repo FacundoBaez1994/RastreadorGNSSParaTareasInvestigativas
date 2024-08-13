@@ -12,11 +12,11 @@
 #include "PowerState.h"
 #include "Non_Blocking_Delay.h"
 #include "PowerONState.h"
-
+#include "PowerManager.h"
 
 //=====[Declaration of public data types]======================================
 class PowerManager; //debido a declaracion adelantada
-
+struct BatteryData;
 //=====[Declaration of public classes]=========================================
 /*
  *  class - State desing pattern
@@ -32,6 +32,8 @@ public:
     void reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
     void goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
     void awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    bool measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
+    ,  BatteryData * currentBatteryData);
 private:
     PowerManager * manager;
     powerStatus_t status;

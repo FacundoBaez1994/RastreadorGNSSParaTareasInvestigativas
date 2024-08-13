@@ -209,5 +209,83 @@ void PowerONState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * powe
     return;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
+    ,  BatteryData * currentBatteryData) {
+    static bool readyToSend = true;
+    char StringToSend [15] = "AT+CBC";
+    char StringToBeRead [256];
+    char StringToSendUSB [40] = "Measuring Battery";
+
+    if (readyToSend == true) {
+        AThandler->sendATCommand(StringToSend);
+        readyToSend = false;
+        ////   ////   ////   ////   ////   ////
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        ////   ////   ////   ////   ////   ////   
+    }
+
+    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+         ////   ////   ////   ////   ////   ////
+        uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+         ////   ////   ////   ////   ////   ////
+
+        if (this->retrivBatteryData (StringToBeRead, currentBatteryData) == true) {
+            return true;
+        }
+    }
+
+    if (powerChangeDurationTimer->read()) {
+        readyToSend = true;
+    }
+    return false;
+    }
 
 //=====[Implementations of private functions]==================================
+bool PowerONState::retrivBatteryData(char* stringToAnalyse, BatteryData* currentBatteryData) {
+    const char* prefix = "+CBC:";
+    if (strncmp(stringToAnalyse, prefix, strlen(prefix)) != 0) {
+        return false;  // No comienza con "+CBC:"
+    }
+
+    char* dataStart = stringToAnalyse + strlen(prefix);
+
+    int bcs, bcl;
+    float voltage;
+    if (sscanf(dataStart, "%d,%d,%f", &bcs, &bcl, &voltage) == 3) {
+        currentBatteryData->batteryChargeStatus = bcs;
+        currentBatteryData->chargeLevel = bcl;
+        currentBatteryData->voltage = voltage;
+
+            uartUSB.write("Battery Charge Status: ", strlen("Battery Charge Status: "));
+            char statusStr[5];
+            sprintf(statusStr, "%d",  currentBatteryData->batteryChargeStatus);
+            uartUSB.write(statusStr, strlen(statusStr));
+            uartUSB.write("\r\n", 2);
+
+            uartUSB.write("Charge: ", strlen("Charge: "));
+            char chargeStr[5];
+            sprintf(chargeStr, "%d", currentBatteryData->chargeLevel);
+            uartUSB.write(chargeStr, strlen(chargeStr));
+            uartUSB.write("\r\n", 2);
+
+            uartUSB.write("Voltage: ", strlen("Voltage: "));
+            char voltageStr[5];
+            sprintf(voltageStr, "%.2f",  currentBatteryData->voltage );
+            uartUSB.write(voltageStr, strlen(voltageStr));
+            uartUSB.write("\r\n", 2);
+
+        return true; 
+    }
+
+    return false;  // No se pudieron extraer los datos correctamente
+}

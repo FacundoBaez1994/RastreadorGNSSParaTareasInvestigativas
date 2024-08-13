@@ -20,6 +20,13 @@
 
 //=====[Declaration of public data types]======================================
 class ConnectionState; //debido a declaracion adelantada
+ struct BatteryData;
+
+typedef enum {
+    CELULLAR_STATE_DISCONNECTED,
+    CELULLAR_STATE_CONNECTED_TO_NETWORK,
+    CELULLAR_STATE_
+} trackerState_t;
 
  struct TcpSocket {
     char * IpDirection; // IPV4
@@ -32,7 +39,8 @@ class ConnectionState; //debido a declaracion adelantada
     int accessTechnology; //
     int registrationStatus; // pass as int in order to decrese data lenght (translate in server)
     int channel;
-    char *  dateTimeAndTimeZoneString;
+    char *  date;
+    char * time;
     char * band;
     // Cell identifiers codes ////
     char * lac;
@@ -62,6 +70,7 @@ public:
     void changeTransmissionState  (TransmissionState * newTransmissionState);
     void switchSIMCARD ();
     void reboot ();
+    bool measureBattery (BatteryData * currentBatteryData);
     PowerManager* getPowerManager ();
     BufferedSerial* getUART ();
     ATCommandHandler* getATHandler ();

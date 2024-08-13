@@ -12,6 +12,7 @@
 #include "ATCommandHandler.h"
 #include "Non_Blocking_Delay.h"
 #include "ObtainingPositionInformation.h"
+#include "GNSSState.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -29,7 +30,7 @@ public:
     TurningOnGNSS  ();
     TurningOnGNSS  (GNSSModule * aGNSSModule);
     virtual ~TurningOnGNSS   ();
-    bool retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
+    GNSSState_t retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime);
     void enableGNSS ();
 private:

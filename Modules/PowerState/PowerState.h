@@ -18,6 +18,7 @@ typedef enum {
     SLEEP,
 } powerStatus_t;
 
+ struct BatteryData;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -31,6 +32,8 @@ public:
     virtual void reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
     virtual void goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
     virtual void awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    virtual bool measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
+    ,  BatteryData * currentBatteryData);
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

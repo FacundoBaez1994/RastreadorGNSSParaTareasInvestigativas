@@ -13,8 +13,15 @@
 #include "PowerOFFState.h"
 
 //=====[Declaration of public data types]======================================
+ struct BatteryData {
+    unsigned int batteryChargeStatus; // 0 not charging, 1 charging and 2 charging has finished
+    unsigned int chargeLevel;        // from 0 to 100
+    float voltage;       // in mV measured
+ };
+
 
 //=====[Declaration of public classes]=========================================
+
 /*
  *  
  * 
@@ -34,6 +41,7 @@ public:
     bool readPowerStatus ();
     void changeKeyDigitalSignal (bool newStatus);
     BufferedSerial* getUART ();
+    bool measureBattery (BatteryData * currentBatteryData);
 
 private:
 //=====[Declaration of privates atributes]=========================================

@@ -63,14 +63,17 @@ public:
     CellularModule ( );
     virtual ~CellularModule ();
     void startStopUpdate ();
+    void reboot ();
+    void awake ();
+    bool goToSleep ();
+    bool measureBattery (BatteryData * currentBatteryData);
     bool connectToMobileNetwork (CellInformation * currentCellInformation);
     bool sendMessage (char * message, TcpSocket * socketTargetted);
     void changeConnectionState  (ConnectionState * newConnectionState);
     void enableTransmission ();
     void changeTransmissionState  (TransmissionState * newTransmissionState);
     void switchSIMCARD ();
-    void reboot ();
-    bool measureBattery (BatteryData * currentBatteryData);
+
     PowerManager* getPowerManager ();
     BufferedSerial* getUART ();
     ATCommandHandler* getATHandler ();

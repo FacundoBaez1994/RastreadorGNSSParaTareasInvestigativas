@@ -6,7 +6,7 @@
 #include "TurningOffGNSS.h"
 
 //=====[Declaration of private defines]========================================
-#define MAXRETRIES  50
+#define MAXRETRIES  10
 
 //=====[Declaration of private data types]=====================================
 

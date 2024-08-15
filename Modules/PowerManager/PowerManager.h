@@ -34,11 +34,12 @@ public:
     virtual ~PowerManager ();
     powerStatus_t startStopUpdate ();
     void reboot ();
-    void goToSleep ();
+    bool goToSleep ();
     void awake ();
     void changePowerState (PowerState * newPowerState);
     bool readInputControlButton ();
     bool readPowerStatus ();
+    void changeDTRSignal (bool newStatus);
     void changeKeyDigitalSignal (bool newStatus);
     BufferedSerial* getUART ();
     bool measureBattery (BatteryData * currentBatteryData);
@@ -53,6 +54,7 @@ private:
     DigitalIn* powerControlButtonInput;
     DigitalOut* powerKeyOutput; // soft power control
     DigitalOut* powerDownOutput; // Power source enable - hard power control
+    DigitalOut* powerKeySleepOutput;
 
 //=====[Declaration of privates methods]=========================================
 };

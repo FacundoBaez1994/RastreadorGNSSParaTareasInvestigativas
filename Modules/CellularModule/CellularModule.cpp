@@ -61,7 +61,7 @@ CellularModule::~CellularModule () {
 /** 
 * 
 * 
-* SOFT HARDWARE START STOP
+* 
 */
 void CellularModule::startStopUpdate () {
     powerStatus_t newPowerStatus;
@@ -75,12 +75,28 @@ void CellularModule::startStopUpdate () {
     }
 }
 
-
+/** 
+* 
+* 
+* 
+*/
+void CellularModule::awake () { 
+    this->modulePowerManager->awake();
+}
 
 /** 
 * 
 * 
-* SOFT HARDWARE START STOP
+* 
+*/
+bool CellularModule::goToSleep () {
+    return this->modulePowerManager->goToSleep();
+}
+
+/** 
+* 
+* 
+*
 */
 void CellularModule::reboot () {
     this->modulePowerManager->reboot ();

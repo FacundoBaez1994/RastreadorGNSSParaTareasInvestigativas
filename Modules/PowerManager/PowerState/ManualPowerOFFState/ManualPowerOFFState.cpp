@@ -141,8 +141,8 @@ void ManualPowerOFFState::reboot (ATCommandHandler  * AThandler, NonBlockingDela
 * 
 * @returns 
 */
-void ManualPowerOFFState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
-    return;
+bool ManualPowerOFFState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    return false;
 }
 
 /** 

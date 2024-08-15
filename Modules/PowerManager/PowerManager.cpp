@@ -13,7 +13,7 @@
 #define CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT PA_0
 #define CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT PB_4
 #define CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT PB_0
-//#define CELLULAR_MODULE_SIMCARD_SWITCH_OUTPUT PA_8
+#define CELLULAR_MODULE_DTR_PIN_OUTPUT PA_3
 
 
 //=====[Declaration of private data types]=====================================
@@ -47,9 +47,11 @@ PowerManager::PowerManager (ATCommandHandler * AThandler) {
     this->powerControlButtonInput = new DigitalIn (CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT);
     this->powerKeyOutput = new DigitalOut (CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT);
     this->powerDownOutput = new DigitalOut (CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT);
+    this->powerKeySleepOutput = new DigitalOut (CELLULAR_MODULE_DTR_PIN_OUTPUT);
 
     this->powerControlButtonInput->mode(PullUp);
     *this->powerKeyOutput = OFF;
+    *this->powerKeySleepOutput = OFF;
     *this->powerDownOutput = ON; 
 }
 
@@ -81,8 +83,8 @@ powerStatus_t PowerManager::startStopUpdate ( ) {
 * 
 * @returns 
 */
-void PowerManager::goToSleep ( ) {
-    this->currentPowerState->goToSleep(this->ATHandler, this->powerChangeDurationTimer);
+bool PowerManager::goToSleep ( ) {
+    return this->currentPowerState->goToSleep(this->ATHandler, this->powerChangeDurationTimer);
 }
 
 /** 
@@ -154,6 +156,16 @@ bool PowerManager::readPowerStatus ( ) {
 void PowerManager::changeKeyDigitalSignal (bool newStatus) {
     *this->powerKeyOutput = newStatus; 
 }
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
+void PowerManager::changeDTRSignal (bool newStatus) {
+    *this->powerKeySleepOutput = newStatus; 
+}
+
 
 /** 
 * @brief 

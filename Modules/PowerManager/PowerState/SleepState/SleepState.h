@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _POWER_ON_STATE_H_
-#define _POWER_ON_STATE_H_
+#ifndef _SLEEP_STATE_H_
+#define _SLEEP_STATE_H_
 
 //==================[Libraries]===============================================
 
@@ -11,26 +11,24 @@
 #include "ATCommandHandler.h"
 #include "PowerState.h"
 #include "Non_Blocking_Delay.h"
-#include "ManualPowerOFFState.h"
 #include "PowerManager.h"
-#include "SleepState.h"
 
 
 //=====[Declaration of public data types]======================================
 class PowerManager; //debido a declaracion adelantada
- struct BatteryData;
+struct BatteryData;
 
 //=====[Declaration of public classes]=========================================
 /*
  *  class - State desing pattern
  * 
  */
-class PowerONState : public PowerState {
+class SleepState : public PowerState {
 public:
 //=====[Declaration of public methods]=========================================
-    PowerONState ();
-    PowerONState (PowerManager * newManager);
-    virtual ~PowerONState ();
+    SleepState ();
+    SleepState(PowerManager * newManager);
+    virtual ~SleepState ();
     powerStatus_t startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
     void reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
     bool goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
@@ -39,7 +37,6 @@ public:
     ,  BatteryData * currentBatteryData);
   
 private:
-    bool retrivBatteryData (char * stringToAnalyse,  BatteryData * currentBatteryData);
     PowerManager * manager;
     powerStatus_t status;
     bool ManualTurningPower;
@@ -55,4 +52,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _POWER_ON_STATE_H_
+#endif // _SLEEP_STATE_H_

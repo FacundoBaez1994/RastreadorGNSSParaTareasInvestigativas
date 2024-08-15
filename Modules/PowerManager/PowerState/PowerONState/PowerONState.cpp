@@ -193,10 +193,47 @@ void PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
 * 
 * @returns 
 */
-void PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+   static bool readyToSend = true;
+    char StringToSend [15] = "AT+QSCLK=1";
+    char StringToBeRead [256];
+    char ExpectedResponse [15] = "OK";
+    char StringToSendUSB [40] = "Go To Sleep";
 
-  // 
-  // poner DTR A HIGH 
+    if (readyToSend == true) {
+        AThandler->sendATCommand(StringToSend);
+        readyToSend = false;
+        ////   ////   ////   ////   ////   ////
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        ////   ////   ////   ////   ////   ////   
+    }
+
+
+    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+         ////   ////   ////   ////   ////   ////
+        uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+         ////   ////   ////   ////   ////   ////
+
+        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+            ////   ////   ////   ////   ////   ////
+            char StringToSendUSB [40] = "Entering Sleep Mode";
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            this->manager->changeDTRSignal(ON);
+            ////   ////   ////   ////   ////   ////            
+            this->manager->changePowerState (new SleepState (this->manager));
+            return true; 
+        }
+    }
+
+    if (powerChangeDurationTimer->read()) {
+        readyToSend = true;
+    }
+    return false;
 }
 
 /** 

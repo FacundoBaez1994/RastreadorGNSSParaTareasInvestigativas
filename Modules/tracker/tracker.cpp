@@ -99,6 +99,7 @@ void tracker::update () {
     static bool transimissionSecuenceActive =  false;
     static bool messageFormatted = false;
     static bool batterySensed = false;
+    static bool enablingGoingToSleep = false; 
 
 
     this->cellularTransmitter->startStopUpdate();
@@ -107,6 +108,7 @@ void tracker::update () {
     if (this->latency->read() && transimissionSecuenceActive == false) { // WRITE
         transimissionSecuenceActive = true;
         batterySensed = false;
+        this->cellularTransmitter->awake();
     }
 
     if (batterySensed == false &&  transimissionSecuenceActive == true) {
@@ -116,6 +118,7 @@ void tracker::update () {
         }
     }
     
+    /// GNSS /// 
     GnssCurrentStatus = this->currentGNSSModule->retrivGeopositioning(this->currentGNSSdata);
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {
         GNSSAdquisitionSuccesful = true;
@@ -132,6 +135,8 @@ void tracker::update () {
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
     
+
+    ///CELULLAR // 
     if (enableTransmission == true ) {
         if (this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation)) {
             if (GNSSAdquisitionSuccesful == false) {
@@ -153,12 +158,21 @@ void tracker::update () {
             if (this->cellularTransmitter->sendMessage
             (formattedMessage, this->socketTargetted) == true) {
                 enableTransmission = false;
-                transimissionSecuenceActive = false;
                 messageFormatted = false;
-                this->latency->restart();
+                enablingGoingToSleep = true;
+
             }
         }
     }
+    if (enablingGoingToSleep == true) {
+        if (this->cellularTransmitter->goToSleep()) { 
+            transimissionSecuenceActive = false;
+            enablingGoingToSleep = false;
+            this->latency->restart();
+        }
+    }
+
+
 }
 
 //=====[Implementations of private methods]==================================

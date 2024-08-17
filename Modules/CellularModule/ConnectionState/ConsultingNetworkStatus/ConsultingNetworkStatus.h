@@ -29,7 +29,8 @@ public:
     ConsultingNetworkStatus();
     ConsultingNetworkStatus(CellularModule * mobileModule);
     virtual ~ConsultingNetworkStatus ();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, 
+    NonBlockingDelay * refreshTime,
      CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
@@ -41,6 +42,8 @@ private:
     char cellId[20];
     int accessTechnology;
     int registrationStatus;
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates methods]=========================================
     bool retrivIdCellData (char *response);
 };

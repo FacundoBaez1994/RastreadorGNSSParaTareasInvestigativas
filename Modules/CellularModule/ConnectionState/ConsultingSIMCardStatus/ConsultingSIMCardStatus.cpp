@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -40,7 +40,8 @@ ConsultingSIMCardStatus::ConsultingSIMCardStatus (CellularModule * mobileModule)
     this->ATFirstResponseRead  = false;
     this->readyToSend = true;
     this->simCardDetected = false;
-    this->rebootCounter = 0;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
 
@@ -61,7 +62,8 @@ ConsultingSIMCardStatus::~ConsultingSIMCardStatus () {
 * 
 * @returns 
 */
-bool ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, 
+NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
     static char StringToBeRead [256];
     char expectedResponse [15] = "OK";
@@ -99,8 +101,7 @@ CellInformation * currentCellInformation) {
             if (strcmp (StringToBeRead, simCardReady ) == 0) {
                 this->simCardDetected = true;
             }
-
-             refreshTime->restart();
+            refreshTime->restart();
         }
     } 
      
@@ -117,7 +118,7 @@ CellInformation * currentCellInformation) {
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
                 this->mobileNetworkModule->changeConnectionState (new ConsultingNetworkStatus (this->mobileNetworkModule) );
-                return false;
+                return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
             }
         }
     }
@@ -125,11 +126,11 @@ CellInformation * currentCellInformation) {
     if (refreshTime->read()) {
         this->readyToSend = true;
         this->simCardDetected= false;
-        this->rebootCounter ++;
+        this->connectionAttempts ++;
+        if ( this->connectionAttempts >= this->maxConnectionAttempts) {
+            this->mobileNetworkModule->reboot();
+            return CELLULAR_CONNECTION_STATUS_INVALID_SIM;
+        }
     }
-    if ( this->rebootCounter >= 5) {
-        this->mobileNetworkModule->reboot();
-    }
-    return false;
-
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }

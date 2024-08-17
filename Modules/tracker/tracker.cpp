@@ -1,12 +1,6 @@
 //=====[Libraries]=============================================================
 
 #include "tracker.h"
-#include "GNSSModule.h"
-#include "mbed.h"
-#include "Non_Blocking_Delay.h"
-#include "arm_book_lib.h"
-#include "string.h"
-#include "CellularModule.h"
 #include "Debugger.h" // due to global usbUart
 
 
@@ -94,6 +88,7 @@ void tracker::update () {
 
 
     static GNSSState_t GnssCurrentStatus;
+    static CellularConnectionStatus_t currentConnectionStatus;
     static bool GNSSAdquisitionSuccesful = false;
     static bool enableTransmission = false; 
     static bool transimissionSecuenceActive =  false;
@@ -138,7 +133,8 @@ void tracker::update () {
 
     ///CELULLAR // 
     if (enableTransmission == true ) {
-        if (this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation)) {
+        currentConnectionStatus = this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation);
+        if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) {
             if (GNSSAdquisitionSuccesful == false) {
                 if (messageFormatted == false) {
                     formattedMessage = this->formMessage(this->currentCellInformation);

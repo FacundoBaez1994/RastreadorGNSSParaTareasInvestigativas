@@ -29,7 +29,7 @@ public:
     CheckingSignalStrength ();
     CheckingSignalStrength(CellularModule * mobileModule);
     virtual ~CheckingSignalStrength ();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
@@ -38,8 +38,12 @@ private:
     bool ATFirstResponseRead;
     bool signalLevelRetrived;
     float signalLevel;
+    int connectionAttemptsATResponse; 
+    int maxConnectionAttemptsATResponse; 
+    int connectionAttemptsSignal; 
+    int maxConnectionAttemptsSignal; 
 //=====[Declaration of privates methods]=========================================
-    bool checkExpectedResponse (char *response, float &value);
+    bool checkExpectedResponse (char *response);
 };
 
 

@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -39,6 +39,8 @@ ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mob
     this->mobileNetworkModule = mobileModule;
     this->operatorsInformationRetrived = false;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
 
@@ -60,7 +62,7 @@ ConsultingAvailableOperators::~ConsultingAvailableOperators () {
 * 
 * @returns 
 */
-bool ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t  ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
@@ -110,16 +112,19 @@ CellInformation * currentCellInformation) {
                 currentCellInformation->channel = this->channel;
                 currentCellInformation->band = this->band;             
                 this->mobileNetworkModule->changeConnectionState (new RetrievingTimeAndDate (this->mobileNetworkModule));
-                return false;
+                return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
             }
         }
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
-        this->operatorsInformationRetrived = false;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_RETRIV_OPERATORS_INFO;
+        }
     }
-    return false;
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
 //=====[Implementations of private functions]==================================

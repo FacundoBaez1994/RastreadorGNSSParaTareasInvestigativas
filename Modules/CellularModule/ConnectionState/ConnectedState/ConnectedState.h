@@ -27,7 +27,8 @@ public:
     ConnectedState();
     ConnectedState (CellularModule * mobileModule);
     virtual ~ConnectedState ();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
+     NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
 private:
     CellularModule * mobileNetworkModule;

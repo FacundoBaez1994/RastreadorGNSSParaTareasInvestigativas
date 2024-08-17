@@ -69,9 +69,9 @@ ConnectedState::~ConnectedState () {
 * 
 * @returns 
 */
-bool ConnectedState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t ConnectedState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation) {
-    return true;
+    return CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK;
 }
 
 

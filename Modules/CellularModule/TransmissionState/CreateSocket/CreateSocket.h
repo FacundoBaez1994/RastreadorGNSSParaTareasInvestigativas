@@ -11,6 +11,7 @@
 #include "TransmissionState.h"
 #include "Non_Blocking_Delay.h"
 #include "Sending.h"
+#include "CloseSocket.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -33,6 +34,8 @@ public:
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

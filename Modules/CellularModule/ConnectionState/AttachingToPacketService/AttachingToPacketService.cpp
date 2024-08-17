@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -38,6 +38,8 @@
 AttachingToPacketService::AttachingToPacketService () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
 
@@ -49,6 +51,8 @@ AttachingToPacketService::AttachingToPacketService () {
 AttachingToPacketService::AttachingToPacketService (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
 
@@ -69,7 +73,8 @@ AttachingToPacketService::~AttachingToPacketService () {
 * 
 * @returns 
 */
-bool AttachingToPacketService::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t AttachingToPacketService::connect (ATCommandHandler * ATHandler, 
+NonBlockingDelay * refreshTime,
  CellInformation * currentCellInformation) {
     char StringToSend [15] = "AT+CGATT=1";
     char StringToBeRead [256];
@@ -88,7 +93,6 @@ bool AttachingToPacketService::connect (ATCommandHandler * ATHandler, NonBlockin
         ////   ////   ////   ////   ////   ////   
     }
 
-
     if ( ATHandler->readATResponse ( StringToBeRead) == true) {
          ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
@@ -102,16 +106,18 @@ bool AttachingToPacketService::connect (ATCommandHandler * ATHandler, NonBlockin
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
             this->mobileNetworkModule->changeConnectionState (new DefinePDPContext (this->mobileNetworkModule));
-            return false;
+            return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
         }
-
-
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_ATTACH_TO_PACKET_SERVICE;
+        }
     }
-    return false;
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
 

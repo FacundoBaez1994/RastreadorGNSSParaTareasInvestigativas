@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -39,6 +39,8 @@ RetrievingTimeAndDate::RetrievingTimeAndDate (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->timeAndDateRetrived = false;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
 
@@ -59,7 +61,7 @@ RetrievingTimeAndDate::~RetrievingTimeAndDate () {
 * 
 * @returns 
 */
-bool RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler,
+CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler,
  NonBlockingDelay * refreshTime, CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
@@ -109,16 +111,19 @@ bool RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler,
                 strcpy (currentCellInformation->time, this->time);
                 this->mobileNetworkModule->changeConnectionState 
                 (new AttachingToPacketService (this->mobileNetworkModule) );
-                return false; 
+                return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
             }
         }
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
-        this->timeAndDateRetrived = false;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_RETRIV_DATETIME;
+        }
     }
-    return false; 
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
 //=====[Implementations of private functions]==================================

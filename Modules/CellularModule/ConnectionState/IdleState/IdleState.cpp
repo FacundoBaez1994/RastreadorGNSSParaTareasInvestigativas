@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -38,6 +38,8 @@
 IdleState::IdleState () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
 
@@ -49,6 +51,8 @@ IdleState::IdleState () {
 IdleState::IdleState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
 
@@ -69,7 +73,7 @@ IdleState::~IdleState () {
 * 
 * @returns 
 */
-bool IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t  IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
     char StringToSend [15] = "ATI";
     char StringToBeRead [256];
@@ -101,14 +105,18 @@ CellInformation * currentCellInformation) {
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
             this->mobileNetworkModule->changeConnectionState (new CheckingSignalStrength (this->mobileNetworkModule));
-        return false;
+        return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
         }
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            return CELLULAR_CONNECTION_STATUS_MODULE_DISCONNECTED;
+        }
     }
-    return false;
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
 

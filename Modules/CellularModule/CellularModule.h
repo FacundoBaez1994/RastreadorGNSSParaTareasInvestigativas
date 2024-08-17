@@ -20,13 +20,7 @@
 
 //=====[Declaration of public data types]======================================
 class ConnectionState; //debido a declaracion adelantada
- struct BatteryData;
-
-typedef enum {
-    CELULLAR_STATE_DISCONNECTED,
-    CELULLAR_STATE_CONNECTED_TO_NETWORK,
-    CELULLAR_STATE_
-} trackerState_t;
+struct BatteryData;
 
  struct TcpSocket {
     char * IpDirection; // IPV4
@@ -67,7 +61,7 @@ public:
     void awake ();
     bool goToSleep ();
     bool measureBattery (BatteryData * currentBatteryData);
-    bool connectToMobileNetwork (CellInformation * currentCellInformation);
+    CellularConnectionStatus_t connectToMobileNetwork (CellInformation * currentCellInformation);
     bool sendMessage (char * message, TcpSocket * socketTargetted);
     void changeConnectionState  (ConnectionState * newConnectionState);
     void enableTransmission ();

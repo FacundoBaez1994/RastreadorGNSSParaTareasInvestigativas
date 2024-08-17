@@ -29,7 +29,7 @@ public:
     ConsultingAvailableOperators();
     ConsultingAvailableOperators (CellularModule * mobileModule);
     virtual ~ConsultingAvailableOperators ();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
      CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
@@ -41,6 +41,8 @@ private:
     char * currentOperator;
     int channel;
     char band [20];
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates methods]=========================================
     bool retrivOperatorsInformation (char *response);
 };

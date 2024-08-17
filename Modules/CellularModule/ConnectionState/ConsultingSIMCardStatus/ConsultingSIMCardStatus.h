@@ -31,7 +31,8 @@ public:
     ConsultingSIMCardStatus();
     ConsultingSIMCardStatus(CellularModule * mobileModule);
     virtual ~ConsultingSIMCardStatus ();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
+     NonBlockingDelay * refreshTime,
      CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
@@ -39,7 +40,8 @@ private:
     bool readyToSend;
     bool ATFirstResponseRead;
     bool simCardDetected;
-    int rebootCounter;
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates methods]=========================================
 };
 

@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -40,6 +40,8 @@ ConsultingIMEI::ConsultingIMEI (CellularModule * mobileModule) {
     this->ATFirstResponseRead  = false;
     this->readyToSend = true;
     this->IMEIRetrived = false;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
 
@@ -60,7 +62,7 @@ ConsultingIMEI::~ConsultingIMEI () {
 * 
 * @returns 
 */
-bool ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
@@ -87,7 +89,6 @@ CellInformation * currentCellInformation) {
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////
-           // this->ATFirstResponseRead = true;
              refreshTime->restart();
             if (this->RetrivIMEI (StringToBeRead,  this->IMEI )) {
                 char msgStringSignalQuality [20]= "";
@@ -114,7 +115,7 @@ CellInformation * currentCellInformation) {
                 ////   ////   ////   ////   ////   //// 
                 currentCellInformation->IMEI = this->IMEI;      
                 this->mobileNetworkModule->changeConnectionState (new ConsultingSIMCardStatus (this->mobileNetworkModule) );
-                return false;
+                return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
             }
         }
     }
@@ -122,8 +123,12 @@ CellInformation * currentCellInformation) {
     if (refreshTime->read()) {
         this->readyToSend = true;
         this->IMEIRetrived= false;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            return CELLULAR_CONNECTION_STATUS_MODULE_DISCONNECTED;
+        }
     }
-    return false;
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 
 }
 

@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -38,6 +38,8 @@
 CreateSocket::CreateSocket () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
 
@@ -49,6 +51,8 @@ CreateSocket::CreateSocket () {
 CreateSocket::CreateSocket (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
 
@@ -120,6 +124,11 @@ bool CreateSocket::send (ATCommandHandler * ATHandler,
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+             this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule));
+            return false;
+        }
     }
 
     return false;

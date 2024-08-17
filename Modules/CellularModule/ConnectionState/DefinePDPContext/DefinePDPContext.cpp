@@ -6,7 +6,7 @@
 
 //=====[Declaration of private defines]========================================
 #define APN_MOVISTAR "AT+CGDCONT=1,\"IP\",\"internet.movistar.com.ar\"" //APN / username / password   internet.gprs.unifon.com.ar
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private sdata types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -39,6 +39,8 @@
 DefinePDPContext::DefinePDPContext () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
 
@@ -50,6 +52,8 @@ DefinePDPContext::DefinePDPContext () {
 DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
 
@@ -70,13 +74,13 @@ DefinePDPContext::~DefinePDPContext () {
 * 
 * @returns 
 */
-bool DefinePDPContext::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t DefinePDPContext::connect (ATCommandHandler * ATHandler, 
+NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
     char StringToSend [50] = APN_MOVISTAR;
     char StringToSendUSB [40] = "DEFINING PDP CONTEXT";
-
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(APN_MOVISTAR);
@@ -88,7 +92,6 @@ CellInformation * currentCellInformation) {
         uartUSB.write ( "\r\n",  3 );  // debug only
         ////   ////   ////   ////   ////   ////   
     }
-
 
     if ( ATHandler->readATResponse ( StringToBeRead) == true) {
          ////   ////   ////   ////   ////   ////
@@ -104,16 +107,17 @@ CellInformation * currentCellInformation) {
             ////   ////   ////   ////   ////   ////    
             this->mobileNetworkModule->enableTransmission();        
             this->mobileNetworkModule->changeConnectionState (new ConnectedState (this->mobileNetworkModule));
-            return true;
+            return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
         }
-
-
     }
-
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_SET_PDP_CONTEXT;
+        }
     }
-    return false;
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 
 }
 

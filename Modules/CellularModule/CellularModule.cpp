@@ -107,7 +107,8 @@ void CellularModule::reboot () {
 * 
 * 
 */
-bool CellularModule::connectToMobileNetwork (CellInformation * currentCellInformation) {
+CellularConnectionStatus_t CellularModule::connectToMobileNetwork 
+(CellInformation * currentCellInformation) {
     return this->currentConnectionState->connect(this->ATHandler, this->refreshTime, currentCellInformation);
 }
 

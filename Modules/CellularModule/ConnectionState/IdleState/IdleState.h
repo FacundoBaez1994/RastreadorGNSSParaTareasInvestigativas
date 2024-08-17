@@ -29,11 +29,13 @@ public:
     IdleState ();
     IdleState (CellularModule * mobileModule);
     virtual ~IdleState ();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

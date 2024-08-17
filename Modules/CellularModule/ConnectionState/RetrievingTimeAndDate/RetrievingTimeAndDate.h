@@ -29,7 +29,7 @@ public:
     RetrievingTimeAndDate();
     RetrievingTimeAndDate (CellularModule * mobileModule);
     virtual ~RetrievingTimeAndDate();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
      CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
@@ -38,6 +38,8 @@ private:
     bool timeAndDateRetrived;
     char time [20];
     char date [20]; 
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates methods]=========================================
     bool retrieveNetworkTime (char *response);
 };

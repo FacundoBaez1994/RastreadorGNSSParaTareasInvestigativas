@@ -9,6 +9,7 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
+#include "CellularConnectionStatus.h"
 
 //=====[Declaration of public data types]======================================
 struct CellInformation;
@@ -21,7 +22,7 @@ struct CellInformation;
 class ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual bool connect (ATCommandHandler * handler,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, CellInformation * currentCellInformation);
 //=====[Declaration of privates atributes]=========================================
 

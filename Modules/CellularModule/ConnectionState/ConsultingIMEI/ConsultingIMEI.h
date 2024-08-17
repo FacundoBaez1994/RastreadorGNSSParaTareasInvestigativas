@@ -29,7 +29,7 @@ public:
     ConsultingIMEI();
     ConsultingIMEI(CellularModule * mobileModule);
     virtual ~ConsultingIMEI ();
-    virtual bool connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
 private:
 //=====[Declaration of privates atributes]=========================================
@@ -38,6 +38,8 @@ private:
     bool ATFirstResponseRead;
     bool IMEIRetrived;
     long long int IMEI;
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates methods]=========================================
     bool RetrivIMEI (char *response, long long int &value);
 };

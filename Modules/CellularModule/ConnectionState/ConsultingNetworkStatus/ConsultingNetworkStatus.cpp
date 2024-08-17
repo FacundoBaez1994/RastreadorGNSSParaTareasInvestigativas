@@ -5,7 +5,9 @@
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
-
+#define MODEM_REGISTERED_LOCALY 1
+#define MODEM_REGISTERED_ROAMING 5
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -40,6 +42,8 @@ ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule)
     this->ATFirstResponseRead  = false;
     this->readyToSend = true;
     this->cellDataRetrived = false;
+    this->connectionAttempts = 0; 
+    this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
 
@@ -60,7 +64,8 @@ ConsultingNetworkStatus::~ConsultingNetworkStatus () {
 * 
 * @returns 
 */
-bool ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler,
+ NonBlockingDelay * refreshTime,
  CellInformation * currentCellInformation) {
 
     static char StringToBeRead [256];
@@ -113,9 +118,13 @@ bool ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlocking
                 strcpy (currentCellInformation->cellId, this->cellId);
                 strcpy (currentCellInformation->lac, this->lac);
                 currentCellInformation->accessTechnology = this->accessTechnology;
-                currentCellInformation->registrationStatus = this->registrationStatus;         
-                this->mobileNetworkModule->changeConnectionState (new ConsultingAvailableOperators (this->mobileNetworkModule) );
-                return false;
+                currentCellInformation->registrationStatus = this->registrationStatus;
+                if (this->registrationStatus == MODEM_REGISTERED_LOCALY ||
+                 this->registrationStatus == MODEM_REGISTERED_ROAMING) {
+                    this->mobileNetworkModule->changeConnectionState
+                     (new ConsultingAvailableOperators (this->mobileNetworkModule) );
+                    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
+                 }         
             }
         }
     }
@@ -123,8 +132,12 @@ bool ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler, NonBlocking
     if (refreshTime->read()) {
         this->readyToSend = true;
         this->cellDataRetrived = false;
+        this->connectionAttempts++;
+        if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_REGISTER;
+        }
     }
-    return false;
+    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
 

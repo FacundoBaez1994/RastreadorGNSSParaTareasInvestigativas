@@ -30,6 +30,7 @@ public:
     virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
      NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
+    virtual void enableConnection ();
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;

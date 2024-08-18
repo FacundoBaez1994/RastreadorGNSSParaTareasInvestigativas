@@ -55,6 +55,15 @@ ConsultingIMEI::~ConsultingIMEI () {
     this->mobileNetworkModule = NULL;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+void ConsultingIMEI::enableConnection () {
+    return;
+}
 
 /** 
 * @brief 

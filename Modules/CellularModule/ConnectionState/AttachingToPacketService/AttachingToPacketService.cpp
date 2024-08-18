@@ -24,9 +24,6 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 
 //=====[Implementations of public methods]===================================
@@ -55,7 +52,6 @@ AttachingToPacketService::AttachingToPacketService (CellularModule * mobileModul
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-
 /** 
 * @brief 
 * 
@@ -66,6 +62,15 @@ AttachingToPacketService::~AttachingToPacketService () {
     this->mobileNetworkModule = NULL;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+void AttachingToPacketService::enableConnection () {
+    return;
+}
 
 /** 
 * @brief 

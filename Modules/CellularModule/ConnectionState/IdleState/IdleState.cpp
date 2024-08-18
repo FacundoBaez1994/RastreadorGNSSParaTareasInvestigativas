@@ -120,5 +120,10 @@ CellInformation * currentCellInformation) {
 }
 
 
+void IdleState::enableConnection () {
+    return;
+}
+
+
 
 //=====[Implementations of private functions]==================================

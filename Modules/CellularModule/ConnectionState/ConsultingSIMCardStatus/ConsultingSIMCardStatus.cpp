@@ -134,3 +134,8 @@ CellInformation * currentCellInformation) {
     }
     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
+
+
+void ConsultingSIMCardStatus::enableConnection () {
+    return;
+}

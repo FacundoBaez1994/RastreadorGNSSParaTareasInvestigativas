@@ -55,6 +55,15 @@ ConsultingAvailableOperators::~ConsultingAvailableOperators () {
     this->currentOperator = NULL;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+void ConsultingAvailableOperators::enableConnection () {
+    return;
+}
 
 /** 
 * @brief 

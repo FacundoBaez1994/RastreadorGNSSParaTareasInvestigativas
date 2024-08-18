@@ -57,6 +57,15 @@ ConsultingNetworkStatus::~ConsultingNetworkStatus () {
     this->mobileNetworkModule = NULL;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+void ConsultingNetworkStatus::enableConnection () {
+    return;
+}
 
 /** 
 * @brief 

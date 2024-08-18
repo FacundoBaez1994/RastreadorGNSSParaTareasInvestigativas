@@ -117,23 +117,22 @@ void tracker::update () {
     GnssCurrentStatus = this->currentGNSSModule->retrivGeopositioning(this->currentGNSSdata);
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {
         GNSSAdquisitionSuccesful = true;
-        enableTransmission = true;
         char StringToSendUSB [40] = "GNSS OBTAIN!!!!";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
+        this->cellularTransmitter->enableConnection();
     }
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_UNAVAILABLE ) {
         GNSSAdquisitionSuccesful = false;
-        enableTransmission = true;
         char StringToSendUSB [40] = "GNSS UNAVAILABLE!!!!";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only}
+        this->cellularTransmitter->enableConnection();
     }
     
 
-    ///CELULLAR // 
-    if (enableTransmission == true ) {
-        currentConnectionStatus = this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation);
+    ///CELULLAR  // 
+    currentConnectionStatus = this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation);
         if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) {
             if (GNSSAdquisitionSuccesful == false) {
                 if (messageFormatted == false) {
@@ -149,17 +148,21 @@ void tracker::update () {
                     uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
                 }
-
             }
-            if (this->cellularTransmitter->sendMessage
-            (formattedMessage, this->socketTargetted) == true) {
-                enableTransmission = false;
-                messageFormatted = false;
-                enablingGoingToSleep = true;
-
-            }
-        }
+    } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE) {
+        char StringToSendUSB [50] = "Access to mobile network UNAVAILABLE!!!!";
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only}
+        messageFormatted = false;
+        enablingGoingToSleep = true;
     }
+
+    if (this->cellularTransmitter->sendMessage
+            (formattedMessage, this->socketTargetted) == true) {
+            messageFormatted = false;
+            enablingGoingToSleep = true;
+    }
+
     if (enablingGoingToSleep == true) {
         if (this->cellularTransmitter->goToSleep()) { 
             transimissionSecuenceActive = false;

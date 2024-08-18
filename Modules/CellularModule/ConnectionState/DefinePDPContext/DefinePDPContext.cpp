@@ -121,6 +121,8 @@ CellInformation * currentCellInformation) {
 
 }
 
-
+void DefinePDPContext::enableConnection () {
+    return;
+}
 
 //=====[Implementations of private functions]==================================

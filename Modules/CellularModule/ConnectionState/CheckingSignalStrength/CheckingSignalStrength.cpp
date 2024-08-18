@@ -66,6 +66,17 @@ CheckingSignalStrength::~CheckingSignalStrength () {
 * 
 * @returns 
 */
+void CheckingSignalStrength::enableConnection () {
+    return;
+}
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
 CellularConnectionStatus_t  CheckingSignalStrength::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {

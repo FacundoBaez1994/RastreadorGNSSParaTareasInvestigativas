@@ -1,17 +1,15 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONSULTING_NETWORK_STATUS_H_
-#define _CONSULTING_NETWORK_STATUS_H_
+#ifndef _CONNECTION_UNAVAILABLE_STATE_H_
+#define _CONNECTION_UNAVAILABLE_STATE_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "ConnectionState.h"
-#include "ConsultingAvailableOperators.h"
+#include "IdleState.h"
 #include "Non_Blocking_Delay.h"
-#include <string>
 #include "CellularModule.h"
 
 //=====[Declaration of public data types]======================================
@@ -23,30 +21,23 @@ struct CellInformation;
  *  class - State desing pattern
  * 
  */
-class ConsultingNetworkStatus : public ConnectionState {
+class ConnectionUnavailableState : public ConnectionState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConsultingNetworkStatus();
-    ConsultingNetworkStatus(CellularModule * mobileModule);
-    virtual ~ConsultingNetworkStatus ();
-    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, 
-    NonBlockingDelay * refreshTime,
-     CellInformation * currentCellInformation);
+    ConnectionUnavailableState();
+    ConnectionUnavailableState (CellularModule * mobileModule);
+    virtual ~ConnectionUnavailableState();
+    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
+     NonBlockingDelay * refreshTime,
+    CellInformation * currentCellInformation);
     virtual void enableConnection ();
 private:
-//=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool ATFirstResponseRead;
-    bool cellDataRetrived;
-    char lac[10];
-    char cellId[20];
-    int accessTechnology;
-    int registrationStatus;
-    int connectionAttempts; 
-    int maxConnectionAttempts; 
+    bool enableTransmission;
+//=====[Declaration of privates atributes]=========================================
+
 //=====[Declaration of privates methods]=========================================
-    bool retrivIdCellData (char *response);
 };
 
 
@@ -54,4 +45,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //   _CONSULTING_NETWORK_STATUS_H_
+#endif // _CONNECTION_UNAVAILABLE_STATE_H_

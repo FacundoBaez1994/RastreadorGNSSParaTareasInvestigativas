@@ -54,6 +54,15 @@ RetrievingTimeAndDate::~RetrievingTimeAndDate () {
     this->mobileNetworkModule = NULL;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+void RetrievingTimeAndDate::enableConnection () {
+    return;
+}
 
 /** 
 * @brief 

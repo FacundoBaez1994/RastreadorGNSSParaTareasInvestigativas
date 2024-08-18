@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "ConnectedState.h"
+#include "ConnectionUnavailableState.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 
@@ -35,7 +35,7 @@
 * 
 * @param 
 */
-ConnectedState::ConnectedState () {
+ConnectionUnavailableState::ConnectionUnavailableState () {
     this->mobileNetworkModule = NULL;
     this->enableTransmission = false;
 }
@@ -46,7 +46,7 @@ ConnectedState::ConnectedState () {
 * 
 * @param 
 */
-ConnectedState::ConnectedState (CellularModule * mobileModule) {
+ConnectionUnavailableState::ConnectionUnavailableState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->enableTransmission = false;
 }
@@ -58,7 +58,7 @@ ConnectedState::ConnectedState (CellularModule * mobileModule) {
 * 
 * @returns 
 */
-ConnectedState::~ConnectedState () {
+ConnectionUnavailableState::~ConnectionUnavailableState () {
     this->mobileNetworkModule = NULL;
 }
 
@@ -69,8 +69,9 @@ ConnectedState::~ConnectedState () {
 * 
 * @returns 
 */
-void ConnectedState::enableConnection () {
-    return;
+CellularConnectionStatus_t ConnectionUnavailableState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
+    CellInformation * currentCellInformation) {
+    return CELLULAR_CONNECTION_STATUS_UNAVAIBLE;
 }
 
 /** 
@@ -79,9 +80,9 @@ void ConnectedState::enableConnection () {
 * 
 * @returns 
 */
-CellularConnectionStatus_t ConnectedState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
-    CellInformation * currentCellInformation) {
-    return CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK;
+void ConnectionUnavailableState::enableConnection () {
+    this->mobileNetworkModule->changeConnectionState (new IdleState (this->mobileNetworkModule));
+    return;
 }
 
 

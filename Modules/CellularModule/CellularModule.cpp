@@ -40,7 +40,7 @@ CellularModule::CellularModule () {
     this->refreshTime = new NonBlockingDelay (REFRESHTIME);
     this->ATHandler = new ATCommandHandler (new BufferedSerial  (CELLULAR_MODULE_TX_UART, 
      CELLULAR_MODULE_RX_UART, CELLULAR_MODULE_BAUD_RATE));
-    this->currentConnectionState = new IdleState (this);
+    this->currentConnectionState = new ConnectionUnavailableState (this);
     this->currentTransmissionState = new TransmissionUnavailable (this);
     this->modulePowerManager = new PowerManager (this->ATHandler);
 
@@ -69,7 +69,7 @@ void CellularModule::startStopUpdate () {
     if (this->currentPowerStatus != newPowerStatus) {
        this->currentPowerStatus = newPowerStatus;
        if (this->currentPowerStatus != POWER_ON) {
-            this->changeConnectionState (new IdleState (this));
+            this->changeConnectionState (new ConnectionUnavailableState (this));
             this->changeTransmissionState  (new TransmissionUnavailable (this));
        }
     }
@@ -121,7 +121,7 @@ CellularConnectionStatus_t CellularModule::connectToMobileNetwork
 bool CellularModule::sendMessage (char * message, TcpSocket * socketTargetted) {
     if (this->currentTransmissionState->send (this->ATHandler,
     this->refreshTime, message, socketTargetted) == true) {
-        this->changeConnectionState(new IdleState (this));
+        this->changeConnectionState(new ConnectionUnavailableState (this));
         this->changeTransmissionState(new TransmissionUnavailable (this));
         return true;
     }
@@ -148,17 +148,6 @@ void CellularModule::changeConnectionState  (ConnectionState * newConnectionStat
     delete this->currentConnectionState;
     this->currentConnectionState = newConnectionState;
 }
-
-/** 
-* @brief 
-* 
-* @returns 
-*/
-void CellularModule:: enableTransmission () {
-    delete this->currentTransmissionState;  
-    this->currentTransmissionState = new ActivatePDP (this); // QUIZA CONVENGA DELEGAR EN LOS ESTADOS?
-}
-
 /** 
 * @brief 
 * 
@@ -168,6 +157,26 @@ void CellularModule::changeTransmissionState  (TransmissionState * newTransmissi
     delete this->currentTransmissionState;
     this->currentTransmissionState = newTransmissionState;
 }
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
+void CellularModule:: enableTransmission () {
+    delete this->currentTransmissionState;  
+    this->currentTransmissionState = new ActivatePDP (this); // CONVIENE DELEGAR EN LOS ESTADOS
+}
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
+void CellularModule:: enableConnection () {
+    this->currentConnectionState->enableConnection();
+}
+
 
 
 /** 

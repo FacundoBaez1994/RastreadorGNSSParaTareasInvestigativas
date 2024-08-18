@@ -31,6 +31,7 @@ public:
     virtual ~CheckingSignalStrength ();
     virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
+    virtual void enableConnection ();
 private:
 //=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;

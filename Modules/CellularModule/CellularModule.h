@@ -14,7 +14,7 @@
 #include "ActivatePDP.h"
 #include "PowerManager.h"
 #include "TransmissionUnavailable.h"
-#include "IdleState.h"
+#include "ConnectionUnavailableState.h"
 #include "PowerOFFState.h"
 #include "PowerState.h"
 
@@ -65,6 +65,7 @@ public:
     bool sendMessage (char * message, TcpSocket * socketTargetted);
     void changeConnectionState  (ConnectionState * newConnectionState);
     void enableTransmission ();
+    void enableConnection ();
     void changeTransmissionState  (TransmissionState * newTransmissionState);
     void switchSIMCARD ();
 

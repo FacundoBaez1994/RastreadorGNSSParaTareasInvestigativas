@@ -24,6 +24,7 @@ public:
 //=====[Declaration of public methods]=========================================
     virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, CellInformation * currentCellInformation);
+    virtual void enableConnection ();
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

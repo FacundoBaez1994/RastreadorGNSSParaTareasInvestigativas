@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -40,6 +40,8 @@ Sending::Sending () {
     this->readyToSend = true;
     this->transmissionEnable = false;
     this->watingForConfirmation = false;
+    this->Attempts = 0; 
+    this->maxAttempts = MAXATTEMPTS;
 }
 
 
@@ -53,6 +55,8 @@ Sending::Sending (CellularModule * mobileModule) {
     this->readyToSend = true;
     this->transmissionEnable = false;
     this->watingForConfirmation = false;
+    this->Attempts = 0; 
+    this->maxAttempts = MAXATTEMPTS;
 }
 
 
@@ -67,13 +71,24 @@ Sending::~Sending () {
 }
 
 
+
 /** 
 * @brief 
 * 
 * 
 * @returns 
 */
-bool Sending::send(ATCommandHandler *ATHandler,
+void Sending::enableTransmission () {
+    return;
+}
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
     NonBlockingDelay *refreshTime, char *message, TcpSocket * socketTargetted) {
     char StringToBeSend[100];
     char StringToBeRead[100];
@@ -132,7 +147,8 @@ bool Sending::send(ATCommandHandler *ATHandler,
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////     
-                this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule));
+                this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, true));
+                 return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
             }
         }
     }
@@ -146,9 +162,15 @@ bool Sending::send(ATCommandHandler *ATHandler,
             this->transmissionEnable = false;
             this->watingForConfirmation = false;
         }
+        this->Attempts++;
+        if (this->Attempts >= this->maxAttempts) {
+            this->mobileNetworkModule->changeTransmissionState 
+            (new CloseSocket (this->mobileNetworkModule, false));
+            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+        }
     }
 
-    return false;
+    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
 }
 
 

@@ -30,11 +30,14 @@ public:
     ActivatePDP();
     ActivatePDP (CellularModule * mobileModule);
     virtual ~ActivatePDP ();
-    virtual bool send (ATCommandHandler * ATHandler,
+    virtual void enableTransmission ();
+    virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
+    int Attempts; 
+    int maxAttempts; 
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

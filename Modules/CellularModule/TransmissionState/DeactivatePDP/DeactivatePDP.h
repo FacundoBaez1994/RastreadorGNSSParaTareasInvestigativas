@@ -25,14 +25,15 @@ struct TcpSocket;
 class DeactivatePDP : public TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
-    DeactivatePDP();
-    DeactivatePDP (CellularModule * mobileModule);
+    DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess);
     virtual ~DeactivatePDP ();
-    virtual bool send (ATCommandHandler * ATHandler,
+    virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
+    virtual void enableTransmission ();
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
+    bool transmissionWasASuccess;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

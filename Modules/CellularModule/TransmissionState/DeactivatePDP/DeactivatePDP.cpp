@@ -30,25 +30,16 @@
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
-DeactivatePDP::DeactivatePDP () {
-    this->mobileNetworkModule = NULL;
-    this->readyToSend = true;
-}
-
 
 /** 
 * @brief
 * 
 * @param 
 */
-DeactivatePDP::DeactivatePDP (CellularModule * mobileModule) {
+DeactivatePDP::DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess ) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
+    this->transmissionWasASuccess = transmissionWasASuccess;
 }
 
 
@@ -69,7 +60,17 @@ DeactivatePDP::~DeactivatePDP () {
 * 
 * @returns 
 */
-bool DeactivatePDP::send (ATCommandHandler * ATHandler,
+void DeactivatePDP::enableTransmission () {
+    return;
+}
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+CellularTransmissionStatus_t DeactivatePDP::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     char StringToBeRead [20];
     char ExpectedResponse [15] = "OK";
@@ -80,7 +81,6 @@ bool DeactivatePDP::send (ATCommandHandler * ATHandler,
     int contextID = 1; 
 
     snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d", ATcommand, contextID );
-
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToBeSend);
@@ -105,7 +105,13 @@ bool DeactivatePDP::send (ATCommandHandler * ATHandler,
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////     
-           return true;
+            this->mobileNetworkModule->changeTransmissionState (new 
+            TransmissionUnavailable (this->mobileNetworkModule));
+            if (this->transmissionWasASuccess == true) {
+                return CELLULAR_TRANSMISSION_STATUS_SEND_OK;
+            } else {
+                return CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE_TO_SEND;
+            }
         }
     }
 
@@ -113,9 +119,11 @@ bool DeactivatePDP::send (ATCommandHandler * ATHandler,
         this->readyToSend = true;
     }
 
-    return false;
+    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
 }
 
+//    CELLULAR_TRANSMISSION_STATUS_FAIL_TO_ACTIVATE_PDP,
+    //CELLULAR_TRANSMISSION_STATUS_SEND_OK,
 
 
 //=====[Implementations of private functions]==================================

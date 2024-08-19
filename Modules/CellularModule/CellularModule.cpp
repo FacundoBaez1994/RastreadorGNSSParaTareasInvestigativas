@@ -118,14 +118,15 @@ CellularConnectionStatus_t CellularModule::connectToMobileNetwork
 * 
 * @returns 
 */
-bool CellularModule::sendMessage (char * message, TcpSocket * socketTargetted) {
-    if (this->currentTransmissionState->send (this->ATHandler,
-    this->refreshTime, message, socketTargetted) == true) {
+CellularTransmissionStatus_t CellularModule::sendMessage (char * message, TcpSocket * socketTargetted) {
+    CellularTransmissionStatus_t currentStatus = this->currentTransmissionState->send (this->ATHandler,
+    this->refreshTime, message, socketTargetted);
+    if (currentStatus != CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND &&
+    currentStatus  != CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE) {
         this->changeConnectionState(new ConnectionUnavailableState (this));
         this->changeTransmissionState(new TransmissionUnavailable (this));
-        return true;
     }
-    return false;
+    return currentStatus;
 }
 
 
@@ -164,8 +165,7 @@ void CellularModule::changeTransmissionState  (TransmissionState * newTransmissi
 * @returns 
 */
 void CellularModule:: enableTransmission () {
-    delete this->currentTransmissionState;  
-    this->currentTransmissionState = new ActivatePDP (this); // CONVIENE DELEGAR EN LOS ESTADOS
+    this->currentTransmissionState->enableTransmission();  
 }
 
 /** 

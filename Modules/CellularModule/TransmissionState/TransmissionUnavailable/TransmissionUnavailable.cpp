@@ -62,6 +62,18 @@ TransmissionUnavailable::~TransmissionUnavailable () {
     this->mobileNetworkModule = NULL;
 }
 
+/**
+* @brief 
+* 
+* 
+* @returns 
+*/
+void TransmissionUnavailable::enableTransmission () {
+    this->mobileNetworkModule->changeTransmissionState (new 
+        ActivatePDP (this->mobileNetworkModule));
+    return;
+}
+
 
 /** 
 * @brief 
@@ -69,9 +81,9 @@ TransmissionUnavailable::~TransmissionUnavailable () {
 * 
 * @returns 
 */
-bool TransmissionUnavailable::send (ATCommandHandler * handler,
+CellularTransmissionStatus_t TransmissionUnavailable::send (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
-    return false;
+    return CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE;
 }
 
 

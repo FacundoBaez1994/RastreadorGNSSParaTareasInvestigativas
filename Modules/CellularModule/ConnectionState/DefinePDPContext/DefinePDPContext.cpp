@@ -104,8 +104,7 @@ CellInformation * currentCellInformation) {
             char StringToSendUSB [40] = "Cambiando de estado 7";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////    
-            this->mobileNetworkModule->enableTransmission();        
+            ////   ////   ////   ////   ////   ////        
             this->mobileNetworkModule->changeConnectionState (new ConnectedState (this->mobileNetworkModule));
             return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
         }

@@ -9,6 +9,7 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "TransmissionState.h"
+#include "ActivatePDP.h"
 #include "Non_Blocking_Delay.h"
 
 
@@ -27,8 +28,9 @@ public:
     TransmissionUnavailable();
     TransmissionUnavailable (CellularModule * mobileModule);
     virtual ~TransmissionUnavailable ();
-    virtual bool send (ATCommandHandler * handler,
+    virtual CellularTransmissionStatus_t send (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
+    virtual void enableTransmission ();
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;

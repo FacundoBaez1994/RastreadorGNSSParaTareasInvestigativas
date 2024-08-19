@@ -9,6 +9,7 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
+#include "TransmissionStatus.h"
 
 //=====[Declaration of public data types]======================================
 struct TcpSocket;
@@ -21,8 +22,9 @@ struct TcpSocket;
 class TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual bool send (ATCommandHandler * handler,
+    virtual CellularTransmissionStatus_t send (ATCommandHandler * handler,
      NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
+    virtual void enableTransmission ();
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

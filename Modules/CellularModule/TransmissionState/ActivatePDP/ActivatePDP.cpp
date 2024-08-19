@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -38,6 +38,8 @@
 ActivatePDP::ActivatePDP () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
+    this->Attempts = 0; 
+    this->maxAttempts = MAXATTEMPTS; 
 }
 
 
@@ -49,6 +51,8 @@ ActivatePDP::ActivatePDP () {
 ActivatePDP::ActivatePDP (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
+    this->Attempts = 0; 
+    this->maxAttempts = MAXATTEMPTS; 
 }
 
 
@@ -69,7 +73,17 @@ ActivatePDP::~ActivatePDP () {
 * 
 * @returns 
 */
-bool ActivatePDP::send (ATCommandHandler * ATHandler,
+void ActivatePDP::enableTransmission () {
+    return;
+}
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+CellularTransmissionStatus_t ActivatePDP::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     char StringToBeRead [20];
     char ExpectedResponse [15] = "OK";
@@ -102,6 +116,7 @@ bool ActivatePDP::send (ATCommandHandler * ATHandler,
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////     
             this->mobileNetworkModule->changeTransmissionState (new CreateSocket (this->mobileNetworkModule));
+            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
         }
 
 
@@ -109,9 +124,13 @@ bool ActivatePDP::send (ATCommandHandler * ATHandler,
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->Attempts++;
+        if (this->Attempts >= this->maxAttempts) {
+            return CELLULAR_TRANSMISSION_STATUS_FAIL_TO_ACTIVATE_PDP;
+        }
     }
 
-    return false;
+    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
 }
 
 

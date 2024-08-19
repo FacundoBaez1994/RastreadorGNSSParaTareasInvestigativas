@@ -25,14 +25,18 @@ struct TcpSocket;
 class CloseSocket : public TransmissionState {
 public:
 //=====[Declaration of public methods]=========================================
-    CloseSocket();
-    CloseSocket(CellularModule * mobileModule);
+    CloseSocket(CellularModule * mobileModule, 
+    bool transmissionWasASuccess);
     virtual ~CloseSocket ();
-    virtual bool send (ATCommandHandler * ATHandler,
+    virtual void enableTransmission ();
+    virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
+    bool transmissionWasASuccess;
+    int Attempts; 
+    int maxAttempts; 
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

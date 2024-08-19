@@ -67,13 +67,18 @@ CreateSocket::~CreateSocket () {
 }
 
 
+void CreateSocket::enableTransmission () {
+    return;
+}
+
+
 /** 
 * @brief 
 * 
 * 
 * @returns 
 */
-bool CreateSocket::send (ATCommandHandler * ATHandler,
+ CellularTransmissionStatus_t  CreateSocket::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     char StringToBeSend [120];
     char StringToBeRead [20];
@@ -118,20 +123,18 @@ bool CreateSocket::send (ATCommandHandler * ATHandler,
             ////   ////   ////   ////   ////   ////    
             this->mobileNetworkModule->changeTransmissionState (new Sending (this->mobileNetworkModule));
         }
-
-
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
-             this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule));
-            return false;
+             this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, false));
+            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
         }
     }
 
-    return false;
+    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
 }
 
 

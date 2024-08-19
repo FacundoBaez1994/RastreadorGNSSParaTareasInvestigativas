@@ -28,13 +28,16 @@ public:
     Sending();
     Sending (CellularModule * mobileModule);
     virtual ~Sending ();
-    virtual bool send (ATCommandHandler * ATHandler,
+    virtual void enableTransmission ();
+    virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool transmissionEnable;
     bool watingForConfirmation;
+    int Attempts; 
+    int maxAttempts; 
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

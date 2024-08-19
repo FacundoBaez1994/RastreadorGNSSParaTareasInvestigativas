@@ -62,7 +62,7 @@ public:
     bool goToSleep ();
     bool measureBattery (BatteryData * currentBatteryData);
     CellularConnectionStatus_t connectToMobileNetwork (CellInformation * currentCellInformation);
-    bool sendMessage (char * message, TcpSocket * socketTargetted);
+    CellularTransmissionStatus_t sendMessage (char * message, TcpSocket * socketTargetted);
     void changeConnectionState  (ConnectionState * newConnectionState);
     void enableTransmission ();
     void enableConnection ();

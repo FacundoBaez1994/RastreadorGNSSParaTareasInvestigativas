@@ -84,11 +84,11 @@ tracker::~tracker() {
 void tracker::update () {
     
     static char* formattedMessage;
-    static char messagetry [200];
 
 
     static GNSSState_t GnssCurrentStatus;
     static CellularConnectionStatus_t currentConnectionStatus;
+    static CellularTransmissionStatus_t currentTransmitionStatus;
     static bool GNSSAdquisitionSuccesful = false;
     static bool enableTransmission = false; 
     static bool transimissionSecuenceActive =  false;
@@ -130,10 +130,10 @@ void tracker::update () {
         this->cellularTransmitter->enableConnection();
     }
     
-
-    ///CELULLAR  // 
+    ///CELULLAR  CONNECTION// 
     currentConnectionStatus = this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation);
         if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) {
+            this->cellularTransmitter->enableTransmission();    
             if (GNSSAdquisitionSuccesful == false) {
                 if (messageFormatted == false) {
                     formattedMessage = this->formMessage(this->currentCellInformation);
@@ -149,7 +149,8 @@ void tracker::update () {
                     uartUSB.write ( "\r\n",  3 );  // debug only
                 }
             }
-    } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE) {
+    } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE && 
+    currentConnectionStatus != CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT) {
         char StringToSendUSB [50] = "Access to mobile network UNAVAILABLE!!!!";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -157,11 +158,25 @@ void tracker::update () {
         enablingGoingToSleep = true;
     }
 
-    if (this->cellularTransmitter->sendMessage
-            (formattedMessage, this->socketTargetted) == true) {
-            messageFormatted = false;
-            enablingGoingToSleep = true;
-    }
+    ///CELULLAR  TRANSMISSION// 
+    currentTransmitionStatus = this->cellularTransmitter->sendMessage (formattedMessage,
+     this->socketTargetted);
+     if (currentTransmitionStatus == CELLULAR_TRANSMISSION_STATUS_SEND_OK) {
+        char StringToSendUSB [50] = "The message was send with success";
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only}
+        messageFormatted = false;
+        enablingGoingToSleep = true;
+     }  else if (currentTransmitionStatus != CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND
+       && currentTransmitionStatus != CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE) {
+        char StringToSendUSB [50] = "The message couldn't be sent";
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only}
+        messageFormatted = false;
+        enablingGoingToSleep = true;
+     }
+      
+    
 
     if (enablingGoingToSleep == true) {
         if (this->cellularTransmitter->goToSleep()) { 

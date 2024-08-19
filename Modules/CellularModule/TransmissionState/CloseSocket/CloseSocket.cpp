@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -24,31 +24,19 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
-CloseSocket::CloseSocket () {
-    this->mobileNetworkModule = NULL;
-    this->readyToSend = true;
-}
-
 
 /** 
 * @brief
 * 
 * @param 
 */
-CloseSocket::CloseSocket (CellularModule * mobileModule) {
+CloseSocket::CloseSocket (CellularModule * mobileModule, bool transmissionWasASuccess) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
+    this->transmissionWasASuccess = transmissionWasASuccess;
 }
 
 
@@ -63,13 +51,20 @@ CloseSocket::~CloseSocket () {
 }
 
 
+
+
+void CloseSocket::enableTransmission () {
+    return;
+}
+
+
 /** 
 * @brief 
 * 
 * 
 * @returns 
 */
-bool CloseSocket::send (ATCommandHandler * ATHandler,
+ CellularTransmissionStatus_t CloseSocket::send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
     char StringToBeSend [120];
     char StringToBeRead [20];
@@ -104,15 +99,23 @@ bool CloseSocket::send (ATCommandHandler * ATHandler,
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////    
-            this->mobileNetworkModule->changeTransmissionState (new DeactivatePDP (this->mobileNetworkModule));
+            this->mobileNetworkModule->changeTransmissionState 
+            (new DeactivatePDP (this->mobileNetworkModule, this->transmissionWasASuccess) );
+            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
         }
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->Attempts++;
+        if (this->Attempts >= this->maxAttempts) {
+            this->mobileNetworkModule->changeTransmissionState 
+            (new DeactivatePDP (this->mobileNetworkModule, this->transmissionWasASuccess));
+            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+        }
     }
 
-    return false;
+    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
 }
 
 

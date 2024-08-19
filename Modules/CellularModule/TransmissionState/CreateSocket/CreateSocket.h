@@ -29,7 +29,8 @@ public:
     CreateSocket();
     CreateSocket (CellularModule * mobileModule);
     virtual ~CreateSocket ();
-    virtual bool send (ATCommandHandler * ATHandler,
+    virtual void enableTransmission ();
+    virtual  CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
 private:
     CellularModule * mobileNetworkModule;

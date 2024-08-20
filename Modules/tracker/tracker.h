@@ -20,14 +20,6 @@
 
 //=====[Declaration of public data types]======================================
 
-/*
-typedef enum {
-    TRACKER_STATE_ON,
-    TRACKER_STATE_TURNING_ON,
-    TRACKER_STATE_OFF,
-} trackerState_t;
-*/
-
 //=====[Declaration of public classes]=========================
 /*
  * Class implementation for a GPS tracker
@@ -40,9 +32,9 @@ public:
     virtual ~tracker ();
     void update();
 private:
-    char* formMessage (GNSSData * GNSSInfo );
-    char* formMessage(CellInformation* aCellInfo);
-    char* formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo);
+    char* formMessage (GNSSData * GNSSInfo);
+    char* formMessage(CellInformation* aCellInfo, BatteryData  * batteryStatus);
+    char* formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus);
     CellularModule* cellularTransmitter;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 

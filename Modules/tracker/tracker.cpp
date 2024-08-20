@@ -136,14 +136,16 @@ void tracker::update () {
             this->cellularTransmitter->enableTransmission();    
             if (GNSSAdquisitionSuccesful == false) {
                 if (messageFormatted == false) {
-                    formattedMessage = this->formMessage(this->currentCellInformation);
+                    formattedMessage = this->formMessage(this->currentCellInformation,
+                     this->batteryStatus);
                     messageFormatted = true;
                     uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
                 }
             } else {
                 if (messageFormatted == false) {
-                    formattedMessage = this->formMessage(this->currentCellInformation, this->currentGNSSdata);
+                    formattedMessage = this->formMessage(this->currentCellInformation,
+                     this->currentGNSSdata, this->batteryStatus);
                     messageFormatted = true;
                     uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
@@ -192,33 +194,37 @@ void tracker::update () {
 //=====[Implementations of private methods]==================================
 char* tracker::formMessage(GNSSData* GNSSInfo) {
     static char message[50]; 
-    snprintf(message, sizeof(message), "%.6f,%.6f", GNSSInfo->latitude, GNSSInfo->longitude);
+    snprintf(message, sizeof(message), "%.6f,%.6f", GNSSInfo->latitude,
+     GNSSInfo->longitude);
     return message;
 }
 
-char* tracker::formMessage(CellInformation* aCellInfo) {
+char* tracker::formMessage(CellInformation* aCellInfo, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
-             "MN,MN,%s,%s,%d,%d,%.2f,%d,%d,%d,%s,%s,%s", 
-             aCellInfo->lac,
-             aCellInfo->cellId,
-             aCellInfo->mcc,
-             aCellInfo->mnc,
-             aCellInfo->signalLevel,
-             aCellInfo->accessTechnology,
-             aCellInfo->registrationStatus,
-             aCellInfo->channel,
-             aCellInfo->band,
-             aCellInfo->date,
-             aCellInfo->time);
+            "MN,MN,%s,%s,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
+            aCellInfo->lac,
+            aCellInfo->cellId,
+            aCellInfo->mcc,
+            aCellInfo->mnc,
+            aCellInfo->signalLevel,
+            aCellInfo->accessTechnology,
+            aCellInfo->registrationStatus,
+            aCellInfo->channel,
+            aCellInfo->band,
+            aCellInfo->date,
+            aCellInfo->time,
+            batteryStatus->batteryChargeStatus,
+            batteryStatus->chargeLevel
+            );
         
     return message;
 }
 
-char* tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo) {
+char* tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
-             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%s,%d,%d,%.2f,%d,%d,%d,%s,%s,%s", 
+             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%s,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
             GNSSInfo->latitude,
             GNSSInfo->longitude,
             GNSSInfo->hdop,
@@ -235,8 +241,9 @@ char* tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo) {
             aCellInfo->channel,
             aCellInfo->band,
             GNSSInfo->date,
-            GNSSInfo->utc
+            GNSSInfo->utc,
+            batteryStatus->batteryChargeStatus,
+            batteryStatus->chargeLevel
             );
-        
     return message;
 }

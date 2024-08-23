@@ -7,6 +7,7 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "string.h"
+#include "InertialSensor.h"
 
 //=====[Declaration of public defines]=========================================
 
@@ -26,6 +27,7 @@ public:
     void update();
 private:
     NonBlockingDelay * latency;
+    InertialSensor * sensor;
 };
 
 

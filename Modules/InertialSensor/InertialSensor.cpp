@@ -334,7 +334,7 @@ void InertialSensor::initMPU9250() {
 
     // Configure Interrupts and Bypass Enable
     // Set interrupt pin active high, push-pull, and clear on read of INT_STATUS, enable I2C_BYPASS_EN so additional chips 
-    // can join the I2C bus and all can be controlled by the Arduino as master
+    // can join the I2C bus and all can be controlled by the STM32 as master
     this->writeByte(MPU9250_ADDRESS, INT_PIN_CFG, 0x22);    
     this->writeByte(MPU9250_ADDRESS, INT_ENABLE, 0x01);  // Enable data ready (bit 0) interrupt
 }

@@ -6,6 +6,7 @@
 
 #include "mbed.h"
 #include "math.h"
+#include "Non_Blocking_Delay.h"
 
 //=====[Declaration of public data types]======================================
 
@@ -39,14 +40,23 @@ class InertialSensor {
 public:
     InertialSensor ();
     virtual ~InertialSensor ();
+
+    // mover a I2C interface handler
     void writeByte(uint8_t address, uint8_t subAddress, uint8_t data);
     char readByte(uint8_t address, uint8_t subAddress);
     void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest);
        
-    void resetMPU9250();
-    void initAK8963();
-    void initMPU9250();
-    void calibrateMPU9250();
+    
+    bool initializeSensors ();
+    bool checkCommunicationWithModule();   
+    
+    // mover a accelgyro
+    bool initMPU9250();
+    bool calibrateMPU9250();
+    bool resetMPU9250();
+
+    //mover a mag
+    bool initAK8963();
 
     void readAccelData();
     void readGyroData();
@@ -69,6 +79,7 @@ public:
 
     //=====[Declaration of private atributtes]=========================================
     I2C * i2cInterface;
+    NonBlockingDelay* refreshTime;
 
     uint8_t Ascale;   // AFS_2G, AFS_4G, AFS_8G, AFS_16G
     uint8_t Gscale;  // GFS_250DPS, GFS_500DPS, GFS_1000DPS, GFS_2000DPS

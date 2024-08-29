@@ -5,7 +5,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        5000
+#define LATENCY        500
 #define POWERCHANGEDURATION  700
 
 #define WHO_AM_I_MPU9250 0x75 // Should return 0x71
@@ -51,52 +51,64 @@ tracker::~tracker() {
 */
 void tracker::update () {
     char buffer [80];
+    static bool sensorsReady =  false;
+    static bool transmissionSecuenceActive = true;
 
+    static bool a = false;
+    static bool b = false;
+    static bool c = false;
+    static bool d = false;
+    static bool e = false;
+    
 
-    static bool transimissionSecuenceActive =  false;
+    if (this->latency->read() && transmissionSecuenceActive == false) { // WRITE
+        transmissionSecuenceActive = true;
 
+    }
 /*
-    if (this->latency->read() && transimissionSecuenceActive == false) { // WRITE
-        transimissionSecuenceActive = true;
+    if (a == false) {
+         if (this->sensor->checkCommunicationWithModule () == true) {
+        a = true;
+         }
+    }
 
-    }*/
-
-    wait_us(5000000);
-    // Read the WHO_AM_I register, this is a good test of communication
-    uint8_t whoami = sensor->readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
-    sprintf(buffer, "I AM 0x%x\n\r", whoami);  // Format message with whoami value
-    uartUSB.write(buffer, strlen(buffer));     // Send formatted message over UART
-
-        if (whoami == 0x71) // WHO_AM_I should always be 0x68
-        {  
-            sprintf(buffer, "MPU9250 is online...\n\r");
-            uartUSB.write(buffer, strlen(buffer));
-            wait_us(1000000);
-            
-            this->sensor->resetMPU9250(); // Reset registers to default in preparation for device calibration
-            this->sensor->calibrateMPU9250( ); // Calibrate gyro and accelerometers, load biases in bias registers  
-
-            wait_us(2000000);
-            
-            this->sensor->initMPU9250(); 
-            this->sensor->initAK8963();
-
-            wait_us(2000000);
-            this->sensor->readAccelData();
-            wait_us(2000000);
-            this->sensor->readGyroData();
-            wait_us(2000000);
-            this->sensor->readMagData();
-            wait_us(2000000);
-            this->sensor->readTempData();
-            wait_us(2000000);
+    if (b == false && a == true) {
+         if (this->sensor->resetMPU9250 () == true) {
+        b = true;
         }
-        else {
-            sprintf(buffer, "Could not connect to MPU9250: \n\r");
-            uartUSB.write(buffer, strlen(buffer));
-            sprintf(buffer, "%#x \n", whoami);
-            uartUSB.write(buffer, strlen(buffer));
+    }
+
+    if (c == false && b == true) {
+         if (this->sensor->calibrateMPU9250 () == true) {
+        c = true;
         }
+    }
+
+    if (d == false && c == true) {
+         if (this->sensor->initMPU9250 () == true) {
+        d = true;
+        }
+    }
+    if (e == false && d == true) {
+         if (this->sensor->initAK8963 () == true) {
+        e = true;
+        }
+    }
+*/
+    if ( sensorsReady == false){
+        if (this->sensor->initializeSensors()){
+             sensorsReady = true;
+        }
+    }
+
+    if ( sensorsReady == true && transmissionSecuenceActive  == true) {
+        this->sensor->readAccelData();
+        this->sensor->readGyroData();
+        this->sensor->readMagData();
+        this->sensor->readTempData();
+    }
+
+
 
 }
 

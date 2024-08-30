@@ -5,7 +5,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        500
+#define LATENCY     500
 #define POWERCHANGEDURATION  700
 
 #define WHO_AM_I_MPU9250 0x75 // Should return 0x71
@@ -53,48 +53,13 @@ void tracker::update () {
     char buffer [80];
     static bool sensorsReady =  false;
     static bool transmissionSecuenceActive = true;
-
-    static bool a = false;
-    static bool b = false;
-    static bool c = false;
-    static bool d = false;
-    static bool e = false;
-    
+\
 
     if (this->latency->read() && transmissionSecuenceActive == false) { // WRITE
         transmissionSecuenceActive = true;
 
     }
-/*
-    if (a == false) {
-         if (this->sensor->checkCommunicationWithModule () == true) {
-        a = true;
-         }
-    }
 
-    if (b == false && a == true) {
-         if (this->sensor->resetMPU9250 () == true) {
-        b = true;
-        }
-    }
-
-    if (c == false && b == true) {
-         if (this->sensor->calibrateMPU9250 () == true) {
-        c = true;
-        }
-    }
-
-    if (d == false && c == true) {
-         if (this->sensor->initMPU9250 () == true) {
-        d = true;
-        }
-    }
-    if (e == false && d == true) {
-         if (this->sensor->initAK8963 () == true) {
-        e = true;
-        }
-    }
-*/
     if ( sensorsReady == false){
         if (this->sensor->initializeSensors()){
              sensorsReady = true;
@@ -106,6 +71,7 @@ void tracker::update () {
         this->sensor->readGyroData();
         this->sensor->readMagData();
         this->sensor->readTempData();
+        transmissionSecuenceActive = false;
     }
 
 

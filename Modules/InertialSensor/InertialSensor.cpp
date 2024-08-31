@@ -172,6 +172,8 @@
 #define Kp 2.0f * 5.0f // these are the free parameters in the Mahony filter and fusion scheme, Kp for proportional feedback, Ki for integral
 #define Ki 0.0f
 
+const float G = 9.80665f; // 1 g = 1 metre per second squared
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -401,13 +403,13 @@ bool InertialSensor::calibrateMPU9250( ) {
 
         accelgyrobiasConfigured = true;
     }
-/*
+
     if (fourthWaitPassed  == false) {
         if (this->refreshTime->read()) {
             fourthWaitPassed = true;
         } else { return false;}
     }
-    */
+    
     
     wait_us(40000);  
 
@@ -444,7 +446,7 @@ bool InertialSensor::calibrateMPU9250( ) {
         gyro_bias[2]  /= (int32_t) packet_count;
         
   //   if(accel_bias[2] > 0L) {accel_bias[2] -= (int32_t) accelsensitivity;}  // Remove gravity from the z-axis accelerometer bias calculation
- //   else {accel_bias[2] += (int32_t) accelsensitivity;}
+  //  else {accel_bias[2] += (int32_t) accelsensitivity;}
     
     // Construct the gyro biases for push to the hardware gyro bias registers, which are reset to zero upon device startup
     data[0] = (-gyro_bias[0]/4  >> 8) & 0xFF; // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input format
@@ -659,11 +661,11 @@ void InertialSensor::readAccelData() {
     this->az = (float) this->accelCount[2]*this->aRes - this->accelBias[2]; 
 
     /////
-    sprintf(buffer, "ax = %f\n\r",  this->ax);
+    sprintf(buffer, "ax = %f (m/s2)\n\r",  this->ax * G);
     uartUSB.write(buffer, strlen(buffer));
-    sprintf(buffer, "ay = %f\n\r", this->ay);
+    sprintf(buffer, "ay = %f (m/s2)\n\r", this->ay * G);
     uartUSB.write(buffer, strlen(buffer));
-    sprintf(buffer, "az = %f\n\r", this->az);
+    sprintf(buffer, "az = %f (m/s2)\n\r", this->az * G);
     uartUSB.write(buffer, strlen(buffer));
 }
 

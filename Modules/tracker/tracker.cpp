@@ -16,6 +16,7 @@
 #else
 #define MPU9250_ADDRESS 0x68<<1  // Device address when ADO = 0
 #endif  
+#define INT_STATUS 0x3A
 
 //=====[Declaration of private data types]=====================================
 
@@ -67,11 +68,13 @@ void tracker::update () {
     }
 
     if ( sensorsReady == true && transmissionSecuenceActive  == true) {
-        this->sensor->readAccelData();
-        this->sensor->readGyroData();
-        this->sensor->readMagData();
-        this->sensor->readTempData();
-        transmissionSecuenceActive = false;
+        if(this->sensor->readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
+            this->sensor->readAccelData();
+            this->sensor->readGyroData();
+            this->sensor->readMagData();
+            this->sensor->readTempData();
+            transmissionSecuenceActive = false;
+        }
     }
 
 

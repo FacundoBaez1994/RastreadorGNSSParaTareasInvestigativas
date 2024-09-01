@@ -87,7 +87,6 @@ public:
     uint8_t Mmode;         // Either 8 Hz 0x02) or 100 Hz (0x06) magnetometer data ODR  
     float aRes, gRes, mRes;
 
-    // Pin definitions
     int intPin;  // REVISAR These can be changed, 2 and 3 are the Arduinos ext int pins
 
     int16_t accelCount[3] = {0, 0, 0};  // Stores the 16-bit signed accelerometer sensor output
@@ -105,8 +104,6 @@ public:
    
     float SelfTest[6];
 
-    int delt_t = 0; // used to control display output rate ELIMINAR
-    int count = 0;  // used to control display output rate ELIMINAR
 
     float GyroMeasError;     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
     float beta;  // compute beta

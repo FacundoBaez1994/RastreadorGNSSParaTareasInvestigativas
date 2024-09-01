@@ -73,6 +73,7 @@ void tracker::update () {
             this->sensor->readGyroData();
             this->sensor->readMagData();
             this->sensor->readTempData();
+            this->sensor->MadgwickQuaternionUpdate();
             transmissionSecuenceActive = false;
         }
     }

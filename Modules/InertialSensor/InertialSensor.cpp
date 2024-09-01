@@ -3,7 +3,7 @@
  #include "Debugger.h"
 
 //=====[Declaration of private defines]========================================
-#define REFRESHTIME  40
+#define REFRESHTIME  100
 
 #define I2C_SDA PB_7
 #define I2C_SCL PB_6 
@@ -172,7 +172,7 @@
 #define Kp 2.0f * 5.0f // these are the free parameters in the Mahony filter and fusion scheme, Kp for proportional feedback, Ki for integral
 #define Ki 0.0f
 
-const float G = 9.80665f; // 1 g = 1 metre per second squared
+
 
 //=====[Declaration of private data types]=====================================
 
@@ -182,6 +182,7 @@ const float G = 9.80665f; // 1 g = 1 metre per second squared
 
 //=====[Declaration and initialization of public global variables]=============
 // float PI = 3.14159265358979323846f;
+const float G = 9.80665f; // 
 
 //=====[Declaration and initialization of private global variables]============
 
@@ -196,10 +197,6 @@ InertialSensor::InertialSensor ( ) {
   
     this->Mmode = 0x06;  
 
-    this->intPin = 12;  // REVISAR 
-
-  //  this->gyroBias = new float[3] {0, 0, 0};
-  //  this->accelBias = new float[3] {0, 0, 0};
 
     this->GyroMeasError = PI * (60.0f / 180.0f);     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
     this->beta = sqrt(3.0f / 4.0f) * GyroMeasError;  // compute beta
@@ -580,8 +577,20 @@ bool InertialSensor::initAK8963() {
 bool InertialSensor::initMPU9250() {  
      // Initialize MPU9250 device
     // wake up device
-    this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x00); // Clear sleep mode bit (6), enable all sensors 
-    wait_us(100000); //  wait(0.1); Delay 100 ms for PLL to get established on x-axis gyro; should check for PLL ready interrupt  
+    static bool watingPassed = false;
+    static bool sensorsEnable = false;
+
+    if (sensorsEnable  == false) {
+        this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x00); // Clear sleep mode bit (6), enable all sensors 
+        sensorsEnable  = true;
+    }
+
+    //  Delay 100 ms for PLL to get established on x-axis gyro; should check for PLL ready interrupt  
+    if (watingPassed  == false) {
+        if (this->refreshTime->read()) {
+            watingPassed = true;
+        } else { return false;}
+    }
 
     // get stable time source
     this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x01);  // Set clock source to be PLL with x-axis gyroscope reference, bits 2:0 = 001
@@ -634,37 +643,41 @@ bool InertialSensor::initMPU9250() {
 
 void InertialSensor::readAccelData() {
     char buffer [60];
+    int16_t accelCount[3] = {0, 0, 0};  // Stores the 16-bit signed accelerometer sensor output
     uint8_t rawData[6];  // x/y/z accel register data stored here
-    this->readBytes(MPU9250_ADDRESS, ACCEL_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers into data array
-    this->accelCount[0] = (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]) ;  // Turn the MSB and LSB into a signed 16-bit value
-    this->accelCount[1] = (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]) ;  
-    this->accelCount[2] = (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]) ; 
 
-    this->ax = (float) this->accelCount[0] * this->aRes - this->accelBias[0];  // get actual g value, this depends on scale being set
-    this->ay = (float) this->accelCount[1] * this->aRes - this->accelBias[1];   
-    this->az = (float) this->accelCount[2] * this->aRes - this->accelBias[2]; 
+    this->readBytes(MPU9250_ADDRESS, ACCEL_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers into data array
+    accelCount[0] = (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]) ;  // Turn the MSB and LSB into a signed 16-bit value
+    accelCount[1] = (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]) ;  
+    accelCount[2] = (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]) ; 
+
+    this->ax = (float) accelCount[0] * this->aRes - this->accelBias[0];  // get actual g value, this depends on scale being set
+    this->ay = (float) accelCount[1] * this->aRes - this->accelBias[1];   
+    this->az = (float) accelCount[2] * this->aRes - this->accelBias[2]; 
 
     /////
-    sprintf(buffer, "ax = %f (m/s2)\n\r",  this->ax);
+    sprintf(buffer, "ax = %f (m/s2)\n\r",  this->ax * G);
     uartUSB.write(buffer, strlen(buffer));
-    sprintf(buffer, "ay = %f (m/s2)\n\r", this->ay);
+    sprintf(buffer, "ay = %f (m/s2)\n\r", this->ay * G);
     uartUSB.write(buffer, strlen(buffer));
-    sprintf(buffer, "az = %f (m/s2)\n\r", this->az);
+    sprintf(buffer, "az = %f (m/s2)\n\r", this->az * G);
     uartUSB.write(buffer, strlen(buffer));
 }
 
 // unit °/seg
 void InertialSensor::readGyroData( ) {
     char buffer [60];
+    int16_t gyroCount[3] = {0, 0, 0}; 
     uint8_t rawData[6];  // x/y/z gyro register data stored here
-    this->readBytes(MPU9250_ADDRESS, GYRO_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers sequentially into data array
-    this->gyroCount[0] = (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]);  // Turn the MSB and LSB into a signed 16-bit value
-    this->gyroCount[1] = (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]);  
-    this->gyroCount[2] = (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]); 
 
-    this->gx = (float)this->gyroCount[0]*this->gRes - this->gyroBias[0];  // get actual gyro value, this depends on scale being set
-    this->gy = (float)this->gyroCount[1]*this->gRes - this->gyroBias[1];  
-    this->gz = (float)this->gyroCount[2]*this->gRes - this->gyroBias[2];   
+    this->readBytes(MPU9250_ADDRESS, GYRO_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers sequentially into data array
+    gyroCount[0] = (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]);  // Turn the MSB and LSB into a signed 16-bit value
+    gyroCount[1] = (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]);  
+    gyroCount[2] = (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]); 
+
+    this->gx = (float) gyroCount[0]*this->gRes - this->gyroBias[0];  // get actual gyro value, this depends on scale being set
+    this->gy = (float) gyroCount[1]*this->gRes - this->gyroBias[1];  
+    this->gz = (float) gyroCount[2]*this->gRes - this->gyroBias[2];   
 
     /////
     sprintf(buffer, "gx = %f\n\r",  this->gx);
@@ -677,18 +690,20 @@ void InertialSensor::readGyroData( ) {
 
 void InertialSensor::readMagData() {
     char buffer [60];
+    int16_t magCount[3] = {0, 0, 0};
     uint8_t rawData[7];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
+    
     if(this->readByte(AK8963_ADDRESS, AK8963_ST1) & 0x01) { // wait for magnetometer data ready bit to be set
     this->readBytes(AK8963_ADDRESS, AK8963_XOUT_L, 7, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
     uint8_t c = rawData[6]; // End data read by reading ST2 register
     if(!(c & 0x08)) { // Check if magnetic sensor overflow set, if not then report data
-    this->magCount[0] = (int16_t)(((int16_t)rawData[1] << 8) | rawData[0]);  // Turn the MSB and LSB into a signed 16-bit value
-    this->magCount[1] = (int16_t)(((int16_t)rawData[3] << 8) | rawData[2]) ;  // Data stored as little Endian
-    this->magCount[2] = (int16_t)(((int16_t)rawData[5] << 8) | rawData[4]) ; 
+    magCount[0] = (int16_t)(((int16_t)rawData[1] << 8) | rawData[0]);  // Turn the MSB and LSB into a signed 16-bit value
+    magCount[1] = (int16_t)(((int16_t)rawData[3] << 8) | rawData[2]) ;  // Data stored as little Endian
+    magCount[2] = (int16_t)(((int16_t)rawData[5] << 8) | rawData[4]) ; 
 
-    this->mx = (float)this->magCount[0]*this->mRes*this->magCalibration[0] - this->magbias[0];  // get actual magnetometer value, this depends on scale being set
-    this->my = (float)this->magCount[1]*this->mRes*this->magCalibration[1] - this->magbias[1];  
-    this->mz = (float)this->magCount[2]*this->mRes*this->magCalibration[2] - this->magbias[2]; 
+    this->mx = (float) magCount[0] * this->mRes*this->magCalibration[0] - this->magbias[0];  // get actual magnetometer value, this depends on scale being set
+    this->my = (float) magCount[1] * this->mRes*this->magCalibration[1] - this->magbias[1];  
+    this->mz = (float) magCount[2] * this->mRes*this->magCalibration[2] - this->magbias[2]; 
 
         /////
     sprintf(buffer, "mx = %f\n\r",  this->mx);
@@ -705,9 +720,11 @@ void InertialSensor::readTempData() {
     char buffer [60];
     int16_t tempCount;
     uint8_t rawData[2];  // x/y/z gyro register data stored here
+
     readBytes(MPU9250_ADDRESS, TEMP_OUT_H, 2, &rawData[0]);  // Read the two raw data registers sequentially into data array 
     tempCount =(int16_t)(((int16_t)rawData[0]) << 8 | rawData[1]) ;  // Turn the MSB and LSB into a 16-bit value
     this->temperature = ((float) tempCount) / 333.87f + 21.0f; // Temperature in degrees Centig
+    
     sprintf(buffer, "Temperature = %f Celsius \n\r",  this->temperature);
     uartUSB.write(buffer, strlen(buffer));
 }
@@ -719,99 +736,110 @@ void InertialSensor::readTempData() {
 // device orientation -- which can be converted to yaw, pitch, and roll. Useful for stabilizing quadcopters, etc.
 // The performance of the orientation filter is at least as good as conventional Kalman-based filtering algorithms
 // but is much less computationally intensive---it can be performed on a 3.3 V Pro Mini operating at 8 MHz!
-void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, 
-float gy, float gz, float mx, float my, float mz)
-        {
-            float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
-            float norm;
-            float hx, hy, _2bx, _2bz;
-            float s1, s2, s3, s4;
-            float qDot1, qDot2, qDot3, qDot4;
+void InertialSensor::MadgwickQuaternionUpdate( ) {
+    float q1 = this->q[0], q2 = this->q[1], q3 = this->q[2], q4 = this->q[3];   // short name local variable for readability
+    float ax = this->ax, ay= this->ay, az= this->az;
+    float gx = this->gx, gy = this->gy, gz = this->gz;
+    float mx = this->mx, my = this->my, mz = this->mz;
+    
+   
+    float norm;
+    float hx, hy, _2bx, _2bz;
+    float s1, s2, s3, s4;
+    float qDot1, qDot2, qDot3, qDot4;
 
-            // Auxiliary variables to avoid repeated arithmetic
-            float _2q1mx;
-            float _2q1my;
-            float _2q1mz;
-            float _2q2mx;
-            float _4bx;
-            float _4bz;
-            float _2q1 = 2.0f * q1;
-            float _2q2 = 2.0f * q2;
-            float _2q3 = 2.0f * q3;
-            float _2q4 = 2.0f * q4;
-            float _2q1q3 = 2.0f * q1 * q3;
-            float _2q3q4 = 2.0f * q3 * q4;
-            float q1q1 = q1 * q1;
-            float q1q2 = q1 * q2;
-            float q1q3 = q1 * q3;
-            float q1q4 = q1 * q4;
-            float q2q2 = q2 * q2;
-            float q2q3 = q2 * q3;
-            float q2q4 = q2 * q4;
-            float q3q3 = q3 * q3;
-            float q3q4 = q3 * q4;
-            float q4q4 = q4 * q4;
+    // Auxiliary variables to avoid repeated arithmetic
+    float _2q1mx;
+    float _2q1my;
+    float _2q1mz;
+    float _2q2mx;
+    float _4bx;
+    float _4bz;
+    float _2q1 = 2.0f * q1;
+    float _2q2 = 2.0f * q2;
+    float _2q3 = 2.0f * q3;
+    float _2q4 = 2.0f * q4;
+    float _2q1q3 = 2.0f * q1 * q3;
+    float _2q3q4 = 2.0f * q3 * q4;
+    float q1q1 = q1 * q1;
+    float q1q2 = q1 * q2;
+    float q1q3 = q1 * q3;
+    float q1q4 = q1 * q4;
+    float q2q2 = q2 * q2;
+    float q2q3 = q2 * q3;
+    float q2q4 = q2 * q4;
+    float q3q3 = q3 * q3;
+    float q3q4 = q3 * q4;
+    float q4q4 = q4 * q4;
 
-            // Normalise accelerometer measurement
-            norm = sqrt(ax * ax + ay * ay + az * az);
-            if (norm == 0.0f) return; // handle NaN
-            norm = 1.0f/norm;
-            ax *= norm;
-            ay *= norm;
-            az *= norm;
+    // Normalise accelerometer measurement
+    norm = sqrt(ax * ax + ay * ay + az * az);
+    if (norm == 0.0f) return; // handle NaN
+    norm = 1.0f/norm;
+    ax *= norm;
+    ay *= norm;
+    az *= norm;
 
-            // Normalise magnetometer measurement
-            norm = sqrt(mx * mx + my * my + mz * mz);
-            if (norm == 0.0f) return; // handle NaN
-            norm = 1.0f/norm;
-            mx *= norm;
-            my *= norm;
-            mz *= norm;
+    // Normalise magnetometer measurement
+    norm = sqrt(mx * mx + my * my + mz * mz);
+    if (norm == 0.0f) return; // handle NaN
+    norm = 1.0f/norm;
+    mx *= norm;
+    my *= norm;
+    mz *= norm;
 
-            // Reference direction of Earth's magnetic field
-            _2q1mx = 2.0f * q1 * mx;
-            _2q1my = 2.0f * q1 * my;
-            _2q1mz = 2.0f * q1 * mz;
-            _2q2mx = 2.0f * q2 * mx;
-            hx = mx * q1q1 - _2q1my * q4 + _2q1mz * q3 + mx * q2q2 + _2q2 * my * q3 + _2q2 * mz * q4 - mx * q3q3 - mx * q4q4;
-            hy = _2q1mx * q4 + my * q1q1 - _2q1mz * q2 + _2q2mx * q3 - my * q2q2 + my * q3q3 + _2q3 * mz * q4 - my * q4q4;
-            _2bx = sqrt(hx * hx + hy * hy);
-            _2bz = -_2q1mx * q3 + _2q1my * q2 + mz * q1q1 + _2q2mx * q4 - mz * q2q2 + _2q3 * my * q4 - mz * q3q3 + mz * q4q4;
-            _4bx = 2.0f * _2bx;
-            _4bz = 2.0f * _2bz;
+    // Reference direction of Earth's magnetic field
+    _2q1mx = 2.0f * q1 * mx;
+    _2q1my = 2.0f * q1 * my;
+    _2q1mz = 2.0f * q1 * mz;
+    _2q2mx = 2.0f * q2 * mx;
+    hx = mx * q1q1 - _2q1my * q4 + _2q1mz * q3 + mx * q2q2 + _2q2 * my * q3 + _2q2 * mz * q4 - mx * q3q3 - mx * q4q4;
+    hy = _2q1mx * q4 + my * q1q1 - _2q1mz * q2 + _2q2mx * q3 - my * q2q2 + my * q3q3 + _2q3 * mz * q4 - my * q4q4;
+    _2bx = sqrt(hx * hx + hy * hy);
+    _2bz = -_2q1mx * q3 + _2q1my * q2 + mz * q1q1 + _2q2mx * q4 - mz * q2q2 + _2q3 * my * q4 - mz * q3q3 + mz * q4q4;
+    _4bx = 2.0f * _2bx;
+    _4bz = 2.0f * _2bz;
 
-            // Gradient decent algorithm corrective step
-            s1 = -_2q3 * (2.0f * q2q4 - _2q1q3 - ax) + _2q2 * (2.0f * q1q2 + _2q3q4 - ay) - _2bz * q3 * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q4 + _2bz * q2) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + _2bx * q3 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-            s2 = _2q4 * (2.0f * q2q4 - _2q1q3 - ax) + _2q1 * (2.0f * q1q2 + _2q3q4 - ay) - 4.0f * q2 * (1.0f - 2.0f * q2q2 - 2.0f * q3q3 - az) + _2bz * q4 * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (_2bx * q3 + _2bz * q1) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + (_2bx * q4 - _4bz * q2) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-            s3 = -_2q1 * (2.0f * q2q4 - _2q1q3 - ax) + _2q4 * (2.0f * q1q2 + _2q3q4 - ay) - 4.0f * q3 * (1.0f - 2.0f * q2q2 - 2.0f * q3q3 - az) + (-_4bx * q3 - _2bz * q1) * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (_2bx * q2 + _2bz * q4) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + (_2bx * q1 - _4bz * q3) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-            s4 = _2q2 * (2.0f * q2q4 - _2q1q3 - ax) + _2q3 * (2.0f * q1q2 + _2q3q4 - ay) + (-_4bx * q4 + _2bz * q2) * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q1 + _2bz * q3) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + _2bx * q2 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-            norm = sqrt(s1 * s1 + s2 * s2 + s3 * s3 + s4 * s4);    // normalise step magnitude
-            norm = 1.0f/norm;
-            s1 *= norm;
-            s2 *= norm;
-            s3 *= norm;
-            s4 *= norm;
+    // Gradient decent algorithm corrective step
+    s1 = -_2q3 * (2.0f * q2q4 - _2q1q3 - ax) + _2q2 * (2.0f * q1q2 + _2q3q4 - ay) - _2bz * q3 * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q4 + _2bz * q2) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + _2bx * q3 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
+    s2 = _2q4 * (2.0f * q2q4 - _2q1q3 - ax) + _2q1 * (2.0f * q1q2 + _2q3q4 - ay) - 4.0f * q2 * (1.0f - 2.0f * q2q2 - 2.0f * q3q3 - az) + _2bz * q4 * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (_2bx * q3 + _2bz * q1) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + (_2bx * q4 - _4bz * q2) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
+    s3 = -_2q1 * (2.0f * q2q4 - _2q1q3 - ax) + _2q4 * (2.0f * q1q2 + _2q3q4 - ay) - 4.0f * q3 * (1.0f - 2.0f * q2q2 - 2.0f * q3q3 - az) + (-_4bx * q3 - _2bz * q1) * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (_2bx * q2 + _2bz * q4) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + (_2bx * q1 - _4bz * q3) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
+    s4 = _2q2 * (2.0f * q2q4 - _2q1q3 - ax) + _2q3 * (2.0f * q1q2 + _2q3q4 - ay) + (-_4bx * q4 + _2bz * q2) * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q1 + _2bz * q3) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + _2bx * q2 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
+    norm = sqrt(s1 * s1 + s2 * s2 + s3 * s3 + s4 * s4);    // normalise step magnitude
+    norm = 1.0f/norm;
+    s1 *= norm;
+    s2 *= norm;
+    s3 *= norm;
+    s4 *= norm;
 
-            // Compute rate of change of quaternion
-            qDot1 = 0.5f * (-q2 * gx - q3 * gy - q4 * gz) - beta * s1;
-            qDot2 = 0.5f * (q1 * gx + q3 * gz - q4 * gy) - beta * s2;
-            qDot3 = 0.5f * (q1 * gy - q2 * gz + q4 * gx) - beta * s3;
-            qDot4 = 0.5f * (q1 * gz + q2 * gy - q3 * gx) - beta * s4;
+    // Compute rate of change of quaternion
+    qDot1 = 0.5f * (-q2 * gx - q3 * gy - q4 * gz) - beta * s1;
+    qDot2 = 0.5f * (q1 * gx + q3 * gz - q4 * gy) - beta * s2;
+    qDot3 = 0.5f * (q1 * gy - q2 * gz + q4 * gx) - beta * s3;
+    qDot4 = 0.5f * (q1 * gz + q2 * gy - q3 * gx) - beta * s4;
 
-            // Integrate to yield quaternion
-            q1 += qDot1 * deltat;
-            q2 += qDot2 * deltat;
-            q3 += qDot3 * deltat;
-            q4 += qDot4 * deltat;
-            norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);    // normalise quaternion
-            norm = 1.0f/norm;
-            q[0] = q1 * norm;
-            q[1] = q2 * norm;
-            q[2] = q3 * norm;
-            q[3] = q4 * norm;
+    // Integrate to yield quaternion
+    q1 += qDot1 * deltat;
+    q2 += qDot2 * deltat;
+    q3 += qDot3 * deltat;
+    q4 += qDot4 * deltat;
+    norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);    // normalise quaternion
+    norm = 1.0f/norm;
+    this->q[0] = q1 * norm;
+    this->q[1] = q2 * norm;
+    this->q[2] = q3 * norm;
+    this->q[3] = q4 * norm;
+    char buffer[60];
+    snprintf(buffer, sizeof(buffer), "q0 = %f, q1 = %f, q2 = %f, q3 = %f\n\r", 
+            this->q[0], this->q[1], this->q[2], this->q[3]);
+    uartUSB.write(buffer, strlen(buffer));
 
-        }
-  
+}
+/*
+void InertialSensor::obtainYawPitchRoll( ) {
+
+}
+  */
 
 //=====[Implementations of private functions]==================================
 

@@ -62,6 +62,7 @@ public:
     void readGyroData();
     void readMagData();
     void readTempData();
+    void MadgwickQuaternionUpdate( );
     /*
 ;
     void MPU9250SelfTest(float * destination);
@@ -87,11 +88,9 @@ public:
     uint8_t Mmode;         // Either 8 Hz 0x02) or 100 Hz (0x06) magnetometer data ODR  
     float aRes, gRes, mRes;
 
-    int intPin;  // REVISAR These can be changed, 2 and 3 are the Arduinos ext int pins
-
-    int16_t accelCount[3] = {0, 0, 0};  // Stores the 16-bit signed accelerometer sensor output
-    int16_t gyroCount[3] = {0, 0, 0};   // Stores the 16-bit signed gyro sensor output
-    int16_t magCount[3] = {0, 0, 0};    // Stores the 16-bit signed magnetometer sensor output
+    //int16_t accelCount[3] = {0, 0, 0};  // Stores the 16-bit signed accelerometer sensor output
+    //int16_t gyroCount[3] = {0, 0, 0};   // Stores the 16-bit signed gyro sensor output
+    //int16_t magCount[3] = {0, 0, 0};    // Stores the 16-bit signed magnetometer sensor output
     float magCalibration[3] = {0, 0, 0};  // Factory mag calibration
     float magbias[3] = {0, 0, 0};  // Factory mag bias
 
@@ -102,7 +101,7 @@ public:
 
     float temperature;
    
-    float SelfTest[6];
+    //float SelfTest[6];
 
 
     float GyroMeasError;     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
@@ -114,7 +113,7 @@ public:
     float deltat = 0.0f;                 // integration interval for both filter schemes
     int lastUpdate  = 0, firstUpdate = 0, Now = 0;   // used to calculate integration interval                               // used to calculate integration interval
     float q[4] = {1.0f, 0.0f, 0.0f, 0.0f}; ;      // vector to hold quaternion
-    float eInt[3] = {0.0f, 0.0f, 0.0f};  // vector to hold integral error for Mahony method
+   // float eInt[3] = {0.0f, 0.0f, 0.0f};  // vector to hold integral error for Mahony method
 };
 
 //  INERTIALSENSOR_H

@@ -23,7 +23,7 @@
 //=====[Declaration and initialization of public global objects]===============
 
 //=====[Declaration of external public global variables]=======================
-
+    
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
@@ -37,6 +37,7 @@
 tracker::tracker () {
     this->latency = new NonBlockingDelay (LATENCY);
     this->sensor = new InertialSensor ();
+    this->t.start();
 }
 
 
@@ -54,7 +55,10 @@ void tracker::update () {
     char buffer [80];
     static bool sensorsReady =  false;
     static bool transmissionSecuenceActive = true;
-\
+    static float deltat = 0.0f;                             // integration interval for both filter schemes
+    static int lastUpdate = 0, firstUpdate = 0, Now = 0;    // used to calculate integration interval    
+  
+
 
     if (this->latency->read() && transmissionSecuenceActive == false) { // WRITE
         transmissionSecuenceActive = true;
@@ -73,12 +77,23 @@ void tracker::update () {
             this->sensor->readGyroData();
             this->sensor->readMagData();
             this->sensor->readTempData();
-            this->sensor->MadgwickQuaternionUpdate();
+
+            Now =  chrono::duration_cast<chrono::microseconds>(this->t.elapsed_time()).count();
+
+            snprintf(buffer, sizeof(buffer), "now = %d  \n\r", Now);
+            uartUSB.write(buffer, strlen(buffer));
+
+            deltat =  static_cast<float>((Now - lastUpdate)/1000000.0f) ; // set integration time by time elapsed since last filter update
+            lastUpdate = Now;
+
+            snprintf(buffer, sizeof(buffer), "delta T = %f  \n\r", deltat);
+            uartUSB.write(buffer, strlen(buffer));
+
+            this->sensor->MadgwickQuaternionUpdate(deltat);
+            this->sensor->obtainYawPitchRoll();
             transmissionSecuenceActive = false;
         }
     }
-
-
 
 }
 

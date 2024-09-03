@@ -62,7 +62,8 @@ public:
     void readGyroData();
     void readMagData();
     void readTempData();
-    void MadgwickQuaternionUpdate( );
+    void MadgwickQuaternionUpdate(float deltat);
+    void obtainYawPitchRoll( );
     /*
 ;
     void MPU9250SelfTest(float * destination);

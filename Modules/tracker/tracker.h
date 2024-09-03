@@ -28,6 +28,7 @@ public:
 private:
     NonBlockingDelay * latency;
     InertialSensor * sensor;
+    Timer t;
 };
 
 

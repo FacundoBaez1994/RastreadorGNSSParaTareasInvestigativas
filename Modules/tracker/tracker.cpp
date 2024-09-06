@@ -5,7 +5,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY     500
+#define LATENCY     1
 #define POWERCHANGEDURATION  700
 
 #define WHO_AM_I_MPU9250 0x75 // Should return 0x71

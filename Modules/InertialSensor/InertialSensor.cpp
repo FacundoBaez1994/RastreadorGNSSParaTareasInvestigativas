@@ -738,9 +738,9 @@ void InertialSensor::readTempData() {
 // but is much less computationally intensive---it can be performed on a 3.3 V Pro Mini operating at 8 MHz!
 void InertialSensor::MadgwickQuaternionUpdate(float  deltat) {
     float q1 = this->q[0], q2 = this->q[1], q3 = this->q[2], q4 = this->q[3];   // short name local variable for readability
-    float ax = this->ax, ay= this->ay, az= this->az;
-    float gx = this->gx *PI/180.0f, gy = this->gy *PI/180.0f, gz = this->gz *PI/180.0f;
-    float mx = this->mx, my = this->my, mz = this->mz;
+    float ax = - this->ax, ay= this->ay, az= this->az;
+    float gx = this->gx *PI/180.0f, gy = - this->gy *PI/180.0f, gz = - this->gz *PI/180.0f;
+    float mx = this->my, my = - this->mx, mz = this->mz;
     float beta = this->beta;
     
    
@@ -847,7 +847,7 @@ void InertialSensor::obtainYawPitchRoll( ) {
      this->q[0] * this->q[0] - this->q[1] * this->q[1] - this->q[2] * this->q[2] + this->q[3] * this->q[3]);
     pitch *= 180.0f / PI;
     yaw   *= 180.0f / PI; 
-    yaw   -= 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+    //yaw   -= 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
     roll  *= 180.0f / PI;
 
     char buffer[60];

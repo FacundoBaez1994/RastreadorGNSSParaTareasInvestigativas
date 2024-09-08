@@ -5,8 +5,8 @@
 //=====[Declaration of private defines]========================================
 #define REFRESHTIME  100
 
-#define I2C_SDA PB_7
-#define I2C_SCL PB_6 
+#define I2C_SDA PB_7 // eliminar delete
+#define I2C_SCL PB_6 // eliminar delete
 
 // See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in 
 // above document; the MPU9250 and MPU9150 are virtually identical but the latter has a different register map
@@ -190,8 +190,7 @@ const float G = 9.80665f; //
 
 //=====[Implementations of public methods]===================================
 InertialSensor::InertialSensor ( ) {
-    this->i2cInterface =  new I2C (I2C_SDA, I2C_SCL);
-    this->i2cInterface->frequency(400000);  // use fast (400 kHz) I2C  
+    this->I2CHandler =  new I2CInterfaceHandler ();
 
     this->refreshTime = new NonBlockingDelay (REFRESHTIME);
   
@@ -212,38 +211,11 @@ InertialSensor::InertialSensor ( ) {
 }
 
 InertialSensor::~InertialSensor ( ) {
-    delete this->i2cInterface; 
-    this->i2cInterface = NULL;
+    delete this->I2CHandler; 
+    this->I2CHandler  = NULL;
+    delete  this->refreshTime;
+    this->refreshTime = NULL;
 }
-
-void InertialSensor::writeByte(uint8_t address, uint8_t subAddress
-, uint8_t data) {
-    char data_write[2];
-   data_write[0] = subAddress;
-   data_write[1] = data;
-   this->i2cInterface->write(address, data_write, 2, 0);
-}
-
-char InertialSensor::readByte(uint8_t address, uint8_t subAddress) {
-    char data[1]; // `data` will store the register data     
-    char data_write[1];
-    data_write[0] = subAddress;
-    this->i2cInterface->write(address, data_write, 1, 1); // no stop
-    this->i2cInterface->read(address, data, 1, 0); 
-    return data[0]; 
-}
-
-void InertialSensor::readBytes(uint8_t address, uint8_t subAddress,
- uint8_t count, uint8_t * dest) {     
-    char data[14];
-    char data_write[1];
-    data_write[0] = subAddress;
-    this->i2cInterface->write(address, data_write, 1, 1); // no stop
-    this->i2cInterface->read(address, data, count, 0); 
-    for(int ii = 0; ii < count; ii++) {
-     dest[ii] = data[ii];
-    }
-} 
 
 bool InertialSensor::initializeSensors () {
     static int initializationStep = 0;
@@ -283,7 +255,7 @@ bool InertialSensor::initializeSensors () {
 
 
 bool InertialSensor::checkCommunicationWithModule() {
-    uint8_t whoami = this->readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
+    uint8_t whoami = this->I2CHandler->readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
     char buffer [60];
 
     sprintf(buffer, "I AM 0x%x\n\r", whoami);  // Format message with whoami value
@@ -309,7 +281,7 @@ bool InertialSensor::resetMPU9250() {
 
 
   if (registerWritten == false) {
-        this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
         registerWritten = true;
         sprintf(buffer, "reseting MPU9250\n\r");
         uartUSB.write(buffer, strlen(buffer));
@@ -344,7 +316,7 @@ bool InertialSensor::calibrateMPU9250( ) {
     
     // reset device, reset all registers, clear gyro and accelerometer bias registers
     if (registerReset == false) {
-        this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x80); // Write a one to bit 7 reset bit; toggle reset device
         registerReset = true;
     }
 
@@ -357,8 +329,8 @@ bool InertialSensor::calibrateMPU9250( ) {
     // get stable time source
     // Set clock source to be PLL with x-axis gyroscope reference, bits 2:0 = 001
     if (clockSet == false) {
-        this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x01);  
-        this->writeByte(MPU9250_ADDRESS, PWR_MGMT_2, 0x00); 
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x01);  
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, PWR_MGMT_2, 0x00); 
         clockSet = true;
     }
     if (secondWaitPassed  == false) {
@@ -369,12 +341,12 @@ bool InertialSensor::calibrateMPU9250( ) {
     
         // Configure device for bias calculation
     if (biasConfigured == false) {
-        this->writeByte(MPU9250_ADDRESS, INT_ENABLE, 0x00);   // Disable all interrupts
-        this->writeByte(MPU9250_ADDRESS, FIFO_EN, 0x00);      // Disable FIFO
-        this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x00);   // Turn on internal clock source
-        this->writeByte(MPU9250_ADDRESS, I2C_MST_CTRL, 0x00); // Disable I2C master
-        this->writeByte(MPU9250_ADDRESS, USER_CTRL, 0x00);    // Disable FIFO and I2C master modes
-        this->writeByte(MPU9250_ADDRESS, USER_CTRL, 0x0C);    // Reset FIFO and DMP
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, INT_ENABLE, 0x00);   // Disable all interrupts
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, FIFO_EN, 0x00);      // Disable FIFO
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x00);   // Turn on internal clock source
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, I2C_MST_CTRL, 0x00); // Disable I2C master
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, USER_CTRL, 0x00);    // Disable FIFO and I2C master modes
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, USER_CTRL, 0x0C);    // Reset FIFO and DMP
         biasConfigured = true;
     }
     if (thirdWaitPassed  == false) {
@@ -385,15 +357,15 @@ bool InertialSensor::calibrateMPU9250( ) {
     
     if (accelgyrobiasConfigured == false) {
     // Configure MPU9250 gyro and accelerometer for bias calculation
-    writeByte(MPU9250_ADDRESS, CONFIG, 0x01);      // Set low-pass filter to 188 Hz
-    writeByte(MPU9250_ADDRESS, SMPLRT_DIV, 0x00);  // Set sample rate to 1 kHz
-    writeByte(MPU9250_ADDRESS, GYRO_CONFIG, 0x00);  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
-    writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
+    I2CHandler->writeByte(MPU9250_ADDRESS, CONFIG, 0x01);      // Set low-pass filter to 188 Hz
+    I2CHandler->writeByte(MPU9250_ADDRESS, SMPLRT_DIV, 0x00);  // Set sample rate to 1 kHz
+    I2CHandler->writeByte(MPU9250_ADDRESS, GYRO_CONFIG, 0x00);  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
+    I2CHandler->writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
     
 
     // Configure FIFO to capture accelerometer and gyro data for bias calculation
-    writeByte(MPU9250_ADDRESS, USER_CTRL, 0x40);   // Enable FIFO  
-    writeByte(MPU9250_ADDRESS, FIFO_EN, 0x78);     // Enable gyro and accelerometer sensors for FIFO (max size 512 bytes in MPU-9250)
+    I2CHandler->writeByte(MPU9250_ADDRESS, USER_CTRL, 0x40);   // Enable FIFO  
+    I2CHandler->writeByte(MPU9250_ADDRESS, FIFO_EN, 0x78);     // Enable gyro and accelerometer sensors for FIFO (max size 512 bytes in MPU-9250)
     }
     /*
     if (fourthWaitPassed  == false) {
@@ -401,21 +373,21 @@ bool InertialSensor::calibrateMPU9250( ) {
             fourthWaitPassed  = true;
         } else { return false;}
     }*/
-    wait_us(40000);
+    wait_us(40000); // BLOQUEANTE BLOQUEO
 
     uint16_t  gyrosensitivity  = 131;   // = 131 LSB/degrees/sec
     uint16_t  accelsensitivity = 16384;  // = 16384 LSB/g
 
 
     // At end of sample accumulation, turn off FIFO sensor read
-    writeByte(MPU9250_ADDRESS, FIFO_EN, 0x00);        // Disable gyro and accelerometer sensors for FIFO
-    readBytes(MPU9250_ADDRESS, FIFO_COUNTH, 2, &data[0]); // read FIFO sample count
+    I2CHandler->writeByte(MPU9250_ADDRESS, FIFO_EN, 0x00);        // Disable gyro and accelerometer sensors for FIFO
+    I2CHandler->readBytes(MPU9250_ADDRESS, FIFO_COUNTH, 2, &data[0]); // read FIFO sample count
     fifo_count = ((uint16_t)data[0] << 8) | data[1];
     packet_count = fifo_count/12;// How many sets of full gyro and accelerometer data for averaging
 
     for (ii = 0; ii < packet_count; ii++) {
         int16_t accel_temp[3] = {0, 0, 0}, gyro_temp[3] = {0, 0, 0};
-        readBytes(MPU9250_ADDRESS, FIFO_R_W, 12, &data[0]); // read data for averaging
+        I2CHandler->readBytes(MPU9250_ADDRESS, FIFO_R_W, 12, &data[0]); // read data for averaging
         accel_temp[0] = (int16_t) (((int16_t)data[0] << 8) | data[1]  ) ;  // Form signed 16-bit integer for each sample in FIFO
         accel_temp[1] = (int16_t) (((int16_t)data[2] << 8) | data[3]  ) ;
         accel_temp[2] = (int16_t) (((int16_t)data[4] << 8) | data[5]  ) ;    
@@ -460,11 +432,11 @@ bool InertialSensor::calibrateMPU9250( ) {
     // the accelerometer biases calculated above must be divided by 8.
 
     int32_t accel_bias_reg[3] = {0, 0, 0}; // A place to hold the factory accelerometer trim biases
-    readBytes(MPU9250_ADDRESS, XA_OFFSET_H, 2, &data[0]); // Read factory accelerometer trim values
+    I2CHandler->readBytes(MPU9250_ADDRESS, XA_OFFSET_H, 2, &data[0]); // Read factory accelerometer trim values
     accel_bias_reg[0] = (int16_t) ((int16_t)data[0] << 8) | data[1];
-    readBytes(MPU9250_ADDRESS, YA_OFFSET_H, 2, &data[0]);
+    I2CHandler->readBytes(MPU9250_ADDRESS, YA_OFFSET_H, 2, &data[0]);
     accel_bias_reg[1] = (int16_t) ((int16_t)data[0] << 8) | data[1];
-    readBytes(MPU9250_ADDRESS, ZA_OFFSET_H, 2, &data[0]);
+    I2CHandler->readBytes(MPU9250_ADDRESS, ZA_OFFSET_H, 2, &data[0]);
     accel_bias_reg[2] = (int16_t) ((int16_t)data[0] << 8) | data[1];
     
     uint32_t mask = 1uL; // Define mask for temperature compensation bit 0 of lower byte of accelerometer bias registers
@@ -537,26 +509,26 @@ bool InertialSensor::initAK8963() {
     if (this->refreshTime->read()) {
         switch (initializationStep) {
             case 0:
-                this->writeByte(AK8963_ADDRESS, AK8963_CNTL, 0x00); // Power down magnetometer
+                this->I2CHandler->writeByte(AK8963_ADDRESS, AK8963_CNTL, 0x00); // Power down magnetometer
                 initializationStep ++;
                 break;
             case 1:
-                this->writeByte(AK8963_ADDRESS, AK8963_CNTL, 0x0F); // Enter Fuse ROM access mode
+                this->I2CHandler->writeByte(AK8963_ADDRESS, AK8963_CNTL, 0x0F); // Enter Fuse ROM access mode
                 initializationStep ++;
                 break;
             case 2:
-                this->readBytes(AK8963_ADDRESS, AK8963_ASAX, 3, &rawData[0]);  // Read the x-, y-, and z-axis calibration values
+                this->I2CHandler->readBytes(AK8963_ADDRESS, AK8963_ASAX, 3, &rawData[0]);  // Read the x-, y-, and z-axis calibration values
                 this->magCalibration[0] =  (float)(rawData[0] - 128)/256.0f + 1.0f;   // Return x-axis sensitivity adjustment values, etc.
                 this->magCalibration[1] =  (float)(rawData[1] - 128)/256.0f + 1.0f;  
                 this->magCalibration[2] =  (float)(rawData[2] - 128)/256.0f + 1.0f; 
-                this->writeByte(AK8963_ADDRESS, AK8963_CNTL, 0x00); // Power down magnetometer  
+                this->I2CHandler->writeByte(AK8963_ADDRESS, AK8963_CNTL, 0x00); // Power down magnetometer  
                 initializationStep ++;
                 break;
             case 3:
                 // Configure the magnetometer for continuous read and highest resolution
                 // set Mscale bit 4 to 1 (0) to enable 16 (14) bit resolution in CNTL register,
                 // and enable continuous mode data acquisition Mmode (bits [3:0]), 0010 for 8 Hz and 0110 for 100 Hz sample rates
-                this->writeByte(AK8963_ADDRESS, AK8963_CNTL, this->Mscale << 4 | this->Mmode); // Set magnetometer data resolution and sample ODR
+                this->I2CHandler->writeByte(AK8963_ADDRESS, AK8963_CNTL, this->Mscale << 4 | this->Mmode); // Set magnetometer data resolution and sample ODR
                 sprintf(buffer, "AK8963 initialized for active data mode....\n\r"); // Initialize device for active mode read of magnetometer
                 uartUSB.write(buffer, strlen(buffer));
 
@@ -581,7 +553,7 @@ bool InertialSensor::initMPU9250() {
     static bool sensorsEnable = false;
 
     if (sensorsEnable  == false) {
-        this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x00); // Clear sleep mode bit (6), enable all sensors 
+        this->I2CHandler->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x00); // Clear sleep mode bit (6), enable all sensors 
         sensorsEnable  = true;
     }
 
@@ -593,41 +565,41 @@ bool InertialSensor::initMPU9250() {
     }
 
     // get stable time source
-    this->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x01);  // Set clock source to be PLL with x-axis gyroscope reference, bits 2:0 = 001
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, PWR_MGMT_1, 0x01);  // Set clock source to be PLL with x-axis gyroscope reference, bits 2:0 = 001
 
     // Configure Gyro and Accelerometer
     // Disable FSYNC and set accelerometer and gyro bandwidth to 44 and 42 Hz, respectively; 
     // DLPF_CFG = bits 2:0 = 010; this sets the sample rate at 1 kHz for both
     // Maximum delay is 4.9 ms which is just over a 200 Hz maximum rate
-    this->writeByte(MPU9250_ADDRESS, CONFIG, 0x03);  
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, CONFIG, 0x03);  
  
     // Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
-    this->writeByte(MPU9250_ADDRESS, SMPLRT_DIV, 0x04);  // Use a 200 Hz rate; the same rate set in CONFIG above
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, SMPLRT_DIV, 0x04);  // Use a 200 Hz rate; the same rate set in CONFIG above
     
     // Set gyroscope full scale range
     // Range selects FS_SEL and AFS_SEL are 0 - 3, so 2-bit values are left-shifted into positions 4:3
-    uint8_t c = this->readByte(MPU9250_ADDRESS, GYRO_CONFIG); // get current GYRO_CONFIG register value
+    uint8_t c = this->I2CHandler->readByte(MPU9250_ADDRESS, GYRO_CONFIG); // get current GYRO_CONFIG register value
     // c = c & ~0xE0; // Clear self-test bits [7:5] 
     c = c & ~0x02; // Clear Fchoice bits [1:0] 
     c = c & ~0x18; // Clear AFS bits [4:3]
     c = c | this->Gscale << 3; // Set full scale range for the gyro
     // c =| 0x00; // Set Fchoice for the gyro to 11 by writing its inverse to bits 1:0 of GYRO_CONFIG
-    this->writeByte(MPU9250_ADDRESS, GYRO_CONFIG, c ); // Write new GYRO_CONFIG value to register
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, GYRO_CONFIG, c ); // Write new GYRO_CONFIG value to register
     
     // Set accelerometer full-scale range configuration
-    c = this->readByte(MPU9250_ADDRESS, ACCEL_CONFIG); // get current ACCEL_CONFIG register value
+    c = this->I2CHandler->readByte(MPU9250_ADDRESS, ACCEL_CONFIG); // get current ACCEL_CONFIG register value
     // c = c & ~0xE0; // Clear self-test bits [7:5] 
     c = c & ~0x18;  // Clear AFS bits [4:3]
     c = c | this->Ascale << 3; // Set full scale range for the accelerometer 
-    this->writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, c); // Write new ACCEL_CONFIG register value
 
     // Set accelerometer sample rate configuration
     // It is possible to get a 4 kHz sample rate from the accelerometer by choosing 1 for
     // accel_fchoice_b bit [3]; in this case the bandwidth is 1.13 kHz
-    c = this->readByte(MPU9250_ADDRESS, ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
+    c = this->I2CHandler->readByte(MPU9250_ADDRESS, ACCEL_CONFIG2); // get current ACCEL_CONFIG2 register value
     c = c & ~0x0F; // Clear accel_fchoice_b (bit 3) and A_DLPFG (bits [2:0])  
     c = c | 0x03;  // Set accelerometer rate to 1 kHz and bandwidth to 41 Hz
-    this->writeByte(MPU9250_ADDRESS, ACCEL_CONFIG2, c); // Write new ACCEL_CONFIG2 register value
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, ACCEL_CONFIG2, c); // Write new ACCEL_CONFIG2 register value
 
     // The accelerometer, gyro, and thermometer are set to 1 kHz sample rates, 
     // but all these rates are further reduced by a factor of 5 to 200 Hz because of the SMPLRT_DIV setting
@@ -635,8 +607,8 @@ bool InertialSensor::initMPU9250() {
     // Configure Interrupts and Bypass Enable
     // Set interrupt pin active high, push-pull, and clear on read of INT_STATUS, enable I2C_BYPASS_EN so additional chips 
     // can join the I2C bus and all can be controlled by the STM32 as master
-    this->writeByte(MPU9250_ADDRESS, INT_PIN_CFG, 0x22);    
-    this->writeByte(MPU9250_ADDRESS, INT_ENABLE, 0x01);  // Enable data ready (bit 0) interrupt
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, INT_PIN_CFG, 0x22);    
+    this->I2CHandler->writeByte(MPU9250_ADDRESS, INT_ENABLE, 0x01);  // Enable data ready (bit 0) interrupt
     return true;
 }
 
@@ -646,7 +618,7 @@ void InertialSensor::readAccelData() {
     int16_t accelCount[3] = {0, 0, 0};  // Stores the 16-bit signed accelerometer sensor output
     uint8_t rawData[6];  // x/y/z accel register data stored here
 
-    this->readBytes(MPU9250_ADDRESS, ACCEL_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers into data array
+    this->I2CHandler->readBytes(MPU9250_ADDRESS, ACCEL_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers into data array
     accelCount[0] = (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]) ;  // Turn the MSB and LSB into a signed 16-bit value
     accelCount[1] = (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]) ;  
     accelCount[2] = (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]) ; 
@@ -670,7 +642,7 @@ void InertialSensor::readGyroData( ) {
     int16_t gyroCount[3] = {0, 0, 0}; 
     uint8_t rawData[6];  // x/y/z gyro register data stored here
 
-    this->readBytes(MPU9250_ADDRESS, GYRO_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers sequentially into data array
+    this->I2CHandler->readBytes(MPU9250_ADDRESS, GYRO_XOUT_H, 6, &rawData[0]);  // Read the six raw data registers sequentially into data array
     gyroCount[0] = (int16_t)(((int16_t)rawData[0] << 8) | rawData[1]);  // Turn the MSB and LSB into a signed 16-bit value
     gyroCount[1] = (int16_t)(((int16_t)rawData[2] << 8) | rawData[3]);  
     gyroCount[2] = (int16_t)(((int16_t)rawData[4] << 8) | rawData[5]); 
@@ -693,8 +665,8 @@ void InertialSensor::readMagData() {
     int16_t magCount[3] = {0, 0, 0};
     uint8_t rawData[7];  // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
     
-    if(this->readByte(AK8963_ADDRESS, AK8963_ST1) & 0x01) { // wait for magnetometer data ready bit to be set
-    this->readBytes(AK8963_ADDRESS, AK8963_XOUT_L, 7, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
+    if(this->I2CHandler->readByte(AK8963_ADDRESS, AK8963_ST1) & 0x01) { // wait for magnetometer data ready bit to be set
+    this->I2CHandler->readBytes(AK8963_ADDRESS, AK8963_XOUT_L, 7, &rawData[0]);  // Read the six raw data and ST2 registers sequentially into data array
     uint8_t c = rawData[6]; // End data read by reading ST2 register
     if(!(c & 0x08)) { // Check if magnetic sensor overflow set, if not then report data
     magCount[0] = (int16_t)(((int16_t)rawData[1] << 8) | rawData[0]);  // Turn the MSB and LSB into a signed 16-bit value
@@ -721,7 +693,7 @@ void InertialSensor::readTempData() {
     int16_t tempCount;
     uint8_t rawData[2];  // x/y/z gyro register data stored here
 
-    readBytes(MPU9250_ADDRESS, TEMP_OUT_H, 2, &rawData[0]);  // Read the two raw data registers sequentially into data array 
+    this->I2CHandler->readBytes(MPU9250_ADDRESS, TEMP_OUT_H, 2, &rawData[0]);  // Read the two raw data registers sequentially into data array 
     tempCount =(int16_t)(((int16_t)rawData[0]) << 8 | rawData[1]) ;  // Turn the MSB and LSB into a 16-bit value
     this->temperature = ((float) tempCount) / 333.87f + 21.0f; // Temperature in degrees Centig
     
@@ -738,9 +710,9 @@ void InertialSensor::readTempData() {
 // but is much less computationally intensive---it can be performed on a 3.3 V Pro Mini operating at 8 MHz!
 void InertialSensor::MadgwickQuaternionUpdate(float  deltat) {
     float q1 = this->q[0], q2 = this->q[1], q3 = this->q[2], q4 = this->q[3];   // short name local variable for readability
-    float ax = - this->ax, ay= this->ay, az= this->az;
-    float gx = this->gx *PI/180.0f, gy = - this->gy *PI/180.0f, gz = - this->gz *PI/180.0f;
-    float mx = this->my, my = - this->mx, mz = this->mz;
+    float ax = this->ax, ay= this->ay, az= this->az;
+    float gx = this->gx *PI/180.0f, gy = this->gy *PI/180.0f, gz = this->gz *PI/180.0f;
+    float mx = this->mx, my = this->my, mz = this->mz;
     float beta = this->beta;
     
    
@@ -847,7 +819,7 @@ void InertialSensor::obtainYawPitchRoll( ) {
      this->q[0] * this->q[0] - this->q[1] * this->q[1] - this->q[2] * this->q[2] + this->q[3] * this->q[3]);
     pitch *= 180.0f / PI;
     yaw   *= 180.0f / PI; 
-    //yaw   -= 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+    yaw   -= 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
     roll  *= 180.0f / PI;
 
     char buffer[60];
@@ -856,6 +828,18 @@ void InertialSensor::obtainYawPitchRoll( ) {
     uartUSB.write(buffer, strlen(buffer));
 }
   
+ bool InertialSensor::acquireData (float deltat) {
+     if(this->I2CHandler->readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
+        this->readAccelData();
+        this->readGyroData();
+        this->readMagData();
+        this->readTempData();
+        this->MadgwickQuaternionUpdate(deltat);
+        this->obtainYawPitchRoll();
+        return true;
+    }
+    return false;
+}
 
 //=====[Implementations of private functions]==================================
 

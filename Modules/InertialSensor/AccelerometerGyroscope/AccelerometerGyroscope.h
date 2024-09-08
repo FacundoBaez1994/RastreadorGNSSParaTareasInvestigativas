@@ -1,13 +1,12 @@
 //=====[#include guards - begin]===============================================
-#ifndef INERTIALSENSOR_H
-#define INERTIALSENSOR_H
+#ifndef ACCELORMETER_GYROSCOPE_H
+#define ACCELORMETER_GYROSCOPE_H
  
 //==================[Libraries]===============================================
 
 #include "mbed.h"
 #include "math.h"
 #include "Non_Blocking_Delay.h"
-#include "I2CInterfaceHandler.h"
 
 //=====[Declaration of public data types]======================================
 
@@ -26,11 +25,6 @@ enum Gscale {
   GFS_2000DPS
 };
 
-enum Mscale {
-  MFS_14BITS = 0, // 0.6 mG per LSB
-  MFS_16BITS      // 0.15 mG per LSB
-};
-
 // parameters for 6 DoF sensor fusion calculations
 
 
@@ -41,7 +35,12 @@ class InertialSensor {
 public:
     InertialSensor ();
     virtual ~InertialSensor ();
-    
+
+    // mover a I2C interface handler
+   // void writeByte(uint8_t address, uint8_t subAddress, uint8_t data);
+   // char readByte(uint8_t address, uint8_t subAddress);
+   // void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest);
+       
     bool initializeSensors ();
     bool checkCommunicationWithModule();   
     
@@ -50,34 +49,17 @@ public:
     bool calibrateMPU9250();
     bool resetMPU9250();
 
-    //mover a mag
-    bool initAK8963();
-
-
-    bool acquireData (float deltat);
     void readAccelData();
     void readGyroData();
-    void readMagData();
-    void readTempData();
-    void MadgwickQuaternionUpdate(float deltat);
-    void obtainYawPitchRoll( );
-    /*
-;
-    void MPU9250SelfTest(float * destination);
-    void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, 
-    float gy, float gz, float mx, float my, float mz);
-    void MahonyQuaternionUpdate(float ax, float ay, float az, float gx,
-      float gy, float gz, float mx, float my, float mz);
-    */
 
  private:
     //=====[Declaration of private methods]=========================================
-    void getMres();
+
     void getGres();
     void getAres();
 
     //=====[Declaration of private atributtes]=========================================
-    I2CInterfaceHandler * I2CHandler;
+    I2C * i2cInterface;
     NonBlockingDelay* refreshTime;
 
     uint8_t Ascale;   // AFS_2G, AFS_4G, AFS_8G, AFS_16G
@@ -111,8 +93,7 @@ public:
     float deltat = 0.0f;                 // integration interval for both filter schemes
     int lastUpdate  = 0, firstUpdate = 0, Now = 0;   // used to calculate integration interval                               // used to calculate integration interval
     float q[4] = {1.0f, 0.0f, 0.0f, 0.0f}; ;      // vector to hold quaternion
-   // float eInt[3] = {0.0f, 0.0f, 0.0f};  // vector to hold integral error for Mahony method
 };
 
-//  INERTIALSENSOR_H
+//  ACCELORMETER_GYROSCOPE_H
 #endif

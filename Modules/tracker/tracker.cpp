@@ -5,7 +5,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY     1
+#define LATENCY     500
 #define POWERCHANGEDURATION  700
 
 #define WHO_AM_I_MPU9250 0x75 // Should return 0x71
@@ -71,26 +71,18 @@ void tracker::update () {
         }
     }
 
+    Now =  chrono::duration_cast<chrono::microseconds>(this->t.elapsed_time()).count();
+    deltat =  static_cast<float>((Now - lastUpdate)/1000000.0f) ; // set integration time by time elapsed since last filter update
+    lastUpdate = Now;
+
     if ( sensorsReady == true && transmissionSecuenceActive  == true) {
-        if(this->sensor->readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {
-            this->sensor->readAccelData();
-            this->sensor->readGyroData();
-            this->sensor->readMagData();
-            this->sensor->readTempData();
-
-            Now =  chrono::duration_cast<chrono::microseconds>(this->t.elapsed_time()).count();
-
+        if(this->sensor->acquireData(deltat)) {
+      
             snprintf(buffer, sizeof(buffer), "now = %d  \n\r", Now);
             uartUSB.write(buffer, strlen(buffer));
 
-            deltat =  static_cast<float>((Now - lastUpdate)/1000000.0f) ; // set integration time by time elapsed since last filter update
-            lastUpdate = Now;
-
             snprintf(buffer, sizeof(buffer), "delta T = %f  \n\r", deltat);
             uartUSB.write(buffer, strlen(buffer));
-
-            this->sensor->MadgwickQuaternionUpdate(deltat);
-            this->sensor->obtainYawPitchRoll();
             transmissionSecuenceActive = false;
         }
     }

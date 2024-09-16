@@ -24,6 +24,11 @@ public:
 //=====[Declaration of public methods]=========================================
     virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, CellInformation * currentCellInformation);
+
+    virtual bool retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors);
+
     virtual void enableConnection ();
 //=====[Declaration of privates atributes]=========================================
 

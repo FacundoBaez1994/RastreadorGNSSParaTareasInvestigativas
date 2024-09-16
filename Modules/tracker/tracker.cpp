@@ -40,8 +40,6 @@ tracker::tracker () {
     this->currentCellInformation->date  = new char [10];
     this->currentCellInformation->time  = new char [10];
     this->currentCellInformation->band = new char [20];
-    this->currentCellInformation->lac = new char [10];
-    this->currentCellInformation->cellId = new char [20];
 
     this->currentGNSSdata = new GNSSData;
     this->batteryStatus = new BatteryData;
@@ -56,10 +54,6 @@ tracker::~tracker() {
     this->currentCellInformation->time = NULL;
     delete[] this->currentCellInformation->band;
     this->currentCellInformation->band = NULL;
-    delete[] this->currentCellInformation->lac;
-    this->currentCellInformation->lac = NULL;
-    delete[] this->currentCellInformation->cellId;
-    this->currentCellInformation->cellId = NULL;
     delete this->currentCellInformation;
     this->currentCellInformation = NULL;
     delete this->currentGNSSdata;
@@ -84,8 +78,6 @@ tracker::~tracker() {
 void tracker::update () {
     
     static char* formattedMessage;
-
-
     static GNSSState_t GnssCurrentStatus;
     static CellularConnectionStatus_t currentConnectionStatus;
     static CellularTransmissionStatus_t currentTransmitionStatus;
@@ -95,6 +87,9 @@ void tracker::update () {
     static bool messageFormatted = false;
     static bool batterySensed = false;
     static bool enablingGoingToSleep = false; 
+
+    static std::vector<CellInformation*> neighborsCellInformation;
+    static int numberOfNeighbors = 0;
 
 
     this->cellularTransmitter->startStopUpdate();
@@ -114,6 +109,7 @@ void tracker::update () {
     }
     
     /// GNSS /// 
+    /*
     GnssCurrentStatus = this->currentGNSSModule->retrivGeopositioning(this->currentGNSSdata);
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {
         GNSSAdquisitionSuccesful = true;
@@ -128,19 +124,25 @@ void tracker::update () {
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
         this->cellularTransmitter->enableConnection();
-    }
+    }*/
+    this->cellularTransmitter->enableConnection(); // ELIMINAR
+    GNSSAdquisitionSuccesful = false; // ELIMINAR
     
     ///CELULLAR  CONNECTION// 
     currentConnectionStatus = this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation);
         if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) {
-            this->cellularTransmitter->enableTransmission();    
+           // this->cellularTransmitter->enableTransmission();    
             if (GNSSAdquisitionSuccesful == false) {
                 if (messageFormatted == false) {
-                    formattedMessage = this->formMessage(this->currentCellInformation,
-                     this->batteryStatus);
-                    messageFormatted = true;
-                    uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
-                    uartUSB.write ( "\r\n",  3 );  // debug only
+                    if (this->cellularTransmitter->retrivNeighborCellsInformation(
+                    neighborsCellInformation, numberOfNeighbors)) {
+                        formattedMessage = this->formMessage(this->currentCellInformation,
+                        neighborsCellInformation, this->batteryStatus);
+                        messageFormatted = true;
+                        uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
+                        uartUSB.write ( "\r\n",  3 );  // debug only
+                       //  this->cellularTransmitter->enableTransmission();
+                    }
                 }
             } else {
                 if (messageFormatted == false) {
@@ -149,6 +151,7 @@ void tracker::update () {
                     messageFormatted = true;
                     uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
+                    // this->cellularTransmitter->enableTransmission();
                 }
             }
     } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE && 
@@ -159,6 +162,8 @@ void tracker::update () {
         messageFormatted = false;
         enablingGoingToSleep = true;
     }
+    /////////////////
+
 
     ///CELULLAR  TRANSMISSION// 
     currentTransmitionStatus = this->cellularTransmitter->sendMessage (formattedMessage,
@@ -199,10 +204,17 @@ char* tracker::formMessage(GNSSData* GNSSInfo) {
     return message;
 }
 
-char* tracker::formMessage(CellInformation* aCellInfo, BatteryData  * batteryStatus) {
-    static char message[200]; 
+char* tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
+&neighborsCellInformation, BatteryData  * batteryStatus) {
+    static char message[500];
+    char neighbors[200];
+    int lac;
+    int idCell;
+    char tech [5];
+    int mcc;
+    int mnc;
     snprintf(message, sizeof(message), 
-            "MN,MN,%s,%s,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
+            "MN,MN,%X,%X,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
             aCellInfo->lac,
             aCellInfo->cellId,
             aCellInfo->mcc,
@@ -217,14 +229,28 @@ char* tracker::formMessage(CellInformation* aCellInfo, BatteryData  * batterySta
             batteryStatus->batteryChargeStatus,
             batteryStatus->chargeLevel
             );
-        
+    snprintf(neighbors, sizeof(neighbors),"size of vector %d", neighborsCellInformation.size()); 
+    uartUSB.write (neighbors , strlen (neighbors ));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only        
+    for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
+        strcpy (tech, neighborsCellInformation[i]->tech);
+        mcc = neighborsCellInformation[i]->mcc;
+        mnc = neighborsCellInformation[i]->mnc;
+        lac = neighborsCellInformation[i]->lac;
+        idCell = neighborsCellInformation[i]->cellId;
+        snprintf(neighbors, sizeof(neighbors),",%s,%d,%d,%X,%X",tech,mcc,mnc,lac, idCell); 
+        uartUSB.write (neighbors , strlen (neighbors ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        // Concatenar el mensaje de la celda vecina al mensaje principal
+        strncat(message, neighbors, sizeof(message) - strlen(message) - 1);
+    }   
     return message;
 }
 
 char* tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
-             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%s,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
+             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%X,%X,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
             GNSSInfo->latitude,
             GNSSInfo->longitude,
             GNSSInfo->hdop,

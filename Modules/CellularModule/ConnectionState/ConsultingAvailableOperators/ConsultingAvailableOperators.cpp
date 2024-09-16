@@ -136,6 +136,19 @@ CellInformation * currentCellInformation) {
     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool ConsultingAvailableOperators::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return false;
+}
+
+
 //=====[Implementations of private functions]==================================
 bool ConsultingAvailableOperators::retrivOperatorsInformation(char *response) {
     char StringToCompare[10] = "+QNWINFO:";

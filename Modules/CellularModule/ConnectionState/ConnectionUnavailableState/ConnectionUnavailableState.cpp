@@ -87,4 +87,19 @@ void ConnectionUnavailableState::enableConnection () {
 
 
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool ConnectionUnavailableState::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return true;
+}
+
+
+
+
 //=====[Implementations of private functions]==================================

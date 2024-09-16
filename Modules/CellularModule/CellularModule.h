@@ -36,9 +36,10 @@ struct BatteryData;
     char *  date;
     char * time;
     char * band;
+    char * tech;
     // Cell identifiers codes ////
-    char * lac;
-    char * cellId; 
+    int lac;
+    int cellId; 
     int  mcc; // with mnc identifies operator
     int mnc; // 
     //////////////////////////////
@@ -64,6 +65,8 @@ public:
     CellularConnectionStatus_t connectToMobileNetwork (CellInformation * currentCellInformation);
     CellularTransmissionStatus_t sendMessage (char * message, TcpSocket * socketTargetted);
     void changeConnectionState  (ConnectionState * newConnectionState);
+    bool retrivNeighborCellsInformation ( std::vector<CellInformation*> &neighborsCellInformation
+    , int numberOfNeighbors);
     void enableTransmission ();
     void enableConnection ();
     void changeTransmissionState  (TransmissionState * newTransmissionState);

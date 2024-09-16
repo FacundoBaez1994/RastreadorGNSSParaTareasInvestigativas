@@ -196,6 +196,13 @@ void CellularModule::switchSIMCARD () {
     *this->simCardSwitchOutput = ! *this->simCardSwitchOutput;
 }
 
+
+bool CellularModule::retrivNeighborCellsInformation ( std::vector<CellInformation*> &neighborsCellInformation,
+ int numberOfNeighbors){
+        return this->currentConnectionState->retrivNeighborCellsInformation 
+        (this->ATHandler, this->refreshTime, neighborsCellInformation, numberOfNeighbors);
+    }
+
  PowerManager* CellularModule::getPowerManager (){
     return this->modulePowerManager;
 }

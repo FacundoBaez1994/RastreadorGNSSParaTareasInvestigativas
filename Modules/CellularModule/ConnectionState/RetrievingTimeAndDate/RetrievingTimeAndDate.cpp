@@ -135,6 +135,12 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
+bool RetrievingTimeAndDate::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return false;
+}
+
 //=====[Implementations of private functions]==================================
 bool RetrievingTimeAndDate::retrieveNetworkTime(char *response) {
     char StringToCompare[8] = "+QLTS: ";

@@ -11,7 +11,9 @@
 #include "ConnectionState.h"
 #include "Non_Blocking_Delay.h"
 #include "CellularModule.h"
-
+#include <string>
+#include <vector>
+#include <cstring>  
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
 struct CellInformation;
@@ -30,8 +32,13 @@ public:
     virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
      NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
+    virtual bool retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors);
     virtual void enableConnection ();
 private:
+    bool retrivOperatorsCodes (const char *response, int * mcc, int * mnc);
+    bool retrivCellData (const char *response, char * tech, int * idCell, int * lac, float * prx);
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool enableTransmission;

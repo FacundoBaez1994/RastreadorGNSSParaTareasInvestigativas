@@ -126,5 +126,11 @@ NonBlockingDelay * refreshTime,
 }
 
 
+bool AttachingToPacketService::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return false;
+    }
+
 
 //=====[Implementations of private functions]==================================

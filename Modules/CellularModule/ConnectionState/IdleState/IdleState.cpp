@@ -119,6 +119,11 @@ CellInformation * currentCellInformation) {
     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
+bool IdleState::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return false;
+}
 
 void IdleState::enableConnection () {
     return;

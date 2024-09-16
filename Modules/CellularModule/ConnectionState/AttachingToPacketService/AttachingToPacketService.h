@@ -31,7 +31,12 @@ public:
     virtual ~AttachingToPacketService ();
     virtual CellularConnectionStatus_t connect (ATCommandHandler * handler, NonBlockingDelay * refreshTime,
     CellInformation * currentCellInformation);
+    virtual bool retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors);
     virtual void enableConnection ();
+
+    
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;

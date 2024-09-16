@@ -124,8 +124,8 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////   
-                strcpy (currentCellInformation->cellId, this->cellId);
-                strcpy (currentCellInformation->lac, this->lac);
+                currentCellInformation->cellId = this->cellId;
+                currentCellInformation->lac = this->lac;
                 currentCellInformation->accessTechnology = this->accessTechnology;
                 currentCellInformation->registrationStatus = this->registrationStatus;
                 if (this->registrationStatus == MODEM_REGISTERED_LOCALY ||
@@ -149,6 +149,18 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool ConsultingNetworkStatus::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return false;
+}
+
 
 
 //=====[Implementations of private functions]==================================
@@ -168,24 +180,30 @@ bool ConsultingNetworkStatus::retrivIdCellData(char *response) {
         // Verificar que se hayan parseado correctamente los 4 valores
         if (n == 4) {
             this->registrationStatus = stat;
-            strncpy(this->lac, tac, sizeof(this->lac) - 1);
-            strncpy(this->cellId, ci, sizeof(this->cellId) - 1);
+
+            // Convertir LAC y Cell ID de hexadecimal a entero
+            this->lac = strtol(tac, nullptr, 16);  // LAC como entero
+            this->cellId = strtol(ci, nullptr, 16);  // Cell ID como entero
             this->accessTechnology = act;
 
             // Debugging
-            uartUSB.write("LAC: ", strlen("LAC: "));
-            uartUSB.write(this->lac, strlen(this->lac));
-            uartUSB.write("\r\n", 2);
-
-            uartUSB.write("Cell ID: ", strlen("Cell ID: "));
-            uartUSB.write(this->cellId, strlen(this->cellId));
-            uartUSB.write("\r\n", 2);
-
+            char lacStr[10];
+            char idCellStr[10];
             char regStatusStr[10];
             char accessTechStr[10];
 
+            sprintf(lacStr, "%X", this->lac);
+            sprintf(idCellStr, "%X", this->cellId);
             sprintf(regStatusStr, "%d", this->registrationStatus);
             sprintf(accessTechStr, "%d", this->accessTechnology);
+
+            uartUSB.write("LAC: ", strlen("LAC: "));
+            uartUSB.write(lacStr, strlen(lacStr));
+            uartUSB.write("\r\n", 2);
+
+            uartUSB.write("Cell ID: ", strlen("Cell ID: "));
+            uartUSB.write(idCellStr, strlen(idCellStr));
+            uartUSB.write("\r\n", 2);
 
             uartUSB.write("Registration Status: ", strlen("Registration Status: "));
             uartUSB.write(regStatusStr, strlen(regStatusStr));

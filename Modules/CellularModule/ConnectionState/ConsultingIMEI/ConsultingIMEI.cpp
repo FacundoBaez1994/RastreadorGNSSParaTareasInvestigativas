@@ -142,6 +142,18 @@ CellInformation * currentCellInformation) {
 }
 
 
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool ConsultingIMEI::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return false;
+}
+
 
 //=====[Implementations of private functions]==================================
 bool ConsultingIMEI::RetrivIMEI(char *response, long long int &value) {

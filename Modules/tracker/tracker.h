@@ -33,7 +33,8 @@ public:
     void update();
 private:
     char* formMessage (GNSSData * GNSSInfo);
-    char* formMessage(CellInformation* aCellInfo, BatteryData  * batteryStatus);
+    char* formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
+    &neighborsCellInformation, BatteryData  * batteryStatus); 
     char* formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus);
     CellularModule* cellularTransmitter;
     TcpSocket * socketTargetted;

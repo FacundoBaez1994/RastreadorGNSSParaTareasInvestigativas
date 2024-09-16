@@ -120,6 +120,12 @@ CellInformation * currentCellInformation) {
 
 }
 
+bool DefinePDPContext::retrivNeighborCellsInformation (ATCommandHandler * handler,
+    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
+    int numberOfNeighbors) {
+        return false;
+}
+
 void DefinePDPContext::enableConnection () {
     return;
 }

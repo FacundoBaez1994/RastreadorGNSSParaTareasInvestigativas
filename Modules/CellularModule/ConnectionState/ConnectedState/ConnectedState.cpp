@@ -91,7 +91,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
     static bool cellDataRetrived = false;
     static bool readyToSend = true;
     
-    char StringToBeRead[150];
+    char StringToBeRead[100];
     char ExpectedResponse[15] = "OK";
     char buffer [60];
     
@@ -100,11 +100,16 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
 
     static int mnc;
     static int mcc;
+    static int counterTimeOut = 0;
+    int maxTimeOut = 80;
 
-    char tech[5];
+    int tech;
     int idCell;
     int lac;
     float prx;
+
+    char readString [30][100];
+    static int index = 0; 
 
     if (readyToSend == true && cellDataRetrived == false) {
         uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));  // debug only
@@ -115,35 +120,58 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
         readyToSend = false;
     }
     if (handler->readATResponse(StringToBeRead) == true) {
-        uartUSB.write(StringToBeRead, strlen(StringToBeRead));  // debug only
-        uartUSB.write("\r\n", 3);  // debug only
 
-        if (this->retrivOperatorsCodes(StringToBeRead, &mcc, &mnc) == false) {
-            if (this->retrivCellData(StringToBeRead, tech, &idCell, &lac, &prx)) {
-                cellDataRetrived = true;
-                CellInformation* cellInfoTemp = new CellInformation;
-                cellInfoTemp->tech = new char[5];
-                cellInfoTemp->signalLevel = prx;
-                cellInfoTemp->mcc = mcc;
-                cellInfoTemp->mnc = mnc;
-                strcpy(cellInfoTemp->tech, tech);
-                cellInfoTemp->lac =  lac;
-                cellInfoTemp->cellId = idCell;
-                
-                neighborsCellInformation.push_back(cellInfoTemp);
-                uartUSB.write("Cell added to vector\r\n", strlen("Cell added to vector\r\n"));
-                snprintf(buffer, sizeof(buffer), "Vector size: %d\r\n", neighborsCellInformation.size());
-                uartUSB.write(buffer, strlen(buffer));
-            }
-        }
         if (strcmp (StringToBeRead, ExpectedResponse)  == 0) {
+            cellDataRetrived = true;
+            for (int i = 0; i < index; i++) {
+                uartUSB.write(readString[i], strlen(readString[i]));  // debug only
+                uartUSB.write("\r\n", 3);  // debug only
+               if (this->retrivOperatorsCodes(readString[i], &mcc, &mnc) == false) {
+                    if (this->retrivCellData(readString[i], &tech, &idCell, &lac, &prx)) {
+                        if (neighborsCellInformation.size () < 18 ) {
+                            cellDataRetrived = true;
+                            CellInformation* cellInfoTemp = new CellInformation;
+                            cellInfoTemp->tech = tech;
+                            cellInfoTemp->signalLevel = prx;
+                            cellInfoTemp->mcc = mcc;
+                            cellInfoTemp->mnc = mnc;
+                            cellInfoTemp->tech = tech;
+                            cellInfoTemp->lac =  lac;
+                            cellInfoTemp->cellId = idCell;
+                            
+                        
+                            neighborsCellInformation.push_back(cellInfoTemp);
+                            uartUSB.write("Cell added to vector\r\n", strlen("Cell added to vector\r\n"));
+                            snprintf(buffer, sizeof(buffer), "Vector size: %d\r\n", neighborsCellInformation.size());
+                            uartUSB.write(buffer, strlen(buffer));
+                        }
+                    }
+                }
+            }
+            index = 0;
+            cellDataRetrived = false;
+            counterTimeOut = 0;
             return true;
         }
+
+        if (index < 29) {
+            strncpy(readString[index], StringToBeRead, sizeof(readString[index]) - 1);
+            readString[index][sizeof(readString[index]) - 1] = '\0';  // Asegúrate de la terminación nula
+            index++;
+         }
     }
 
 
     if (refreshTime->read()) {
         readyToSend = true;
+        counterTimeOut ++;
+        if ( counterTimeOut > maxTimeOut) {
+            index = 0;
+            cellDataRetrived = false;
+            counterTimeOut = 0;
+            return true;
+        }
+        
     }
 
     return false;
@@ -173,10 +201,11 @@ bool ConnectedState::retrivOperatorsCodes(const char *response, int *mcc, int *m
             *mnc = atoi(mncStr);
 
             
-            // Mostrar los valores de MCC y MNC
+        
             char buffer[50];  // Buffer temporal para la salida
-           // snprintf(buffer, sizeof(buffer), "MCC: %d, MNC: %d\n", *mcc, *mnc);
-           // uartUSB.write(buffer, strlen(buffer));  // Enviar por UART
+            snprintf(buffer, sizeof(buffer), "MCC: %d, MNC: %d\n", *mcc, *mnc);
+            uartUSB.write(buffer, strlen(buffer));  // Enviar por UART
+            uartUSB.write("\r\n", 3);  // debug only
 
             return true;
         }
@@ -184,7 +213,7 @@ bool ConnectedState::retrivOperatorsCodes(const char *response, int *mcc, int *m
     return false;
 }
 
-bool ConnectedState::retrivCellData(const char *response, char *tec, int *idCell, int *lac, float *prx) {
+bool ConnectedState::retrivCellData(const char *response, int *tech, int *idCell, int *lac, float *prx) {
     char accessTechnologyretrived[7];
     int index = 2;
 
@@ -200,21 +229,26 @@ bool ConnectedState::retrivCellData(const char *response, char *tec, int *idCell
     if (strcmp(accessTechnologyretrived, "2G") == 0) {
         // Para 2G: index, RAT, freq, lac, ci, bsic, rxlev, c1, cba, is_gprs_support
         sscanf(response, "%*d,\"%*[^\"]\",%*d,%x,%x,%*d,%f", lac, idCell, prx);
+        *tech = 2;
         // Convertir los valores de lac y idCell de int a cadena de caracteres
     } else if (strcmp(accessTechnologyretrived, "3G") == 0) {
         // Para 3G: index, RAT, freq, psc, lac, ci, rscp, ecno, cba
         sscanf(response, "%*d,\"%*[^\"]\",%*d,%*d,%x,%x,%f", lac, idCell, prx);
+        *tech = 3;
 
     } else if (strcmp(accessTechnologyretrived, "4G") == 0) {
         // Para 4G: index, RAT, freq, pci, tac, ci, rsrp, rsrq, cba
         sscanf(response, "%*d,\"%*[^\"]\",%*d,%*d,%x,%x,%f", lac, idCell, prx);
-
+        *tech = 4;
     } else {
         return false;
     }
 
     // Copiar la tecnología de acceso recuperada al parámetro tec
-    strcpy(tec, accessTechnologyretrived);
+    char buffer[50];  // Buffer temporal para la salida
+    snprintf(buffer, sizeof(buffer), "tech: %dG, idCell: %X, lac: %X, Prx: %f \n", *tech, *idCell, *lac, *prx );
+    uartUSB.write(buffer, strlen(buffer));  // Enviar por UART
+    uartUSB.write("\r\n", 3);  // debug only
 
     return true;
 }

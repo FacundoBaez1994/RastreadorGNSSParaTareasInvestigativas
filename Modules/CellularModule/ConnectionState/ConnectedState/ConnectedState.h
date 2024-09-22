@@ -38,7 +38,7 @@ public:
     virtual void enableConnection ();
 private:
     bool retrivOperatorsCodes (const char *response, int * mcc, int * mnc);
-    bool retrivCellData (const char *response, char * tech, int * idCell, int * lac, float * prx);
+    bool retrivCellData (const char *response, int * tech, int * idCell, int * lac, float * prx);
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool enableTransmission;

@@ -36,7 +36,7 @@ struct BatteryData;
     char *  date;
     char * time;
     char * band;
-    char * tech;
+    int tech; // 2 = 2G, 3 = 3G, 4 = 4G
     // Cell identifiers codes ////
     int lac;
     int cellId; 

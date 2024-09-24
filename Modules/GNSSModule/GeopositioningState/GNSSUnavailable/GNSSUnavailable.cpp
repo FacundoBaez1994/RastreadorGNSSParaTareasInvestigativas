@@ -17,11 +17,7 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
-
 
 //=====[Implementations of private methods]===================================
 /** 
@@ -75,10 +71,7 @@ GNSSState_t GNSSUnavailable::retrivGeopositioning (GNSSData * Geodata, ATCommand
 }
 
 void GNSSUnavailable::enableGNSS ()  {
-    this->currentGNSSModule->changeGeopositioningState(new TurningOnGNSS (this->currentGNSSModule));
+    this->currentGNSSModule->changeGeopositioningState(new ConfigurateConstellation (this->currentGNSSModule));
 }
-
-
-
 
 //=====[Implementations of private functions]==================================

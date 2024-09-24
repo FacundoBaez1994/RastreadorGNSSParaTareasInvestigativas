@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _GNSS_UNAVAILABLE_H_
-#define _GNSS_UNAVAILABLE_H_
+#ifndef _CONFIGURATE_CONSTELLATION_H_
+#define _CONFIGURATE_CONSTELLATION_H_
 
 //==================[Libraries]===============================================
 
@@ -11,7 +11,7 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "Non_Blocking_Delay.h"
-#include "ConfigurateConstellation.h"
+#include "TurningOnGNSS.h"
 #include "GNSSState.h"
 
 
@@ -19,25 +19,27 @@
 class GNSSModule; //debido a declaracion adelantada
 struct GNSSData;
 
-
 //=====[Declaration of public classes]=========================================
 /*
  *  class - State desing pattern
  * 
  */
-class GNSSUnavailable : public GeopositioningState {
+class ConfigurateConstellation : public GeopositioningState {
 public:
 //=====[Declaration of public methods]=========================================
-    GNSSUnavailable ();
-    GNSSUnavailable  (GNSSModule * aGNSSModule);
-    virtual ~GNSSUnavailable   ();
+    ConfigurateConstellation ();
+    ConfigurateConstellation  (GNSSModule * aGNSSModule);
+    virtual ~ConfigurateConstellation   ();
     GNSSState_t retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
-     NonBlockingDelay * refreshTime);
+     NonBlockingDelay * refreshTime) ;
     void enableGNSS ();
 private:
     GNSSModule * currentGNSSModule;
-    GNSSState_t * disconnectionState;
     bool readyToSend;
+
+    int numberOfTries;
+    int maxTries;
+
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -48,4 +50,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _GNSS_UNAVAILABLE_H_
+#endif //   _CONFIGURATE_CONSTELLATION_H_

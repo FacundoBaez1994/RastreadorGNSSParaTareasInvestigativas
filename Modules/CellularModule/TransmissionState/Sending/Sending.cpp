@@ -91,13 +91,6 @@ CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
     size_t messageLength = strlen(message);    // Longitud total del mensaje
     size_t chunkSize = 256;                    // Tamaño del fragmento a enviar
     static bool debugFlag = false;             // Flag para evitar múltiples logs de depuración
-/*
-    if (currentMessagePosition >= messageLength) {
-        currentMessagePosition = 0;
-        debugFlag = false;
-        this->mobileNetworkModule->changeTransmissionState(new CloseSocket(this->mobileNetworkModule, true));
-        return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;;  // Mensaje completamente enviado
-    }*/
 
     // Asegurarse de que no se pase del final del mensaje
     size_t remainingLength = messageLength - currentMessagePosition;
@@ -158,14 +151,6 @@ bool Sending::sendChunck(ATCommandHandler *ATHandler,
     char confirmationChar = '>';
     char recievedChar;
     static int counter = 0;
-    /*
-    if (strlen(message) == 0) {
-        counter = 0;
-        this->Attempts =0;  // this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, true));
-        this->mobileNetworkModule->changeTransmissionState(new CloseSocket(this->mobileNetworkModule, true));
-        return true;
-
-    }*/
 
     // Formatear la cadena final
     int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d", ATcommand, connectID, strlen(message));

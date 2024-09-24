@@ -108,8 +108,7 @@ void tracker::update () {
         }
     }
     
-    /// GNSS /// 
-    /*
+    ////////////////////////// GNSS ////////////////////////////////
     GnssCurrentStatus = this->currentGNSSModule->retrivGeopositioning(this->currentGNSSdata);
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {
         GNSSAdquisitionSuccesful = true;
@@ -124,25 +123,32 @@ void tracker::update () {
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
         this->cellularTransmitter->enableConnection();
-    }*/
-    this->cellularTransmitter->enableConnection(); // ELIMINAR
-    GNSSAdquisitionSuccesful = false; // ELIMINAR
+    }
+    //this->cellularTransmitter->enableConnection(); // ELIMINAR
+    ////////////////////////////////////////////////////////////////////
     
-    ///CELULLAR  CONNECTION// 
+    ////////////////////CELULLAR  CONNECTION/////////////////// 
     currentConnectionStatus = this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation);
-        if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) {
-           // this->cellularTransmitter->enableTransmission();    
+        if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) { 
             if (GNSSAdquisitionSuccesful == false) {
                 if (messageFormatted == false) {
+                
                     if (this->cellularTransmitter->retrivNeighborCellsInformation(
                     neighborsCellInformation, numberOfNeighbors)) {
                         formattedMessage = this->formMessage(this->currentCellInformation,
                         neighborsCellInformation, this->batteryStatus);
+                        for (auto* cellInfo : neighborsCellInformation) {
+                            delete cellInfo;  // Libera la memoria de cada puntero
+                            cellInfo = nullptr;
+                        }
+                        neighborsCellInformation.clear();  // Limpia el vector 
                         messageFormatted = true;
                         uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
                         uartUSB.write ( "\r\n",  3 );  // debug only
-                       //  this->cellularTransmitter->enableTransmission();
-                    }
+                        this->cellularTransmitter->enableTransmission();
+                    } 
+                    //messageFormatted = true; // ELIMINAR
+                    //this->cellularTransmitter->enableTransmission();
                 }
             } else {
                 if (messageFormatted == false) {
@@ -150,8 +156,8 @@ void tracker::update () {
                      this->currentGNSSdata, this->batteryStatus);
                     messageFormatted = true;
                     uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
-                    uartUSB.write ( "\r\n",  3 );  // debug only
-                    // this->cellularTransmitter->enableTransmission();
+                    uartUSB.write ( "\r\n",  3 );  // debug only    
+                    this->cellularTransmitter->enableTransmission();
                 }
             }
     } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE && 
@@ -162,10 +168,11 @@ void tracker::update () {
         messageFormatted = false;
         enablingGoingToSleep = true;
     }
-    /////////////////
+    ///////////////////////////////////////////////////
 
 
-    ///CELULLAR  TRANSMISSION// 
+    ////////////////////CELULLAR  TRANSMISSION/////////////////// 
+   // char formattedMessage [560] = "MN,MN,120,220,320,420,520,620,720,820,920,1020,1120,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,AAA,AA420,AAA420,AAAA420,AAAAAA420,F420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,BBB,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,CCCC,420,420,420,420,420,420,420,420,420,Finale";
     currentTransmitionStatus = this->cellularTransmitter->sendMessage (formattedMessage,
      this->socketTargetted);
      if (currentTransmitionStatus == CELLULAR_TRANSMISSION_STATUS_SEND_OK) {
@@ -182,6 +189,7 @@ void tracker::update () {
         messageFormatted = false;
         enablingGoingToSleep = true;
      }
+     //////////////////////////////////
       
     
 
@@ -207,10 +215,10 @@ char* tracker::formMessage(GNSSData* GNSSInfo) {
 char* tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
 &neighborsCellInformation, BatteryData  * batteryStatus) {
     static char message[500];
-    char neighbors[200];
+    char neighbors[50];
     int lac;
     int idCell;
-    char tech [5];
+    int tech;
     int mcc;
     int mnc;
     snprintf(message, sizeof(message), 
@@ -233,12 +241,12 @@ char* tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformati
     uartUSB.write (neighbors , strlen (neighbors ));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only        
     for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
-        strcpy (tech, neighborsCellInformation[i]->tech);
+        tech = neighborsCellInformation[i]->tech;
         mcc = neighborsCellInformation[i]->mcc;
         mnc = neighborsCellInformation[i]->mnc;
         lac = neighborsCellInformation[i]->lac;
         idCell = neighborsCellInformation[i]->cellId;
-        snprintf(neighbors, sizeof(neighbors),",%s,%d,%d,%X,%X",tech,mcc,mnc,lac, idCell); 
+        snprintf(neighbors, sizeof(neighbors),",%dG,%d,%d,%X,%X",tech,mcc,mnc,lac, idCell); 
         uartUSB.write (neighbors , strlen (neighbors ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         // Concatenar el mensaje de la celda vecina al mensaje principal

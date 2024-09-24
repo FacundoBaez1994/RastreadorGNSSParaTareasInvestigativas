@@ -82,13 +82,71 @@ void Sending::enableTransmission () {
     return;
 }
 
+
+
+CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
+    NonBlockingDelay *refreshTime, char *message, TcpSocket *socketTargetted) {
+
+    static size_t currentMessagePosition = 0;  // Posición actual del mensaje
+    size_t messageLength = strlen(message);    // Longitud total del mensaje
+    size_t chunkSize = 256;                    // Tamaño del fragmento a enviar
+    static bool debugFlag = false;             // Flag para evitar múltiples logs de depuración
+/*
+    if (currentMessagePosition >= messageLength) {
+        currentMessagePosition = 0;
+        debugFlag = false;
+        this->mobileNetworkModule->changeTransmissionState(new CloseSocket(this->mobileNetworkModule, true));
+        return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;;  // Mensaje completamente enviado
+    }*/
+
+    // Asegurarse de que no se pase del final del mensaje
+    size_t remainingLength = messageLength - currentMessagePosition;
+    size_t sizeToSend = (remainingLength < chunkSize) ? remainingLength : chunkSize;
+
+    // Mostrar depuración solo una vez
+    if (!debugFlag) {
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer), "currentMessagePosition = %zu, messageLength = %zu", currentMessagePosition, messageLength);
+        uartUSB.write(buffer, strlen(buffer));  // Debug only
+        uartUSB.write("\r\n", 3);               // Debug only
+        debugFlag = true;
+    }
+
+    // Crear un fragmento del mensaje para enviar
+    char messageChunk[chunkSize + 1];
+    strncpy(messageChunk, message + currentMessagePosition, sizeToSend);
+    messageChunk[sizeToSend] = '\0';  // Asegurarse de que termine en NULL
+
+    // Enviar el fragmento actual
+    if (this->sendChunck(ATHandler, refreshTime, messageChunk, socketTargetted)) {
+        currentMessagePosition += sizeToSend;  // Avanzar en la posición del mensaje
+
+        // Depuración después de enviar cada fragmento
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer), "Sent chunk, new currentMessagePosition = %zu", currentMessagePosition);
+        uartUSB.write(buffer, strlen(buffer));  // Debug only
+        uartUSB.write("\r\n", 3);               // Debug only
+
+        // Si ya hemos enviado todo el mensaje
+        if (currentMessagePosition >= messageLength) {
+            currentMessagePosition = 0;  // Reiniciar para el próximo mensaje
+            debugFlag = false;           // Reiniciar flag de depuración para el próximo mensaje
+            this->mobileNetworkModule->changeTransmissionState(new CloseSocket(this->mobileNetworkModule, true));
+            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;  // Mensaje completamente enviado
+        }
+    }
+
+    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;  // Aún quedan fragmentos por enviar
+}
+
+
 /** 
 * @brief 
 * 
 * 
 * @returns 
 */
-CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
+bool Sending::sendChunck(ATCommandHandler *ATHandler,
     NonBlockingDelay *refreshTime, char *message, TcpSocket * socketTargetted) {
     char StringToBeSend[100];
     char StringToBeRead[100];
@@ -100,7 +158,14 @@ CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
     char confirmationChar = '>';
     char recievedChar;
     static int counter = 0;
+    /*
+    if (strlen(message) == 0) {
+        counter = 0;
+        this->Attempts =0;  // this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, true));
+        this->mobileNetworkModule->changeTransmissionState(new CloseSocket(this->mobileNetworkModule, true));
+        return true;
 
+    }*/
 
     // Formatear la cadena final
     int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d", ATcommand, connectID, strlen(message));
@@ -146,9 +211,14 @@ CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
                 char StringToSendUSB [40] = "Cambiando de estado 3";
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
+                counter = 0;
+                this->Attempts =0;
+                this->readyToSend = true;
+                this->transmissionEnable = false;
+                this->watingForConfirmation = false;
                 ////   ////   ////   ////   ////   ////     
-                this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, true));
-                 return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+               // this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, true));
+                 return true;
             }
         }
     }
@@ -166,11 +236,11 @@ CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
         if (this->Attempts >= this->maxAttempts) {
             this->mobileNetworkModule->changeTransmissionState 
             (new CloseSocket (this->mobileNetworkModule, false));
-            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+            return false;
         }
     }
 
-    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+    return false;
 }
 
 

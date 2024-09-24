@@ -24,6 +24,7 @@ public:
     ATCommandHandler (BufferedSerial * UART);
     virtual ~ATCommandHandler();
     void sendATCommand (char * ATCommandToBeSend);
+    void sendATCommand (const char * ATCommandToBeSend, size_t length);
     bool readATResponse (char * StringToBeRead);
     BufferedSerial* getUART (void);
     bool readChar (char * charRead);

@@ -57,6 +57,20 @@ void ATCommandHandler::sendATCommand (char * ATCommandToBeSend) {
     this->serialComunicationUART->write ( "\r\n",  3 ); 
 }
 
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+void ATCommandHandler::sendATCommand (const char * ATCommandToBeSend, size_t length) {
+    this->serialComunicationUART->write(ATCommandToBeSend, length);  
+    this->serialComunicationUART->write("\r\n", 3); 
+}
+
+
 /** 
 * @brief 
 * 

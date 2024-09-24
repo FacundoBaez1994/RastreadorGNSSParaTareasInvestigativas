@@ -32,6 +32,8 @@ public:
     virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
 private:
+    bool sendChunck(ATCommandHandler *ATHandler,
+    NonBlockingDelay *refreshTime, char *message, TcpSocket * socketTargetted);
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     bool transmissionEnable;

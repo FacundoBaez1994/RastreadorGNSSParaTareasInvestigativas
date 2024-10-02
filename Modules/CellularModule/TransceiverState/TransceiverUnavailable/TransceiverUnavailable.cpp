@@ -83,7 +83,7 @@ void TransceiverUnavailable::enableTransceiver () {
 */
 CellularTransceiverStatus_t TransceiverUnavailable::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable) {
+     char * receivedMessage, bool * newDataAvailable) {
     return CELLULAR_TRANSCEIVER_STATUS_UNAVAIBLE;
 }
 

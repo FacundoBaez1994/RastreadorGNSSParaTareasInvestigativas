@@ -31,9 +31,9 @@ public:
     virtual void enableTransceiver ();
     virtual  CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable);
+     char * receivedMessage, bool * newDataAvailable);
 private:
-    bool retrivMessage (char * response, char * retrivMessage);
+    bool checkResponse (char * response, char * retrivMessage);
     CellularModule * mobileNetworkModule;
 //=====[Declaration of privates atributes]=========================================
 

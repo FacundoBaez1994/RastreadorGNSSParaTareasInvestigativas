@@ -87,7 +87,7 @@ void Sending::enableTransceiver () {
 
 CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable) {
+     char * receivedMessage, bool * newDataAvailable) {
 
     static size_t currentMessagePosition = 0;  // Posición actual del mensaje
     size_t messageLength = strlen(message);    // Longitud total del mensaje

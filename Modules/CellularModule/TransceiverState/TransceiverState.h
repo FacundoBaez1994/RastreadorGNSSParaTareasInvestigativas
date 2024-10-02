@@ -24,7 +24,7 @@ public:
 //=====[Declaration of public methods]=========================================
     virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable);
+     char * receivedMessage, bool * newDataAvailable);
     virtual void enableTransceiver ();
 //=====[Declaration of privates atributes]=========================================
 

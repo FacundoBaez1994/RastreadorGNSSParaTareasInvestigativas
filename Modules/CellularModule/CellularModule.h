@@ -64,7 +64,7 @@ public:
     bool measureBattery (BatteryData * currentBatteryData);
     CellularConnectionStatus_t connectToMobileNetwork (CellInformation * currentCellInformation);
     CellularTransceiverStatus_t exchangeMessages (char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable);
+     char * receivedMessage, bool * newDataAvailable);
     void changeConnectionState  (ConnectionState * newConnectionState);
     bool retrivNeighborCellsInformation ( std::vector<CellInformation*> &neighborsCellInformation
     , int numberOfNeighbors);

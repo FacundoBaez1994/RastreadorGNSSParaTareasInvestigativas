@@ -29,7 +29,7 @@ public:
     virtual ~DeactivatePDP ();
     virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable);
+     char * receivedMessage, bool * newDataAvailable);
     virtual void enableTransceiver ();
 private:
     CellularModule * mobileNetworkModule;

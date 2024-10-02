@@ -119,7 +119,7 @@ CellularConnectionStatus_t CellularModule::connectToMobileNetwork
 * @returns 
 */
 CellularTransceiverStatus_t CellularModule::exchangeMessages (char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable) {
+     char * receivedMessage, bool * newDataAvailable) {
     CellularTransceiverStatus_t currentStatus = this->currentTransceiverState->exchangeMessages (this->ATHandler,
     this->refreshTime, message, socketTargetted, receivedMessage, newDataAvailable);
     if (currentStatus != CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND &&

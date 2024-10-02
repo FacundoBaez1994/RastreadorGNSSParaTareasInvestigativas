@@ -66,7 +66,7 @@ void CloseSocket::enableTransceiver () {
 */
  CellularTransceiverStatus_t CloseSocket::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
-     char * receivedMessage, bool newDataAvailable) {
+     char * receivedMessage, bool * newDataAvailable) {
     char StringToBeSend [120];
     char StringToBeRead [20];
     char StringToBeSendUSB []  = "CLOSING TCP SOCKET"; 

@@ -6,6 +6,7 @@
 
 //=====[Declaration of private defines]========================================
 #define LATENCY        5000
+#define TIMEOUT_MS     5000
 #define POWERCHANGEDURATION  700
 
 //=====[Declaration of private data types]=====================================
@@ -25,6 +26,11 @@
 * @brief Contructor method creates a new trackerGPS instance ready to be used
 */
 tracker::tracker () {
+    Watchdog &watchdog = Watchdog::get_instance(); // singletom
+    watchdog.start(TIMEOUT_MS);
+    char StringToSendUSB [50] = "Tracker initialization";
+    uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+
     this->latency = new NonBlockingDelay (LATENCY);
     this->cellularTransceiver = new CellularModule ( );
     this->currentGNSSModule = new GNSSModule (this->cellularTransceiver->getPowerManager()
@@ -90,12 +96,12 @@ void tracker::update () {
     static bool messageFormatted = false;
     static bool batterySensed = false;
     static bool enablingGoingToSleep = false; 
-; 
 
     static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
+    Watchdog &watchdog = Watchdog::get_instance(); // singletom
 
-
+    watchdog.kick();
     this->cellularTransceiver->startStopUpdate();
     //this->currentGNSSModule->startStopUpdate();
 
@@ -128,7 +134,7 @@ void tracker::update () {
         uartUSB.write ( "\r\n",  3 );  // debug only}
         this->cellularTransceiver->enableConnection();
     }
-    //this->cellularTransmitter->enableConnection(); // ELIMINAR
+
     ////////////////////////////////////////////////////////////////////
     
     ////////////////////CELULLAR  CONNECTION/////////////////// 
@@ -177,7 +183,7 @@ void tracker::update () {
 
     ////////////////////CELULLAR  TRANSMISSION/////////////////// 
     currentTransmitionStatus = this->cellularTransceiver->exchangeMessages (formattedMessage,
-     this->socketTargetted, receivedMessage, newDataAvailable);
+     this->socketTargetted, receivedMessage, &newDataAvailable);
      if (currentTransmitionStatus == CELLULAR_TRANSCEIVER_STATUS_SEND_OK) {
         char StringToSendUSB [50] = "The message was send with success";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
@@ -192,6 +198,15 @@ void tracker::update () {
         messageFormatted = false;
         enablingGoingToSleep = true;
      }
+     if (newDataAvailable == true) {
+        char StringToSendUSB [50] = "new Message received:";
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        snprintf(StringToSendUSB, sizeof(StringToSendUSB), "%s",  receivedMessage);
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        newDataAvailable = false;
+     }
      //////////////////////////////////
       
     
@@ -204,7 +219,7 @@ void tracker::update () {
         }
     }
 
-
+    watchdog.kick();
 }
 
 //=====[Implementations of private methods]==================================

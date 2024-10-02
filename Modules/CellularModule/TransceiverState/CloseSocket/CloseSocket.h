@@ -1,30 +1,43 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _TRANSMISSION_STATE_H_
-#define _TRANSMISSION_STATE_H_
+#ifndef _CLOSE_SOCKET_H_
+#define _CLOSE_SOCKET_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
-#include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "TransmissionStatus.h"
+#include "TransceiverState.h"
+#include "Non_Blocking_Delay.h"
+#include "DeactivatePDP.h"
+
 
 //=====[Declaration of public data types]======================================
+class CellularModule; //debido a declaracion adelantada
 struct TcpSocket;
 
 //=====[Declaration of public classes]=========================================
 /*
- *  Interface - State desing pattern
+ *  class - State desing pattern
  * 
  */
-class TransmissionState {
+class CloseSocket : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual CellularTransmissionStatus_t send (ATCommandHandler * handler,
-     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
-    virtual void enableTransmission ();
+    CloseSocket(CellularModule * mobileModule, 
+    bool transmissionWasASuccess);
+    virtual ~CloseSocket ();
+    virtual void enableTransceiver ();
+    virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable);
+private:
+    CellularModule * mobileNetworkModule;
+    bool readyToSend;
+    bool transmissionWasASuccess;
+    int Attempts; 
+    int maxAttempts; 
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -35,4 +48,4 @@ public:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _CELLULAR_STATE_H_
+#endif //  _ACTIVATE_PDP_H_

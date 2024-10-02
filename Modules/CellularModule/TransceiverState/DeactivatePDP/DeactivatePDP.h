@@ -1,47 +1,40 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONNECTED_STATE_H_
-#define _CONNECTED_STATE_H_
+#ifndef _ACTIVATE_PDP_H_
+#define _ACTIVATE_PDP_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "ConnectionState.h"
+#include "TransceiverState.h"
 #include "Non_Blocking_Delay.h"
-#include "CellularModule.h"
-#include <string>
-#include <vector>
-#include <cstring>  
+#include "TransceiverUnavailable.h"
+
+
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
-struct CellInformation;
+struct TcpSocket;
 
 //=====[Declaration of public classes]=========================================
 /*
  *  class - State desing pattern
  * 
  */
-class ConnectedState : public ConnectionState {
+class DeactivatePDP : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConnectedState();
-    ConnectedState (CellularModule * mobileModule);
-    virtual ~ConnectedState ();
-    virtual CellularConnectionStatus_t connect (ATCommandHandler * handler,
-     NonBlockingDelay * refreshTime,
-    CellInformation * currentCellInformation);
-    virtual bool retrivNeighborCellsInformation (ATCommandHandler * handler,
-    NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
-    int numberOfNeighbors);
-    virtual void enableConnection ();
+    DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess);
+    virtual ~DeactivatePDP ();
+    virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable);
+    virtual void enableTransceiver ();
 private:
-    bool retrivOperatorsCodes (const char *response, int * mcc, int * mnc);
-    bool retrivCellData (const char *response, int * tech, int * idCell, int * lac, float * prx);
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool enableTransceiver;
+    bool transmissionWasASuccess;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -52,4 +45,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _CONNECTED_STATE_H_
+#endif //  _ACTIVATE_PDP_H_

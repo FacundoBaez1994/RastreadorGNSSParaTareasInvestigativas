@@ -37,7 +37,7 @@
 */
 ConnectedState::ConnectedState () {
     this->mobileNetworkModule = NULL;
-    this->enableTransmission = false;
+    this->enableTransceiver = false;
 }
 
 
@@ -48,7 +48,7 @@ ConnectedState::ConnectedState () {
 */
 ConnectedState::ConnectedState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
-    this->enableTransmission = false;
+    this->enableTransceiver = false;
 }
 
 
@@ -128,7 +128,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
                 uartUSB.write("\r\n", 3);  // debug only
                if (this->retrivOperatorsCodes(readString[i], &mcc, &mnc) == false) {
                     if (this->retrivCellData(readString[i], &tech, &idCell, &lac, &prx)) {
-                        if (neighborsCellInformation.size () < 18 ) {
+                        if (neighborsCellInformation.size () < 14 ) {
                             cellDataRetrived = true;
                             CellInformation* cellInfoTemp = new CellInformation;
                             cellInfoTemp->tech = tech;

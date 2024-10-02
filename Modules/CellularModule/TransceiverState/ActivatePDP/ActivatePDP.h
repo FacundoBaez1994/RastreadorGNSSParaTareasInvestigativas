@@ -9,10 +9,10 @@
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "TransmissionState.h"
+#include "TransceiverState.h"
 #include "Non_Blocking_Delay.h"
 #include "CreateSocket.h"
-#include "TransmissionUnavailable.h"
+#include "TransceiverUnavailable.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -24,15 +24,16 @@ struct TcpSocket;
  *  class - State desing pattern
  * 
  */
-class ActivatePDP : public TransmissionState {
+class ActivatePDP : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
     ActivatePDP();
     ActivatePDP (CellularModule * mobileModule);
     virtual ~ActivatePDP ();
-    virtual void enableTransmission ();
-    virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
+    virtual void enableTransceiver ();
+    virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable);
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;

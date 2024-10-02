@@ -1,14 +1,14 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _TRANSMISSION_UNAVAILABLE_H_
-#define _TRANSMISSION_UNAVAILABLE_H_
+#ifndef _TRANSCEIVER_UNAVAILABLE_H_
+#define _TRANSCEIVER_UNAVAILABLE_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "TransmissionState.h"
+#include "TransceiverState.h"
 #include "ActivatePDP.h"
 #include "Non_Blocking_Delay.h"
 
@@ -22,15 +22,16 @@ struct TcpSocket;
  *  class - State desing pattern
  * 
  */
-class TransmissionUnavailable : public TransmissionState {
+class TransceiverUnavailable : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
-    TransmissionUnavailable();
-    TransmissionUnavailable (CellularModule * mobileModule);
-    virtual ~TransmissionUnavailable ();
-    virtual CellularTransmissionStatus_t send (ATCommandHandler * handler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
-    virtual void enableTransmission ();
+    TransceiverUnavailable();
+    TransceiverUnavailable (CellularModule * mobileModule);
+    virtual ~TransceiverUnavailable ();
+    virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable);
+    virtual void enableTransceiver ();
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;

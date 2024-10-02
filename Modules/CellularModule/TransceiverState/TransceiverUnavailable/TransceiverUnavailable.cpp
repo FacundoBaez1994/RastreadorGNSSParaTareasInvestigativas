@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "TransmissionUnavailable.h"
+#include "TransceiverUnavailable.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 
@@ -35,7 +35,7 @@
 * 
 * @param 
 */
-TransmissionUnavailable::TransmissionUnavailable () {
+TransceiverUnavailable::TransceiverUnavailable () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
 }
@@ -46,7 +46,7 @@ TransmissionUnavailable::TransmissionUnavailable () {
 * 
 * @param 
 */
-TransmissionUnavailable::TransmissionUnavailable (CellularModule * mobileModule) {
+TransceiverUnavailable::TransceiverUnavailable (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
 }
@@ -58,7 +58,7 @@ TransmissionUnavailable::TransmissionUnavailable (CellularModule * mobileModule)
 * 
 * @returns 
 */
-TransmissionUnavailable::~TransmissionUnavailable () {
+TransceiverUnavailable::~TransceiverUnavailable () {
     this->mobileNetworkModule = NULL;
 }
 
@@ -68,8 +68,8 @@ TransmissionUnavailable::~TransmissionUnavailable () {
 * 
 * @returns 
 */
-void TransmissionUnavailable::enableTransmission () {
-    this->mobileNetworkModule->changeTransmissionState (new 
+void TransceiverUnavailable::enableTransceiver () {
+    this->mobileNetworkModule->changeTransceiverState (new 
         ActivatePDP (this->mobileNetworkModule));
     return;
 }
@@ -81,9 +81,10 @@ void TransmissionUnavailable::enableTransmission () {
 * 
 * @returns 
 */
-CellularTransmissionStatus_t TransmissionUnavailable::send (ATCommandHandler * handler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
-    return CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE;
+CellularTransceiverStatus_t TransceiverUnavailable::exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable) {
+    return CELLULAR_TRANSCEIVER_STATUS_UNAVAIBLE;
 }
 
 

@@ -26,9 +26,9 @@
 */
 tracker::tracker () {
     this->latency = new NonBlockingDelay (LATENCY);
-    this->cellularTransmitter = new CellularModule ( );
-    this->currentGNSSModule = new GNSSModule (this->cellularTransmitter->getPowerManager()
-    , this->cellularTransmitter->getATHandler());
+    this->cellularTransceiver = new CellularModule ( );
+    this->currentGNSSModule = new GNSSModule (this->cellularTransceiver->getPowerManager()
+    , this->cellularTransceiver->getATHandler());
     //both share the same power manager and ATHandler (uart)
 
     this->socketTargetted = new TcpSocket;
@@ -65,8 +65,8 @@ tracker::~tracker() {
     this->latency = NULL; 
     delete this->currentGNSSModule;
     this->currentGNSSModule = NULL;
-    delete this->cellularTransmitter;
-    this->cellularTransmitter = NULL;
+    delete this->cellularTransceiver;
+    this->cellularTransceiver = NULL;
 }
 
 
@@ -78,31 +78,35 @@ tracker::~tracker() {
 void tracker::update () {
     
     static char* formattedMessage;
+    static char receivedMessage [200];
     static GNSSState_t GnssCurrentStatus;
     static CellularConnectionStatus_t currentConnectionStatus;
-    static CellularTransmissionStatus_t currentTransmitionStatus;
+    static CellularTransceiverStatus_t currentTransmitionStatus;
+    static bool newDataAvailable = false;
+
     static bool GNSSAdquisitionSuccesful = false;
     static bool enableTransmission = false; 
     static bool transimissionSecuenceActive =  false;
     static bool messageFormatted = false;
     static bool batterySensed = false;
     static bool enablingGoingToSleep = false; 
+; 
 
     static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
 
 
-    this->cellularTransmitter->startStopUpdate();
+    this->cellularTransceiver->startStopUpdate();
     //this->currentGNSSModule->startStopUpdate();
 
     if (this->latency->read() && transimissionSecuenceActive == false) { // WRITE
         transimissionSecuenceActive = true;
         batterySensed = false;
-        this->cellularTransmitter->awake();
+        this->cellularTransceiver->awake();
     }
 
     if (batterySensed == false &&  transimissionSecuenceActive == true) {
-        if (this->cellularTransmitter->measureBattery(this->batteryStatus)) {
+        if (this->cellularTransceiver->measureBattery(this->batteryStatus)) {
            batterySensed = true;
             this->currentGNSSModule->enableGNSS();
         }
@@ -115,25 +119,25 @@ void tracker::update () {
         char StringToSendUSB [40] = "GNSS OBTAIN!!!!";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-        this->cellularTransmitter->enableConnection();
+        this->cellularTransceiver->enableConnection();
     }
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_UNAVAILABLE ) {
         GNSSAdquisitionSuccesful = false;
         char StringToSendUSB [40] = "GNSS UNAVAILABLE!!!!";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
-        this->cellularTransmitter->enableConnection();
+        this->cellularTransceiver->enableConnection();
     }
     //this->cellularTransmitter->enableConnection(); // ELIMINAR
     ////////////////////////////////////////////////////////////////////
     
     ////////////////////CELULLAR  CONNECTION/////////////////// 
-    currentConnectionStatus = this->cellularTransmitter->connectToMobileNetwork(this->currentCellInformation);
+    currentConnectionStatus = this->cellularTransceiver->connectToMobileNetwork(this->currentCellInformation);
         if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) { 
             if (GNSSAdquisitionSuccesful == false) {
                 if (messageFormatted == false) {
                 
-                    if (this->cellularTransmitter->retrivNeighborCellsInformation(
+                    if (this->cellularTransceiver->retrivNeighborCellsInformation(
                     neighborsCellInformation, numberOfNeighbors)) {
                         formattedMessage = this->formMessage(this->currentCellInformation,
                         neighborsCellInformation, this->batteryStatus);
@@ -145,7 +149,7 @@ void tracker::update () {
                         messageFormatted = true;
                         uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
                         uartUSB.write ( "\r\n",  3 );  // debug only
-                        this->cellularTransmitter->enableTransmission();
+                        this->cellularTransceiver->enableTransceiver();
                     } 
                     //messageFormatted = true; // ELIMINAR
                     //this->cellularTransmitter->enableTransmission();
@@ -157,7 +161,7 @@ void tracker::update () {
                     messageFormatted = true;
                     uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only    
-                    this->cellularTransmitter->enableTransmission();
+                    this->cellularTransceiver->enableTransceiver();
                 }
             }
     } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE && 
@@ -172,17 +176,16 @@ void tracker::update () {
 
 
     ////////////////////CELULLAR  TRANSMISSION/////////////////// 
-   // char formattedMessage [560] = "MN,MN,120,220,320,420,520,620,720,820,920,1020,1120,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,AAA,AA420,AAA420,AAAA420,AAAAAA420,F420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,BBB,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,420,CCCC,420,420,420,420,420,420,420,420,420,Finale";
-    currentTransmitionStatus = this->cellularTransmitter->sendMessage (formattedMessage,
-     this->socketTargetted);
-     if (currentTransmitionStatus == CELLULAR_TRANSMISSION_STATUS_SEND_OK) {
+    currentTransmitionStatus = this->cellularTransceiver->exchangeMessages (formattedMessage,
+     this->socketTargetted, receivedMessage, newDataAvailable);
+     if (currentTransmitionStatus == CELLULAR_TRANSCEIVER_STATUS_SEND_OK) {
         char StringToSendUSB [50] = "The message was send with success";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
         messageFormatted = false;
         enablingGoingToSleep = true;
-     }  else if (currentTransmitionStatus != CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND
-       && currentTransmitionStatus != CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE) {
+     }  else if (currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND
+       && currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_UNAVAIBLE) {
         char StringToSendUSB [50] = "The message couldn't be sent";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -194,7 +197,7 @@ void tracker::update () {
     
 
     if (enablingGoingToSleep == true) {
-        if (this->cellularTransmitter->goToSleep()) { 
+        if (this->cellularTransceiver->goToSleep()) { 
             transimissionSecuenceActive = false;
             enablingGoingToSleep = false;
             this->latency->restart();

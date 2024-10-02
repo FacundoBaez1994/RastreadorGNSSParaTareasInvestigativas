@@ -41,7 +41,7 @@ CellularModule::CellularModule () {
     this->ATHandler = new ATCommandHandler (new BufferedSerial  (CELLULAR_MODULE_TX_UART, 
      CELLULAR_MODULE_RX_UART, CELLULAR_MODULE_BAUD_RATE));
     this->currentConnectionState = new ConnectionUnavailableState (this);
-    this->currentTransmissionState = new TransmissionUnavailable (this);
+    this->currentTransceiverState = new TransceiverUnavailable (this);
     this->modulePowerManager = new PowerManager (this->ATHandler);
 
     this->simCardSwitchOutput =  new DigitalOut (CELLULAR_MODULE_SIMCARD_SWITCH_OUTPUT);
@@ -70,7 +70,7 @@ void CellularModule::startStopUpdate () {
        this->currentPowerStatus = newPowerStatus;
        if (this->currentPowerStatus != POWER_ON) {
             this->changeConnectionState (new ConnectionUnavailableState (this));
-            this->changeTransmissionState  (new TransmissionUnavailable (this));
+            this->changeTransceiverState  (new TransceiverUnavailable (this));
        }
     }
 }
@@ -118,13 +118,14 @@ CellularConnectionStatus_t CellularModule::connectToMobileNetwork
 * 
 * @returns 
 */
-CellularTransmissionStatus_t CellularModule::sendMessage (char * message, TcpSocket * socketTargetted) {
-    CellularTransmissionStatus_t currentStatus = this->currentTransmissionState->send (this->ATHandler,
-    this->refreshTime, message, socketTargetted);
-    if (currentStatus != CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND &&
-    currentStatus  != CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE) {
+CellularTransceiverStatus_t CellularModule::exchangeMessages (char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable) {
+    CellularTransceiverStatus_t currentStatus = this->currentTransceiverState->exchangeMessages (this->ATHandler,
+    this->refreshTime, message, socketTargetted, receivedMessage, newDataAvailable);
+    if (currentStatus != CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND &&
+    currentStatus  != CELLULAR_TRANSCEIVER_STATUS_UNAVAIBLE) {
         this->changeConnectionState(new ConnectionUnavailableState (this));
-        this->changeTransmissionState(new TransmissionUnavailable (this));
+        this->changeTransceiverState(new TransceiverUnavailable (this));
     }
     return currentStatus;
 }
@@ -154,9 +155,9 @@ void CellularModule::changeConnectionState  (ConnectionState * newConnectionStat
 * 
 * @returns 
 */
-void CellularModule::changeTransmissionState  (TransmissionState * newTransmissionState) {
-    delete this->currentTransmissionState;
-    this->currentTransmissionState = newTransmissionState;
+void CellularModule::changeTransceiverState  (TransceiverState * newTransceiverState) {
+    delete this->currentTransceiverState;
+    this->currentTransceiverState = newTransceiverState;
 }
 
 /** 
@@ -164,8 +165,8 @@ void CellularModule::changeTransmissionState  (TransmissionState * newTransmissi
 * 
 * @returns 
 */
-void CellularModule:: enableTransmission () {
-    this->currentTransmissionState->enableTransmission();  
+void CellularModule:: enableTransceiver () {
+    this->currentTransceiverState->enableTransceiver();  
 }
 
 /** 

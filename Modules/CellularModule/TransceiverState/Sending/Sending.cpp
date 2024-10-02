@@ -3,6 +3,7 @@
 #include "Sending.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
+#include "Receiving.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -78,14 +79,15 @@ Sending::~Sending () {
 * 
 * @returns 
 */
-void Sending::enableTransmission () {
+void Sending::enableTransceiver () {
     return;
 }
 
 
 
-CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
-    NonBlockingDelay *refreshTime, char *message, TcpSocket *socketTargetted) {
+CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable) {
 
     static size_t currentMessagePosition = 0;  // Posición actual del mensaje
     size_t messageLength = strlen(message);    // Longitud total del mensaje
@@ -124,12 +126,12 @@ CellularTransmissionStatus_t Sending::send(ATCommandHandler *ATHandler,
         if (currentMessagePosition >= messageLength) {
             currentMessagePosition = 0;  // Reiniciar para el próximo mensaje
             debugFlag = false;           // Reiniciar flag de depuración para el próximo mensaje
-            this->mobileNetworkModule->changeTransmissionState(new CloseSocket(this->mobileNetworkModule, true));
-            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;  // Mensaje completamente enviado
+            this->mobileNetworkModule->changeTransceiverState(new Receiving(this->mobileNetworkModule));
+            return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;  // Mensaje completamente enviado
         }
     }
 
-    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;  // Aún quedan fragmentos por enviar
+    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;  // Aún quedan fragmentos por enviar
 }
 
 
@@ -202,7 +204,7 @@ bool Sending::sendChunck(ATCommandHandler *ATHandler,
                 this->transmissionEnable = false;
                 this->watingForConfirmation = false;
                 ////   ////   ////   ////   ////   ////     
-               // this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, true));
+               // this->mobileNetworkModule->changeTransceiverState (new CloseSocket (this->mobileNetworkModule, true));
                  return true;
             }
         }
@@ -219,7 +221,7 @@ bool Sending::sendChunck(ATCommandHandler *ATHandler,
         }
         this->Attempts++;
         if (this->Attempts >= this->maxAttempts) {
-            this->mobileNetworkModule->changeTransmissionState 
+            this->mobileNetworkModule->changeTransceiverState 
             (new CloseSocket (this->mobileNetworkModule, false));
             return false;
         }

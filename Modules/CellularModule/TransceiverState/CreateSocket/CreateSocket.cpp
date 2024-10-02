@@ -67,7 +67,7 @@ CreateSocket::~CreateSocket () {
 }
 
 
-void CreateSocket::enableTransmission () {
+void CreateSocket::enableTransceiver () {
     return;
 }
 
@@ -78,8 +78,9 @@ void CreateSocket::enableTransmission () {
 * 
 * @returns 
 */
- CellularTransmissionStatus_t  CreateSocket::send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
+ CellularTransceiverStatus_t  CreateSocket::exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable) {
     char StringToBeSend [120];
     char StringToBeRead [20];
     char StringToBeSendUSB []  = "CREATE TCP SOCKET"; 
@@ -121,7 +122,7 @@ void CreateSocket::enableTransmission () {
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////    
-            this->mobileNetworkModule->changeTransmissionState (new Sending (this->mobileNetworkModule));
+            this->mobileNetworkModule->changeTransceiverState (new Sending (this->mobileNetworkModule));
         }
     }
 
@@ -129,12 +130,12 @@ void CreateSocket::enableTransmission () {
         this->readyToSend = true;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
-             this->mobileNetworkModule->changeTransmissionState (new CloseSocket (this->mobileNetworkModule, false));
-            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+             this->mobileNetworkModule->changeTransceiverState (new CloseSocket (this->mobileNetworkModule, false));
+            return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
         }
     }
 
-    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
 }
 
 

@@ -37,7 +37,7 @@ public:
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool enableTransmission;
+    bool enableTransceiver;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

@@ -1,17 +1,17 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _ACTIVATE_PDP_H_
-#define _ACTIVATE_PDP_H_
+#ifndef _RECEIVING_H_
+#define _RECEIVING_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "TransmissionState.h"
+#include "TransceiverState.h"
 #include "Non_Blocking_Delay.h"
-#include "TransmissionUnavailable.h"
-
+#include "Sending.h"
+#include "CloseSocket.h"
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
@@ -22,18 +22,19 @@ struct TcpSocket;
  *  class - State desing pattern
  * 
  */
-class DeactivatePDP : public TransmissionState {
+class Receiving : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
-    DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess);
-    virtual ~DeactivatePDP ();
-    virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
-    virtual void enableTransmission ();
+    Receiving();
+    Receiving (CellularModule * mobileModule);
+    virtual ~Receiving ();
+    virtual void enableTransceiver ();
+    virtual  CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable);
 private:
+    bool retrivMessage (char * response, char * retrivMessage);
     CellularModule * mobileNetworkModule;
-    bool readyToSend;
-    bool transmissionWasASuccess;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -44,4 +45,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _ACTIVATE_PDP_H_
+#endif //  _RECEIVING_H_

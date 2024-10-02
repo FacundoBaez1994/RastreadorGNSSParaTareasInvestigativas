@@ -10,10 +10,10 @@
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "ConnectionState.h"
-#include "TransmissionState.h"
+#include "TransceiverState.h"
 #include "ActivatePDP.h"
 #include "PowerManager.h"
-#include "TransmissionUnavailable.h"
+#include "TransceiverUnavailable.h"
 #include "ConnectionUnavailableState.h"
 #include "PowerOFFState.h"
 #include "PowerState.h"
@@ -63,13 +63,14 @@ public:
     bool goToSleep ();
     bool measureBattery (BatteryData * currentBatteryData);
     CellularConnectionStatus_t connectToMobileNetwork (CellInformation * currentCellInformation);
-    CellularTransmissionStatus_t sendMessage (char * message, TcpSocket * socketTargetted);
+    CellularTransceiverStatus_t exchangeMessages (char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable);
     void changeConnectionState  (ConnectionState * newConnectionState);
     bool retrivNeighborCellsInformation ( std::vector<CellInformation*> &neighborsCellInformation
     , int numberOfNeighbors);
-    void enableTransmission ();
+    void enableTransceiver ();
     void enableConnection ();
-    void changeTransmissionState  (TransmissionState * newTransmissionState);
+    void changeTransceiverState  (TransceiverState * newTransceiverState);
     void switchSIMCARD ();
 
     PowerManager* getPowerManager ();
@@ -80,7 +81,7 @@ private:
     NonBlockingDelay* refreshTime;
     ATCommandHandler* ATHandler;
     ConnectionState* currentConnectionState;
-    TransmissionState* currentTransmissionState;
+    TransceiverState* currentTransceiverState;
     PowerManager * modulePowerManager;
 
     DigitalOut* simCardSwitchOutput; // Switch between Simcards

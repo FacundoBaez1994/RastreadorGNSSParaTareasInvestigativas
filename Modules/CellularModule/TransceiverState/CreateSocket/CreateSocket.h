@@ -1,15 +1,16 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _SENDING_H_
-#define _SENDING_H_
+#ifndef _CREATE_SOCKET_H_
+#define _CREATE_SOCKET_H_
 
 //==================[Libraries]===============================================
 
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
-#include "TransmissionState.h"
+#include "TransceiverState.h"
 #include "Non_Blocking_Delay.h"
+#include "Sending.h"
 #include "CloseSocket.h"
 
 
@@ -22,24 +23,21 @@ struct TcpSocket;
  *  class - State desing pattern
  * 
  */
-class Sending : public TransmissionState {
+class CreateSocket : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
-    Sending();
-    Sending (CellularModule * mobileModule);
-    virtual ~Sending ();
-    virtual void enableTransmission ();
-    virtual CellularTransmissionStatus_t send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted);
+    CreateSocket();
+    CreateSocket (CellularModule * mobileModule);
+    virtual ~CreateSocket ();
+    virtual void enableTransceiver ();
+    virtual  CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable);
 private:
-    bool sendChunck(ATCommandHandler *ATHandler,
-    NonBlockingDelay *refreshTime, char *message, TcpSocket * socketTargetted);
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool transmissionEnable;
-    bool watingForConfirmation;
-    int Attempts; 
-    int maxAttempts; 
+    int connectionAttempts; 
+    int maxConnectionAttempts; 
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -50,4 +48,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _SENDING_H_
+#endif //  _ACTIVATE_PDP_H_

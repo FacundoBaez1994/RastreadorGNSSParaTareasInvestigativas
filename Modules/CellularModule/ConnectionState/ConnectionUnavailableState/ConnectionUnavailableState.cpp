@@ -37,7 +37,7 @@
 */
 ConnectionUnavailableState::ConnectionUnavailableState () {
     this->mobileNetworkModule = NULL;
-    this->enableTransmission = false;
+    this->enableTransceiver = false;
 }
 
 
@@ -48,7 +48,7 @@ ConnectionUnavailableState::ConnectionUnavailableState () {
 */
 ConnectionUnavailableState::ConnectionUnavailableState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
-    this->enableTransmission = false;
+    this->enableTransceiver = false;
 }
 
 

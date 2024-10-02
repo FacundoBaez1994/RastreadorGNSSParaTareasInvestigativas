@@ -1,11 +1,11 @@
 //=====[Libraries]=============================================================
 
-#include "ActivatePDP.h"
+#include "DeactivatePDP.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define MAXATTEMPTS 20
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -30,29 +30,16 @@
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
-ActivatePDP::ActivatePDP () {
-    this->mobileNetworkModule = NULL;
-    this->readyToSend = true;
-    this->Attempts = 0; 
-    this->maxAttempts = MAXATTEMPTS; 
-}
-
 
 /** 
 * @brief
 * 
 * @param 
 */
-ActivatePDP::ActivatePDP (CellularModule * mobileModule) {
+DeactivatePDP::DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess ) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
-    this->Attempts = 0; 
-    this->maxAttempts = MAXATTEMPTS; 
+    this->transmissionWasASuccess = transmissionWasASuccess;
 }
 
 
@@ -62,7 +49,7 @@ ActivatePDP::ActivatePDP (CellularModule * mobileModule) {
 * 
 * @returns 
 */
-ActivatePDP::~ActivatePDP () {
+DeactivatePDP::~DeactivatePDP () {
     this->mobileNetworkModule = NULL;
 }
 
@@ -73,7 +60,7 @@ ActivatePDP::~ActivatePDP () {
 * 
 * @returns 
 */
-void ActivatePDP::enableTransmission () {
+void DeactivatePDP::enableTransceiver () {
     return;
 }
 
@@ -83,25 +70,29 @@ void ActivatePDP::enableTransmission () {
 * 
 * @returns 
 */
-CellularTransmissionStatus_t ActivatePDP::send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
+CellularTransceiverStatus_t DeactivatePDP::exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable) {
     char StringToBeRead [20];
     char ExpectedResponse [15] = "OK";
-    char StringToSendUSB [15] =  "ACTIVATE PDP";
-    char StringToSend [50] = "AT+CGACT=1,1";
+    char StringToSendUSB [15] =  "DEACTIVATE PDP";
+    char StringToBeSend [50];
+    char ATcommand[] = "AT+QIDEACT="; 
+    int connectID = 0; 
+    int contextID = 1; 
 
+    snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d", ATcommand, contextID );
 
     if (this->readyToSend == true) {
-        ATHandler->sendATCommand(StringToSend);
+        ATHandler->sendATCommand(StringToBeSend);
         this->readyToSend  = false;
         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-        uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
+        uartUSB.write (StringToBeSend  , strlen (StringToBeSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         ////   ////   ////   ////   ////   ////   
     }
-
 
     if ( ATHandler->readATResponse ( StringToBeRead) == true) {
          ////   ////   ////   ////   ////   ////
@@ -111,28 +102,29 @@ CellularTransmissionStatus_t ActivatePDP::send (ATCommandHandler * ATHandler,
 
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
             ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "Cambiando de estado 1";
+            char StringToSendUSB [40] = "Cambiando de estado 5";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////     
-            this->mobileNetworkModule->changeTransmissionState (new CreateSocket (this->mobileNetworkModule));
-            return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+            this->mobileNetworkModule->changeTransceiverState (new 
+            TransceiverUnavailable (this->mobileNetworkModule));
+            if (this->transmissionWasASuccess == true) {
+                return CELLULAR_TRANSCEIVER_STATUS_SEND_OK;
+            } else {
+                return CELLULAR_TRANSCEIVER_STATUS_UNAVAIBLE_TO_SEND;
+            }
         }
-
-
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
-        this->Attempts++;
-        if (this->Attempts >= this->maxAttempts) {
-            return CELLULAR_TRANSMISSION_STATUS_FAIL_TO_ACTIVATE_PDP;
-        }
     }
 
-    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
 }
 
+//    CELLULAR_TRANSCEIVER_STATUS_FAIL_TO_ACTIVATE_PDP,
+    //CELLULAR_TRANSCEIVER_STATUS_SEND_OK,
 
 
 //=====[Implementations of private functions]==================================

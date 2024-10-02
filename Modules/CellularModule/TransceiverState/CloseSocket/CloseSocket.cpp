@@ -1,11 +1,11 @@
 //=====[Libraries]=============================================================
 
-#include "DeactivatePDP.h"
+#include "CloseSocket.h"
 #include "CellularModule.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -24,9 +24,6 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 
 //=====[Implementations of public methods]===================================
@@ -36,7 +33,7 @@
 * 
 * @param 
 */
-DeactivatePDP::DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess ) {
+CloseSocket::CloseSocket (CellularModule * mobileModule, bool transmissionWasASuccess) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
     this->transmissionWasASuccess = transmissionWasASuccess;
@@ -49,81 +46,79 @@ DeactivatePDP::DeactivatePDP (CellularModule * mobileModule, bool transmissionWa
 * 
 * @returns 
 */
-DeactivatePDP::~DeactivatePDP () {
+CloseSocket::~CloseSocket () {
     this->mobileNetworkModule = NULL;
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
-void DeactivatePDP::enableTransmission () {
+
+
+void CloseSocket::enableTransceiver () {
     return;
 }
 
+
 /** 
 * @brief 
 * 
 * 
 * @returns 
 */
-CellularTransmissionStatus_t DeactivatePDP::send (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted) {
+ CellularTransceiverStatus_t CloseSocket::exchangeMessages (ATCommandHandler * ATHandler,
+    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+     char * receivedMessage, bool newDataAvailable) {
+    char StringToBeSend [120];
     char StringToBeRead [20];
-    char ExpectedResponse [15] = "OK";
-    char StringToSendUSB [15] =  "DEACTIVATE PDP";
-    char StringToBeSend [50];
-    char ATcommand[] = "AT+QIDEACT="; 
-    int connectID = 0; 
-    int contextID = 1; 
+    char StringToBeSendUSB []  = "CLOSING TCP SOCKET"; 
+    char ExpectedResponse [5] = "OK"; 
+    char ATcommand[] = "AT+QICLOSE="; // AT+QICLOSE=<connectID>[,<timeout>] 
+    // timeout default = 10 (seconds)
+    int connectID = 0; // Puede ser entre 0 y 11
 
-    snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d", ATcommand, contextID );
+    snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d", ATcommand, connectID);
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToBeSend);
         this->readyToSend  = false;
         ////   ////   ////   ////   ////   ////
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write (StringToBeSendUSB , strlen (StringToBeSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToBeSend  , strlen (StringToBeSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         ////   ////   ////   ////   ////   ////   
     }
 
+
     if ( ATHandler->readATResponse ( StringToBeRead) == true) {
          ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
          ////   ////   ////   ////   ////   ////
-
-        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+        if ((strcmp (StringToBeRead, ExpectedResponse) == 0) ) {
             ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "Cambiando de estado 5";
+            char StringToSendUSB [40] = "Cambiando de estado 4";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////     
-            this->mobileNetworkModule->changeTransmissionState (new 
-            TransmissionUnavailable (this->mobileNetworkModule));
-            if (this->transmissionWasASuccess == true) {
-                return CELLULAR_TRANSMISSION_STATUS_SEND_OK;
-            } else {
-                return CELLULAR_TRANSMISSION_STATUS_UNAVAIBLE_TO_SEND;
-            }
+            ////   ////   ////   ////   ////   ////    
+            this->mobileNetworkModule->changeTransceiverState 
+            (new DeactivatePDP (this->mobileNetworkModule, this->transmissionWasASuccess) );
+            return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
         }
     }
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        this->Attempts++;
+        if (this->Attempts >= this->maxAttempts) {
+            this->mobileNetworkModule->changeTransceiverState 
+            (new DeactivatePDP (this->mobileNetworkModule, this->transmissionWasASuccess));
+            return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
+        }
     }
 
-    return CELLULAR_TRANSMISSION_STATUS_TRYNING_TO_SEND;
+    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
 }
 
-//    CELLULAR_TRANSMISSION_STATUS_FAIL_TO_ACTIVATE_PDP,
-    //CELLULAR_TRANSMISSION_STATUS_SEND_OK,
 
 
 //=====[Implementations of private functions]==================================

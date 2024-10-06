@@ -3,15 +3,13 @@
 #ifndef _TRACKER_H_
 #define _TRACKER_H_
 
-#include "Non_Blocking_Delay.h"
-#include "arm_book_lib.h"
-#include "CellularModule.h"
-#include "GNSSModule.h"
 #include "mbed.h"
+#include "GNSSModule.h"
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "string.h"
 #include "CellularModule.h"
+#include "LoRa.h"
 
 
 
@@ -39,6 +37,7 @@ private:
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 
+    LoRa * LoRaTransciver;
 
     GNSSModule* currentGNSSModule;
     GNSSData * currentGNSSdata;

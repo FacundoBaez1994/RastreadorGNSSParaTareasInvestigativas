@@ -26,6 +26,10 @@
 * @brief Contructor method creates a new trackerGPS instance ready to be used
 */
 tracker::tracker () {
+
+    this->LoRaTransciver = new LoRa ();
+
+    /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_MS);
     char StringToSendUSB [50] = "Tracker initialization";
@@ -49,11 +53,12 @@ tracker::tracker () {
 
     this->currentGNSSdata = new GNSSData;
     this->batteryStatus = new BatteryData;
-
+    */
 }
 
 
 tracker::~tracker() {
+    /*
     delete[] this->currentCellInformation->date;
     this->currentCellInformation->date = NULL;
     delete[] this->currentCellInformation->time;
@@ -73,6 +78,7 @@ tracker::~tracker() {
     this->currentGNSSModule = NULL;
     delete this->cellularTransceiver;
     this->cellularTransceiver = NULL;
+    */
 }
 
 
@@ -83,6 +89,12 @@ tracker::~tracker() {
 */
 void tracker::update () {
     
+    this->LoRaTransciver->begin ();
+    wait_us(200000); 
+
+
+
+    /*
     static char* formattedMessage;
     static char receivedMessage [200];
     static GNSSState_t GnssCurrentStatus;
@@ -220,6 +232,7 @@ void tracker::update () {
     }
 
     watchdog.kick();
+    */
 }
 
 //=====[Implementations of private methods]==================================

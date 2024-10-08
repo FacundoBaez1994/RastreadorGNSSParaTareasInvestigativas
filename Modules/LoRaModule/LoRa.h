@@ -9,19 +9,23 @@
 #include "Non_Blocking_Delay.h"
 #include "string.h"
 
-
-
-
-
-
+#define PA_OUTPUT_RFO_PIN          0
+#define PA_OUTPUT_PA_BOOST_PIN     1
 
 class LoRa {
 public:
-  LoRa();
-  ~LoRa();
-  bool begin();
+    LoRa();
+    ~LoRa();
+    bool begin();
+
+    void sleep();
+    void setFrequency(long frequency); //frequency in Hz (433E6, 868E6, 915E6)
+    void setTxPower(int level, int outputPin = PA_OUTPUT_PA_BOOST_PIN);
+    void idle();
+    void setOCP(uint8_t mA); // private?
+
   
-  void end();
+    void end();
 /*
   int beginPacket(int implicitHeader = false);
   int endPacket(bool async = false);
@@ -115,7 +119,8 @@ private:
     DigitalOut * resetPin;
 
     //int _dio0;
-    long frequency;
+    long interfaceFrequency;
+    long centralFrequency;
     int packetIndex;
     int implicitHeaderMode;
     //void (*_onReceive)(int);

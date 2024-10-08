@@ -71,15 +71,15 @@
 
 #define REFRESHTIME  1000
 
-#define LORA_DEFAULT_SPI_FREQUENCY 8E6 
+#define LORA_CENTRAL_FREQUENCY 915E6
+
+#define LORA_DEFAULT_SPI_FREQUENCY 8E6
 #define LORA_DEFAULT_SS_PIN     PA_4       
-#define LORA_DEFAULT_RESET_PIN  PF_0        
+#define LORA_DEFAULT_RESET_PIN  D7        
 #define LORA_DEFAULT_MISO   PA_6   
 #define LORA_DEFAULT_MOSI   PA_7
 #define LORA_DEFAULT_SCK    PA_5
 
-#define PA_OUTPUT_RFO_PIN          0
-#define PA_OUTPUT_PA_BOOST_PIN     1
 
 
 LoRa::LoRa () {
@@ -87,7 +87,7 @@ LoRa::LoRa () {
     this->resetPin = new DigitalOut (LORA_DEFAULT_RESET_PIN);
     this->spiInterface =  new SPI (LORA_DEFAULT_MOSI, LORA_DEFAULT_MISO, LORA_DEFAULT_SCK );
     //int _dio0;
-    this->frequency = LORA_DEFAULT_SPI_FREQUENCY;
+    this->interfaceFrequency = LORA_DEFAULT_SPI_FREQUENCY;
     this->packetIndex = 0;
     this->implicitHeaderMode = 0;
 }
@@ -129,7 +129,7 @@ bool LoRa::begin () {
     wait_us (50000);
 
     this->ssPin->write(HIGH); // high state = unselect
-    this->spiInterface->frequency (this->frequency);
+    this->spiInterface->frequency (this->interfaceFrequency);
     this->spiInterface->format(8, 0);        // 8 bits por transferencia, modo SPI 0
 
     // check version
@@ -141,15 +141,100 @@ bool LoRa::begin () {
     if (version != 0x12) {
         return false;
     }
+    this->sleep();
+    this->setFrequency (LORA_CENTRAL_FREQUENCY);
 
+      // set base addresses
+    this->writeRegister(REG_FIFO_TX_BASE_ADDR, 0);
+    this->writeRegister(REG_FIFO_RX_BASE_ADDR, 0);
 
+    // set LNA boost
+    this->writeRegister(REG_LNA, readRegister(REG_LNA) | 0x03);
+
+    // set auto AGC
+    this->writeRegister(REG_MODEM_CONFIG_3, 0x04);
+      // set output power to 17 dBm
+    this->setTxPower(17);
+
+    // put in standby mode
+    this->idle();
 
     return true;
 
 }
 
+void LoRa::idle() {
+    writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
+}
 
 
+void LoRa::setTxPower(int level, int outputPin) {
+    if (PA_OUTPUT_RFO_PIN == outputPin) {
+        // RFO
+        if (level < 0) {
+            level = 0;
+        } else if (level > 14) {
+            level = 14;
+        }
+        this->writeRegister(REG_PA_CONFIG, 0x70 | level);
+     } else {
+    // PA BOOST
+    if (level > 17) {
+        if (level > 20) {
+            level = 20;
+        }
+
+        // subtract 3 from level, so 18 - 20 maps to 15 - 17
+        level -= 3;
+
+        // High Power +20 dBm Operation (Semtech SX1276/77/78/79 5.4.3.)
+        this->writeRegister(REG_PA_DAC, 0x87);
+        this->setOCP(140);
+    } else {
+      if (level < 2) {
+        level = 2;
+      }
+      //Default value PA_HF/LF or +17dBm
+      this->writeRegister(REG_PA_DAC, 0x84);
+      this->setOCP(100);
+    }
+
+    this->writeRegister(REG_PA_CONFIG, PA_BOOST | (level - 2));
+  }
+}
+
+
+void LoRa::setOCP(uint8_t mA)
+{
+  uint8_t ocpTrim = 27;
+
+  if (mA <= 120) {
+    ocpTrim = (mA - 45) / 5;
+  } else if (mA <=240) {
+    ocpTrim = (mA + 30) / 10;
+  }
+
+  this->writeRegister(REG_OCP, 0x20 | (0x1F & ocpTrim));
+}
+
+
+
+
+void LoRa::setFrequency(long centralFrequency)
+{
+    this->centralFrequency = centralFrequency;
+
+    uint64_t frf = ((uint64_t)this->centralFrequency  << 19) / 32000000;
+
+    this->writeRegister(REG_FRF_MSB, (uint8_t)(frf >> 16));
+    this->writeRegister(REG_FRF_MID, (uint8_t)(frf >> 8));
+    this->writeRegister(REG_FRF_LSB, (uint8_t)(frf >> 0));
+}
+
+void LoRa::sleep()
+{
+    this->writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
+}
 
 ///////// PRIVATE METHODS //////////
 uint8_t LoRa::readRegister(uint8_t address)
@@ -161,7 +246,7 @@ uint8_t LoRa::readRegister(uint8_t address)
 void LoRa::writeRegister(uint8_t address, uint8_t value)
 {
     // | 0x80 makes MSB 1 - indicating reading transfer
-    singleTransfer(address | 0x80, value);
+    this->singleTransfer(address | 0x80, value);
 }
 
 uint8_t LoRa::singleTransfer(uint8_t address, uint8_t value)
@@ -180,7 +265,7 @@ uint8_t LoRa::singleTransfer(uint8_t address, uint8_t value)
 }
 
 
-
+//////////////////////////////
 
 /*
 int LoRaClass::begin(long frequency)
@@ -251,7 +336,8 @@ int LoRaClass::begin(long frequency)
   return 1;
 }
 */
-//////////////////////////////
+
+
 /*
 void LoRaClass::end()
 {

@@ -88,9 +88,19 @@ tracker::~tracker() {
 *
 */
 void tracker::update () {
+    char message[50];
+    static int counter = 0;
+    snprintf(message, sizeof(message), "hello %d", counter);
     
     this->LoRaTransciver->begin ();
     wait_us(200000); 
+
+    // Envía el mensaje usando la función de envío que implementaste
+    this->LoRaTransciver->beginPacket();
+    this->LoRaTransciver->write((uint8_t *)message, strlen(message));
+    this->LoRaTransciver->endPacket();
+    counter ++;
+    ThisThread::sleep_for(5000ms);  // Pausa de 5 segundos
 
 
 

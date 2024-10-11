@@ -89,7 +89,8 @@ LoRa::LoRa () {
     //int _dio0;
     this->interfaceFrequency = LORA_DEFAULT_SPI_FREQUENCY;
     this->packetIndex = 0;
-    this->implicitHeaderMode = 0;
+    this->headerMode = 0;
+    this->onTxDone = NULL;
 }
 
 /*
@@ -163,6 +164,125 @@ bool LoRa::begin () {
 
 }
 
+
+int LoRa::beginPacket(int implicitHeader) {
+    if (this->isTransmitting()) {
+        return 0;
+    }
+
+    // put in standby mode
+    this->idle();
+
+    if (this->headerMode) {
+        this->implicitHeaderMode();
+    } else {
+        this->explicitHeaderMode();
+    }
+
+    // reset FIFO address and paload length
+    this->writeRegister(REG_FIFO_ADDR_PTR, 0);
+    this->writeRegister(REG_PAYLOAD_LENGTH, 0);
+
+    return 1;
+}
+
+bool LoRa::isTransmitting() {
+    if ((this->readRegister(REG_OP_MODE) & MODE_TX) == MODE_TX) {
+        return true;
+    }
+
+    if (this->readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) {
+        // clear IRQ's
+        this->writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+    }
+
+    return false;
+}
+
+
+/*
+int LoRaClass::beginPacket(int implicitHeader)
+{
+  if (isTransmitting()) {
+    return 0;
+  }
+
+  // put in standby mode
+  idle();
+
+  if (implicitHeader) {
+    implicitHeaderMode();
+  } else {
+    explicitHeaderMode();
+  }
+
+  // reset FIFO address and paload length
+  writeRegister(REG_FIFO_ADDR_PTR, 0);
+  writeRegister(REG_PAYLOAD_LENGTH, 0);
+
+  return 1;
+}
+*/
+
+int LoRa::endPacket(bool async) {
+  
+    if ((async) && (this->onTxDone)) {
+        this->writeRegister(REG_DIO_MAPPING_1, 0x40); // DIO0 => TXDONE
+    }
+
+    // put in TX mode
+    this->writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
+
+    if (!async) {
+        // wait for TX done
+        while ((this->readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) {
+            ThisThread::yield();  
+        }
+        // clear IRQ's
+        this->writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+    }
+
+    return 1;
+}
+
+/*
+int LoRaClass::endPacket(bool async)
+{
+  
+  if ((async) && (_onTxDone))
+      writeRegister(REG_DIO_MAPPING_1, 0x40); // DIO0 => TXDONE
+
+  // put in TX mode
+  writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
+
+  if (!async) {
+    // wait for TX done
+    while ((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) {
+      yield();
+    }
+    // clear IRQ's
+    writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
+  }
+
+  return 1;
+}
+*/
+
+void LoRa::write(const char *message) {
+    while (*message) {
+        this->writeRegister(REG_FIFO, *message++);
+    }
+}
+
+
+void LoRa::write(const uint8_t *buffer, size_t size) {
+    for (size_t i = 0; i < size; i++) {
+        // Escribe cada byte
+        this->writeRegister(REG_FIFO, buffer[i]);
+    }
+}
+
+
 void LoRa::idle() {
     writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_STDBY);
 }
@@ -218,8 +338,6 @@ void LoRa::setOCP(uint8_t mA)
 }
 
 
-
-
 void LoRa::setFrequency(long centralFrequency)
 {
     this->centralFrequency = centralFrequency;
@@ -236,7 +354,23 @@ void LoRa::sleep()
     this->writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_SLEEP);
 }
 
-///////// PRIVATE METHODS //////////
+///////// PRIVATE METHODS ////////////////////////
+
+void LoRa::explicitHeaderMode()
+{
+  this->headerMode = 0;
+
+  this->writeRegister(REG_MODEM_CONFIG_1, readRegister(REG_MODEM_CONFIG_1) & 0xfe);
+}
+
+void LoRa::implicitHeaderMode()
+{
+  this->headerMode = 1;
+
+  this->writeRegister(REG_MODEM_CONFIG_1, readRegister(REG_MODEM_CONFIG_1) | 0x01);
+}
+
+
 uint8_t LoRa::readRegister(uint8_t address)
 {
     //  & 0x7f makes MSB 0 - indicating reading transfer
@@ -346,49 +480,6 @@ void LoRaClass::end()
 
   // stop SPI
   _spi->end();
-}
-
-int LoRaClass::beginPacket(int implicitHeader)
-{
-  if (isTransmitting()) {
-    return 0;
-  }
-
-  // put in standby mode
-  idle();
-
-  if (implicitHeader) {
-    implicitHeaderMode();
-  } else {
-    explicitHeaderMode();
-  }
-
-  // reset FIFO address and paload length
-  writeRegister(REG_FIFO_ADDR_PTR, 0);
-  writeRegister(REG_PAYLOAD_LENGTH, 0);
-
-  return 1;
-}
-
-int LoRaClass::endPacket(bool async)
-{
-  
-  if ((async) && (_onTxDone))
-      writeRegister(REG_DIO_MAPPING_1, 0x40); // DIO0 => TXDONE
-
-  // put in TX mode
-  writeRegister(REG_OP_MODE, MODE_LONG_RANGE_MODE | MODE_TX);
-
-  if (!async) {
-    // wait for TX done
-    while ((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) {
-      yield();
-    }
-    // clear IRQ's
-    writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);
-  }
-
-  return 1;
 }
 
 bool LoRaClass::isTransmitting()

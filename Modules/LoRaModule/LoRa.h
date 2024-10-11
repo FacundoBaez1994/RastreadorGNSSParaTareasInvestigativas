@@ -17,6 +17,13 @@ public:
     LoRa();
     ~LoRa();
     bool begin();
+    int beginPacket(int implicitHeader = false);
+
+    void write(const char *message);
+    void write(const uint8_t *buffer, size_t size);
+
+    int endPacket(bool async = false);
+    bool isTransmitting ();
 
     void sleep();
     void setFrequency(long frequency); //frequency in Hz (433E6, 868E6, 915E6)
@@ -103,10 +110,13 @@ private:
 */
 private:
 
-  uint8_t readRegister(uint8_t address);
-  void writeRegister(uint8_t address, uint8_t value);
-  uint8_t singleTransfer(uint8_t address, uint8_t value);
-  
+    uint8_t readRegister(uint8_t address);
+    void writeRegister(uint8_t address, uint8_t value);
+    uint8_t singleTransfer(uint8_t address, uint8_t value);
+    
+
+    void explicitHeaderMode();
+    void implicitHeaderMode();
 //  BORRAR
     //SPISettings _spiSettings;
     //SPIClass* _spi;
@@ -122,9 +132,9 @@ private:
     long interfaceFrequency;
     long centralFrequency;
     int packetIndex;
-    int implicitHeaderMode;
+    int headerMode;
     //void (*_onReceive)(int);
-    //void (*_onTxDone)();
+    void (*onTxDone)(); // point to a function that returns void
 };
 
 //extern LoRa LoRa;

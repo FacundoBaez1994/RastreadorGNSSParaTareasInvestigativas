@@ -27,8 +27,7 @@
 */
 tracker::tracker () {
 
-    this->LoRaTransciver = new LoRa ();
-
+    this->LoRaTransciver = new LoRaClass ();
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_MS);
@@ -91,10 +90,12 @@ void tracker::update () {
     char message[50];
     static int counter = 0;
     snprintf(message, sizeof(message), "hello %d", counter);
-    
-    this->LoRaTransciver->begin ();
-    wait_us(200000); 
 
+    if (!this->LoRaTransciver->begin (915E6)) {
+        uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+    }
+    wait_us(200000); 
     // Envía el mensaje usando la función de envío que implementaste
     this->LoRaTransciver->beginPacket();
     this->LoRaTransciver->write((uint8_t *)message, strlen(message));

@@ -27,6 +27,9 @@ public:
     void idle();
     void sleep();
 
+    void enableInvertIQ();
+    void disableInvertIQ();
+
     void setTxPower(int level, int outputPin = PA_OUTPUT_PA_BOOST_PIN);
     void setFrequency(long frequency);
     void setSpreadingFactor(int sf);

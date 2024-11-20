@@ -30,6 +30,8 @@ public:
     virtual ~tracker ();
     void update();
 private:
+    void LoRa_rxMode();
+    void LoRa_txMode();
     char* formMessage (GNSSData * GNSSInfo);
     char* formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
     &neighborsCellInformation, BatteryData  * batteryStatus); 

@@ -96,7 +96,8 @@ void tracker::update () {
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
     wait_us(200000); 
-    // Envía el mensaje usando la función de envío que implementaste
+
+    this->LoRa_txMode ();
     this->LoRaTransciver->beginPacket();
     this->LoRaTransciver->write((uint8_t *)message, strlen(message));
     this->LoRaTransciver->endPacket();
@@ -247,6 +248,18 @@ void tracker::update () {
 }
 
 //=====[Implementations of private methods]==================================
+void tracker::LoRa_rxMode(){
+  LoRa.enableInvertIQ();                // active invert I and Q signals
+  LoRa.receive();                       // set receive mode
+}
+
+void tracker::LoRa_txMode(){
+  LoRa.idle();                          // set standby mode
+  LoRa.disableInvertIQ();               // normal mode
+}
+
+
+
 char* tracker::formMessage(GNSSData* GNSSInfo) {
     static char message[50]; 
     snprintf(message, sizeof(message), "%.6f,%.6f", GNSSInfo->latitude,

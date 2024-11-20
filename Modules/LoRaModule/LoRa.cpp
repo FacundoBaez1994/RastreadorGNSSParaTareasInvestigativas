@@ -29,6 +29,9 @@
 #define REG_DIO_MAPPING_1        0x40
 #define REG_VERSION              0x42
 
+#define REG_INVERTIQ             0x33
+#define REG_INVERTIQ2            0x3b
+
 // modes
 #define MODE_LONG_RANGE_MODE     0x80
 #define MODE_SLEEP               0x00
@@ -498,3 +501,16 @@ void LoRaClass::onDio0Rise()
 }
 
 LoRaClass LoRa;
+
+
+void LoRaClass::enableInvertIQ()
+{
+  writeRegister(REG_INVERTIQ,  0x66);
+  writeRegister(REG_INVERTIQ2, 0x19);
+}
+
+void LoRaClass::disableInvertIQ()
+{
+  writeRegister(REG_INVERTIQ,  0x27);
+  writeRegister(REG_INVERTIQ2, 0x1d);
+}

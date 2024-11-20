@@ -157,6 +157,24 @@ int LoRaClass::endPacket()
   return 1;
 }
 
+ssize_t LoRaClass::read(uint8_t* buffer, size_t length) {
+    int availableBytes = available(); // Bytes disponibles en el FIFO
+
+    if (availableBytes <= 0) {
+        return 0; // No hay datos disponibles
+    }
+
+    // Leer el menor entre los bytes disponibles y el tamaño del búfer solicitado
+    ssize_t bytesToRead = (length < availableBytes) ? length : availableBytes;
+
+    for (ssize_t i = 0; i < bytesToRead; i++) {
+        buffer[i] = readRegister(REG_FIFO); // Leer un byte del FIFO
+    }
+
+    _packetIndex += bytesToRead; // Incrementar el índice de paquetes
+    return bytesToRead;
+}
+
 int LoRaClass::parsePacket(int size)
 {
   int packetLength = 0;

@@ -28,6 +28,12 @@
 tracker::tracker () {
 
     this->LoRaTransciver = new LoRaClass ();
+
+    if (!this->LoRaTransciver->begin (915E6)) {
+        uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+    }
+
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_MS);
@@ -88,23 +94,66 @@ tracker::~tracker() {
 */
 void tracker::update () {
     char message[50];
+    char buffer[64];
     static int counter = 0;
+    static bool messageSent = false;
+    static bool debugFlag = false;
+
+
     snprintf(message, sizeof(message), "hello %d", counter);
 
-    if (!this->LoRaTransciver->begin (915E6)) {
-        uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
+
+    if ( messageSent == false) {
+        uartUSB.write ("Sending message:", strlen ("Sending message:"));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
+        uartUSB.write (message, strlen (message));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        this->LoRa_txMode ();
+        this->LoRaTransciver->beginPacket();
+        this->LoRaTransciver->write((uint8_t *)message, strlen(message));
+        this->LoRaTransciver->endPacket();
+        counter ++;
+        messageSent = true;
+    }   
+
+
+
+     if (messageSent == true) {
+
+        if (debugFlag == false) {
+            uartUSB.write("Wating For ACK\r\n", strlen("Wating For ACK\r\n")); // Debug
+            debugFlag = true; 
+        }
+        this->LoRa_rxMode ();
+        int packetSize = this->LoRaTransciver->parsePacket();
+        if (packetSize) {
+            uartUSB.write("Packet Received!\r\n", strlen("Packet Received!\r\n")); // Debug
+
+            int maxIterations = 100; // Límite para evitar un ciclo infinito
+            int iterations = 0;
+
+            // Leer los datos disponibles
+            while (this->LoRaTransciver->available() > 0 && iterations < maxIterations) {
+                ssize_t bytesRead = this->LoRaTransciver->read(reinterpret_cast<uint8_t*>(buffer), sizeof(buffer));
+                if (bytesRead > 0) {
+                    // Enviar los bytes leídos al puerto serie
+                    uartUSB.write(buffer, bytesRead);
+                }
+                iterations++;
+            }
+
+            if (iterations >= maxIterations) {
+                uartUSB.write("Warning: Exceeded max iterations\r\n", strlen("Warning: Exceeded max iterations\r\n"));
+            }
+
+            // Leer el RSSI del paquete recibido
+            int packetRSSI = this->LoRaTransciver->packetRssi();
+            uartUSB.write ("\r\n", strlen("\r\n"));
+            snprintf(message, sizeof(message), "packet RSSI: %d\r\n", packetRSSI);
+            uartUSB.write(message, strlen(message));
+            messageSent = false;
+        }
     }
-    wait_us(200000); 
-
-    this->LoRa_txMode ();
-    this->LoRaTransciver->beginPacket();
-    this->LoRaTransciver->write((uint8_t *)message, strlen(message));
-    this->LoRaTransciver->endPacket();
-    counter ++;
-    ThisThread::sleep_for(5000ms);  // Pausa de 5 segundos
-
-
 
     /*
     static char* formattedMessage;
@@ -250,7 +299,7 @@ void tracker::update () {
 //=====[Implementations of private methods]==================================
 void tracker::LoRa_rxMode(){
   LoRa.enableInvertIQ();                // active invert I and Q signals
-  LoRa.receive();                       // set receive mode
+  //LoRa.receive();                       // set receive mode
 }
 
 void tracker::LoRa_txMode(){

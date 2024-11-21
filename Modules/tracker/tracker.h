@@ -43,7 +43,7 @@ private:
 
     GNSSModule* currentGNSSModule;
     GNSSData * currentGNSSdata;
-    NonBlockingDelay * latency;
+    NonBlockingDelay * timeout;
     BatteryData  * batteryStatus;
 
 };

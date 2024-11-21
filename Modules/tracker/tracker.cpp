@@ -28,11 +28,11 @@
 tracker::tracker () {
 
     this->LoRaTransciver = new LoRaClass ();
-
     if (!this->LoRaTransciver->begin (915E6)) {
         uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
+    this->timeout = new NonBlockingDelay (TIMEOUT_MS);
 
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
@@ -40,7 +40,7 @@ tracker::tracker () {
     char StringToSendUSB [50] = "Tracker initialization";
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
 
-    this->latency = new NonBlockingDelay (LATENCY);
+    
     this->cellularTransceiver = new CellularModule ( );
     this->currentGNSSModule = new GNSSModule (this->cellularTransceiver->getPowerManager()
     , this->cellularTransceiver->getATHandler());
@@ -95,12 +95,16 @@ tracker::~tracker() {
 void tracker::update () {
     char message[50];
     char buffer[64];
-    static int counter = 0;
+    char payload[50] = {0};
+    int deviceId = 1;
+    static int messageNumber = 0;
     static bool messageSent = false;
     static bool debugFlag = false;
+    int deviceIdReceived;
+    int messageNumberReceived;
 
 
-    snprintf(message, sizeof(message), "hello %d", counter);
+    snprintf(message, sizeof(message), "%d,%d,hello", deviceId, messageNumber);
 
 
     if ( messageSent == false) {
@@ -112,14 +116,13 @@ void tracker::update () {
         this->LoRaTransciver->beginPacket();
         this->LoRaTransciver->write((uint8_t *)message, strlen(message));
         this->LoRaTransciver->endPacket();
-        counter ++;
         messageSent = true;
+        timeout->restart();
     }   
 
 
 
      if (messageSent == true) {
-
         if (debugFlag == false) {
             uartUSB.write("Wating For ACK\r\n", strlen("Wating For ACK\r\n")); // Debug
             debugFlag = true; 
@@ -141,159 +144,48 @@ void tracker::update () {
                 }
                 iterations++;
             }
-
             if (iterations >= maxIterations) {
                 uartUSB.write("Warning: Exceeded max iterations\r\n", strlen("Warning: Exceeded max iterations\r\n"));
             }
 
+            // ACK message Analizing
+            if (sscanf(buffer, "%d,%d,%49s", &deviceIdReceived, &messageNumberReceived, payload) == 3) {
+                uartUSB.write ("\r\n", strlen("\r\n"));
+                snprintf(message, sizeof(message), "Device ID Received: %d\r\n", deviceIdReceived);
+                uartUSB.write(message, strlen(message));
+                if (deviceIdReceived == deviceId) {
+                    uartUSB.write("OK\r\n", strlen("OK\r\n"));
+                }
+
+                snprintf(message, sizeof(message), "Message Number Received: %d\r\n", messageNumberReceived);
+                uartUSB.write(message, strlen(message));
+                if (messageNumberReceived == messageNumber) {
+                    uartUSB.write("OK\r\n", strlen("OK\r\n"));
+                }
+
+                snprintf(message, sizeof(message), "Payload Received: %s\r\n", payload);
+                uartUSB.write(message, strlen(message));
+                if (strcmp (payload, "ACK") == 0) {
+                    uartUSB.write("OK\r\n", strlen("OK\r\n"));
+                }
+            } else {
+                uartUSB.write("Error parsing message.\r\n", strlen("Error parsing message.\r\n"));
+            }
             // Leer el RSSI del paquete recibido
             int packetRSSI = this->LoRaTransciver->packetRssi();
-            uartUSB.write ("\r\n", strlen("\r\n"));
             snprintf(message, sizeof(message), "packet RSSI: %d\r\n", packetRSSI);
             uartUSB.write(message, strlen(message));
             messageSent = false;
+            messageNumber ++;
         }
     }
 
-    /*
-    static char* formattedMessage;
-    static char receivedMessage [200];
-    static GNSSState_t GnssCurrentStatus;
-    static CellularConnectionStatus_t currentConnectionStatus;
-    static CellularTransceiverStatus_t currentTransmitionStatus;
-    static bool newDataAvailable = false;
-
-    static bool GNSSAdquisitionSuccesful = false;
-    static bool enableTransmission = false; 
-    static bool transimissionSecuenceActive =  false;
-    static bool messageFormatted = false;
-    static bool batterySensed = false;
-    static bool enablingGoingToSleep = false; 
-
-    static std::vector<CellInformation*> neighborsCellInformation;
-    static int numberOfNeighbors = 0;
-    Watchdog &watchdog = Watchdog::get_instance(); // singletom
-
-    watchdog.kick();
-    this->cellularTransceiver->startStopUpdate();
-    //this->currentGNSSModule->startStopUpdate();
-
-    if (this->latency->read() && transimissionSecuenceActive == false) { // WRITE
-        transimissionSecuenceActive = true;
-        batterySensed = false;
-        this->cellularTransceiver->awake();
+    // timeout
+    if (this->timeout->read() && messageSent == true) {
+        uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
+        messageSent = false;
     }
 
-    if (batterySensed == false &&  transimissionSecuenceActive == true) {
-        if (this->cellularTransceiver->measureBattery(this->batteryStatus)) {
-           batterySensed = true;
-            this->currentGNSSModule->enableGNSS();
-        }
-    }
-    
-    ////////////////////////// GNSS ////////////////////////////////
-    GnssCurrentStatus = this->currentGNSSModule->retrivGeopositioning(this->currentGNSSdata);
-    if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {
-        GNSSAdquisitionSuccesful = true;
-        char StringToSendUSB [40] = "GNSS OBTAIN!!!!";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        this->cellularTransceiver->enableConnection();
-    }
-    if (GnssCurrentStatus == GNSS_STATE_CONNECTION_UNAVAILABLE ) {
-        GNSSAdquisitionSuccesful = false;
-        char StringToSendUSB [40] = "GNSS UNAVAILABLE!!!!";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
-        this->cellularTransceiver->enableConnection();
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    
-    ////////////////////CELULLAR  CONNECTION/////////////////// 
-    currentConnectionStatus = this->cellularTransceiver->connectToMobileNetwork(this->currentCellInformation);
-        if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK) { 
-            if (GNSSAdquisitionSuccesful == false) {
-                if (messageFormatted == false) {
-                
-                    if (this->cellularTransceiver->retrivNeighborCellsInformation(
-                    neighborsCellInformation, numberOfNeighbors)) {
-                        formattedMessage = this->formMessage(this->currentCellInformation,
-                        neighborsCellInformation, this->batteryStatus);
-                        for (auto* cellInfo : neighborsCellInformation) {
-                            delete cellInfo;  // Libera la memoria de cada puntero
-                            cellInfo = nullptr;
-                        }
-                        neighborsCellInformation.clear();  // Limpia el vector 
-                        messageFormatted = true;
-                        uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
-                        uartUSB.write ( "\r\n",  3 );  // debug only
-                        this->cellularTransceiver->enableTransceiver();
-                    } 
-                    //messageFormatted = true; // ELIMINAR
-                    //this->cellularTransmitter->enableTransmission();
-                }
-            } else {
-                if (messageFormatted == false) {
-                    formattedMessage = this->formMessage(this->currentCellInformation,
-                     this->currentGNSSdata, this->batteryStatus);
-                    messageFormatted = true;
-                    uartUSB.write (formattedMessage , strlen (formattedMessage ));  // debug only
-                    uartUSB.write ( "\r\n",  3 );  // debug only    
-                    this->cellularTransceiver->enableTransceiver();
-                }
-            }
-    } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE && 
-    currentConnectionStatus != CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT) {
-        char StringToSendUSB [50] = "Access to mobile network UNAVAILABLE!!!!";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
-        messageFormatted = false;
-        enablingGoingToSleep = true;
-    }
-    ///////////////////////////////////////////////////
-
-
-    ////////////////////CELULLAR  TRANSMISSION/////////////////// 
-    currentTransmitionStatus = this->cellularTransceiver->exchangeMessages (formattedMessage,
-     this->socketTargetted, receivedMessage, &newDataAvailable);
-     if (currentTransmitionStatus == CELLULAR_TRANSCEIVER_STATUS_SEND_OK) {
-        char StringToSendUSB [50] = "The message was send with success";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
-        messageFormatted = false;
-        enablingGoingToSleep = true;
-     }  else if (currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND
-       && currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_UNAVAIBLE) {
-        char StringToSendUSB [50] = "The message couldn't be sent";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
-        messageFormatted = false;
-        enablingGoingToSleep = true;
-     }
-     if (newDataAvailable == true) {
-        char StringToSendUSB [50] = "new Message received:";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        snprintf(StringToSendUSB, sizeof(StringToSendUSB), "%s",  receivedMessage);
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        newDataAvailable = false;
-     }
-     //////////////////////////////////
-      
-    
-
-    if (enablingGoingToSleep == true) {
-        if (this->cellularTransceiver->goToSleep()) { 
-            transimissionSecuenceActive = false;
-            enablingGoingToSleep = false;
-            this->latency->restart();
-        }
-    }
-
-    watchdog.kick();
-    */
 }
 
 //=====[Implementations of private methods]==================================

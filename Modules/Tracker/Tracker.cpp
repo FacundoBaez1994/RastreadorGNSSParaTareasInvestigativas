@@ -1,13 +1,13 @@
 //=====[Libraries]=============================================================
 
-#include "tracker.h"
+#include "Tracker.h"
 #include "Debugger.h" // due to global usbUart
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        5000
-#define TIMEOUT_MS     5000
+#define LATENCY        500
 #define POWERCHANGEDURATION  700
+#define MAX_TIMEOUT_COUNTER 5
 
 //=====[Declaration of private data types]=====================================
 
@@ -25,14 +25,19 @@
 /** 
 * @brief Contructor method creates a new trackerGPS instance ready to be used
 */
-tracker::tracker () {
+Tracker::Tracker () {
 
-    this->LoRaTransciver = new LoRaClass ();
-    if (!this->LoRaTransciver->begin (915E6)) {
+    this->LoRaTransciever = new LoRaClass ();
+    if (!this->LoRaTransciever->begin (915E6)) {
         uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
-    this->timeout = new NonBlockingDelay (TIMEOUT_MS);
+    this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
+    this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
+    this->LoRaTransciever->setSignalBandwidth(125E3); // 125 kHz
+    this->timeout = new NonBlockingDelay (LATENCY);
+
+    this->RFState = new SendingMessage (this);
 
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
@@ -62,7 +67,7 @@ tracker::tracker () {
 }
 
 
-tracker::~tracker() {
+Tracker::~Tracker() {
     /*
     delete[] this->currentCellInformation->date;
     this->currentCellInformation->date = NULL;
@@ -92,123 +97,120 @@ tracker::~tracker() {
 *   
 *
 */
-void tracker::update () {
-    char message[50];
-    char buffer[64];
+void Tracker::update () {
+    int deviceIdReceived;
+    int messageNumberReceived;
     char payload[50] = {0};
+    char messageToSend[50];
+    char ACKMessage [64];
+    char logMessage[50];
+    int static timeoutCounter = 0;
+
     int deviceId = 1;
     static int messageNumber = 0;
     static bool messageSent = false;
     static bool debugFlag = false;
-    int deviceIdReceived;
-    int messageNumberReceived;
+    
 
+    snprintf( messageToSend, sizeof(messageToSend), "%d,%d,hello", deviceId, messageNumber);
 
-    snprintf(message, sizeof(message), "%d,%d,hello", deviceId, messageNumber);
-
-
-    if ( messageSent == false) {
-        uartUSB.write ("Sending message:", strlen ("Sending message:"));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        uartUSB.write (message, strlen (message));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        this->LoRa_txMode ();
-        this->LoRaTransciver->beginPacket();
-        this->LoRaTransciver->write((uint8_t *)message, strlen(message));
-        this->LoRaTransciver->endPacket();
-        messageSent = true;
-        timeout->restart();
-    }   
-
-
-
-     if (messageSent == true) {
-        if (debugFlag == false) {
-            uartUSB.write("Wating For ACK\r\n", strlen("Wating For ACK\r\n")); // Debug
-            debugFlag = true; 
-        }
-        this->LoRa_rxMode ();
-        int packetSize = this->LoRaTransciver->parsePacket();
-        if (packetSize) {
-            uartUSB.write("Packet Received!\r\n", strlen("Packet Received!\r\n")); // Debug
-
-            int maxIterations = 100; // Límite para evitar un ciclo infinito
-            int iterations = 0;
-
-            // Leer los datos disponibles
-            while (this->LoRaTransciver->available() > 0 && iterations < maxIterations) {
-                ssize_t bytesRead = this->LoRaTransciver->read(reinterpret_cast<uint8_t*>(buffer), sizeof(buffer));
-                if (bytesRead > 0) {
-                    // Enviar los bytes leídos al puerto serie
-                    uartUSB.write(buffer, bytesRead);
-                }
-                iterations++;
-            }
-            if (iterations >= maxIterations) {
-                uartUSB.write("Warning: Exceeded max iterations\r\n", strlen("Warning: Exceeded max iterations\r\n"));
-            }
-
-            // ACK message Analizing
-            if (sscanf(buffer, "%d,%d,%49s", &deviceIdReceived, &messageNumberReceived, payload) == 3) {
-                uartUSB.write ("\r\n", strlen("\r\n"));
-                snprintf(message, sizeof(message), "Device ID Received: %d\r\n", deviceIdReceived);
-                uartUSB.write(message, strlen(message));
-                if (deviceIdReceived == deviceId) {
-                    uartUSB.write("OK\r\n", strlen("OK\r\n"));
-                }
-
-                snprintf(message, sizeof(message), "Message Number Received: %d\r\n", messageNumberReceived);
-                uartUSB.write(message, strlen(message));
-                if (messageNumberReceived == messageNumber) {
-                    uartUSB.write("OK\r\n", strlen("OK\r\n"));
-                }
-
-                snprintf(message, sizeof(message), "Payload Received: %s\r\n", payload);
-                uartUSB.write(message, strlen(message));
-                if (strcmp (payload, "ACK") == 0) {
-                    uartUSB.write("OK\r\n", strlen("OK\r\n"));
-                }
-            } else {
-                uartUSB.write("Error parsing message.\r\n", strlen("Error parsing message.\r\n"));
-            }
-            // Leer el RSSI del paquete recibido
-            int packetRSSI = this->LoRaTransciver->packetRssi();
-            snprintf(message, sizeof(message), "packet RSSI: %d\r\n", packetRSSI);
-            uartUSB.write(message, strlen(message));
-            messageSent = false;
-            messageNumber ++;
+     if (this->timeout->read()) {
+        this->RFState->sendMessage (this->LoRaTransciever,  messageToSend);
+        timeoutCounter++;
+        if (timeoutCounter > MAX_TIMEOUT_COUNTER) {
+            timeoutCounter = 0;
+            uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
+            this->changeState ( new SendingMessage (this));
         }
     }
 
-    // timeout
-    if (this->timeout->read() && messageSent == true) {
+
+    if (this->RFState->getAcknowledgement (this->LoRaTransciever, ACKMessage) == true) {
+       if (this->checkMessageIntegrity (messageToSend, ACKMessage))  {
+           messageNumber++;
+       }
+    }
+    
+    if (this->timeout->read()) {
         uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
-        messageSent = false;
+        this->changeState ( new SendingMessage (this));
     }
+}
 
+
+void Tracker::changeState  (RFTransicieverState * newState) {
+    delete this->RFState;
+    this->RFState = newState;
 }
 
 //=====[Implementations of private methods]==================================
-void tracker::LoRa_rxMode(){
+ bool Tracker::checkMessageIntegrity ( char * messageSent, char *messageReceived) {
+    char logMessage [60];
+    int deviceId;
+    int messageNumber; 
+    char payload [60];
+    int deviceIdReceived;
+    int messageNumberReceived; 
+    char payloadReceived [60];
+
+    sscanf(messageSent, "%d,%d,%49s", &deviceId, &messageNumber, payload);
+
+    if (sscanf(messageReceived, "%d,%d,%49s", &deviceIdReceived, &messageNumberReceived, payloadReceived) == 3) {
+        bool messageCorrect = false;
+        uartUSB.write ("\r\n", strlen("\r\n"));
+        snprintf(logMessage, sizeof(logMessage), "Device ID Received: %d\r\n", deviceIdReceived);
+        uartUSB.write(logMessage, strlen(logMessage));
+        if (deviceIdReceived == deviceId) {
+            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+        } else {
+            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            return false;
+        }
+        snprintf(logMessage, sizeof(logMessage), "Message Number Received: %d\r\n", messageNumberReceived);
+        uartUSB.write(logMessage, strlen(logMessage));
+        if (messageNumberReceived == messageNumber) {
+            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+        } else {
+            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            return false;
+        }
+        snprintf(logMessage, sizeof(logMessage), "Payload Received: %s\r\n", payloadReceived);
+        uartUSB.write(logMessage, strlen(logMessage));
+        if (strcmp (payloadReceived, "ACK") == 0 || strcmp (payloadReceived, "ACK\r") == 0 ||
+         strcmp (payloadReceived, "ACK\r\n") == 0 ) {
+            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+        } else {
+            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            return false;
+        }
+        return true;
+    } else {
+        uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+        return false;
+    }
+ }
+
+
+void Tracker::LoRa_rxMode(){
   LoRa.enableInvertIQ();                // active invert I and Q signals
   //LoRa.receive();                       // set receive mode
 }
 
-void tracker::LoRa_txMode(){
+void Tracker::LoRa_txMode(){
   LoRa.idle();                          // set standby mode
   LoRa.disableInvertIQ();               // normal mode
 }
 
 
 
-char* tracker::formMessage(GNSSData* GNSSInfo) {
+char* Tracker::formMessage(GNSSData* GNSSInfo) {
     static char message[50]; 
     snprintf(message, sizeof(message), "%.6f,%.6f", GNSSInfo->latitude,
      GNSSInfo->longitude);
     return message;
 }
 
-char* tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
+char* Tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
 &neighborsCellInformation, BatteryData  * batteryStatus) {
     static char message[500];
     char neighbors[50];
@@ -251,7 +253,7 @@ char* tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformati
     return message;
 }
 
-char* tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
+char* Tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
              "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%X,%X,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 

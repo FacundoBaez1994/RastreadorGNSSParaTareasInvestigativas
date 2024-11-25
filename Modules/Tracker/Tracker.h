@@ -10,6 +10,8 @@
 #include "string.h"
 #include "CellularModule.h"
 #include "LoRa.h"
+#include "RFTransicieverState.h"
+#include "SendingMessage.h"
 
 
 
@@ -24,14 +26,20 @@
  * High hierarchy class
  * it will be instantiated and used from the main function
  */
-class tracker {
+class Tracker {
 public:
-    tracker ();
-    virtual ~tracker ();
+    Tracker ();
+    virtual ~Tracker ();
     void update();
+    void changeState  (RFTransicieverState * newState);
+    
 private:
     void LoRa_rxMode();
     void LoRa_txMode();
+
+    RFTransicieverState * RFState;
+
+    bool checkMessageIntegrity ( char * messageSent, char *messageReceived);
     char* formMessage (GNSSData * GNSSInfo);
     char* formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
     &neighborsCellInformation, BatteryData  * batteryStatus); 
@@ -39,7 +47,7 @@ private:
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 
-    LoRaClass * LoRaTransciver;
+    LoRaClass * LoRaTransciever;
 
     GNSSModule* currentGNSSModule;
     GNSSData * currentGNSSdata;

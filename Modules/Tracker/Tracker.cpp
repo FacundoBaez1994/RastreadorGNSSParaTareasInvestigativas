@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "tracker.h"
+#include "Tracker.h"
 #include "Debugger.h" // due to global usbUart
 
 
@@ -25,7 +25,7 @@
 /** 
 * @brief Contructor method creates a new trackerGPS instance ready to be used
 */
-tracker::tracker () {
+Tracker::Tracker () {
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_MS);
     char StringToSendUSB [50] = "Tracker initialization";
@@ -53,7 +53,7 @@ tracker::tracker () {
 }
 
 
-tracker::~tracker() {
+Tracker::~Tracker() {
     delete[] this->currentCellInformation->date;
     this->currentCellInformation->date = NULL;
     delete[] this->currentCellInformation->time;
@@ -81,7 +81,7 @@ tracker::~tracker() {
 *   
 *
 */
-void tracker::update () {
+void Tracker::update () {
     
     static char* formattedMessage;
     static char receivedMessage [200];
@@ -223,14 +223,14 @@ void tracker::update () {
 }
 
 //=====[Implementations of private methods]==================================
-char* tracker::formMessage(GNSSData* GNSSInfo) {
+char* Tracker::formMessage(GNSSData* GNSSInfo) {
     static char message[50]; 
     snprintf(message, sizeof(message), "%.6f,%.6f", GNSSInfo->latitude,
      GNSSInfo->longitude);
     return message;
 }
 
-char* tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
+char* Tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
 &neighborsCellInformation, BatteryData  * batteryStatus) {
     static char message[500];
     char neighbors[50];
@@ -273,7 +273,7 @@ char* tracker::formMessage(CellInformation* aCellInfo, std::vector<CellInformati
     return message;
 }
 
-char* tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
+char* Tracker::formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
              "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%X,%X,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 

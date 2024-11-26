@@ -26,10 +26,10 @@
  * High hierarchy class
  * it will be instantiated and used from the main function
  */
-class tracker {
+class Tracker {
 public:
-    tracker ();
-    virtual ~tracker ();
+    Tracker ();
+    virtual ~Tracker ();
     void update();
 private:
     char* formMessage (GNSSData * GNSSInfo);

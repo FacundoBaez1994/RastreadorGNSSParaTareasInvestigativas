@@ -11,7 +11,9 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "string.h"
-#include "CellularModule.h"
+#include "TrackerState.h"
+
+
 
 
 
@@ -31,11 +33,19 @@ public:
     Tracker ();
     virtual ~Tracker ();
     void update();
+    void changeState  (TrackerState * newTrackerState);
+    
 private:
+
+
     char* formMessage (GNSSData * GNSSInfo);
     char* formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
     &neighborsCellInformation, BatteryData  * batteryStatus); 
     char* formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus);
+    
+
+    TrackerState * currentState;
+    
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 

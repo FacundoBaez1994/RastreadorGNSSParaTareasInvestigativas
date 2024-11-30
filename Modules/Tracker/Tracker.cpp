@@ -2,6 +2,7 @@
 
 #include "Tracker.h"
 #include "Debugger.h" // due to global usbUart
+#include "SensingBatteryStatus.h"
 
 
 //=====[Declaration of private defines]========================================
@@ -50,6 +51,8 @@ Tracker::Tracker () {
     this->currentGNSSdata = new GNSSData;
     this->batteryStatus = new BatteryData;
 
+    this->currentState =  new SensingBatteryStatus (this);
+
 }
 
 
@@ -83,27 +86,32 @@ Tracker::~Tracker() {
 */
 void Tracker::update () {
     
-    static char* formattedMessage;
+    static char formattedMessage [200];
     static char receivedMessage [200];
-    static GNSSState_t GnssCurrentStatus;
-    static CellularConnectionStatus_t currentConnectionStatus;
-    static CellularTransceiverStatus_t currentTransmitionStatus;
-    static bool newDataAvailable = false;
-
-    static bool GNSSAdquisitionSuccesful = false;
-    static bool enableTransmission = false; 
-    static bool transimissionSecuenceActive =  false;
-    static bool messageFormatted = false;
-    static bool batterySensed = false;
-    static bool enablingGoingToSleep = false; 
 
     static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
 
     watchdog.kick();
+    this->currentState->awake(this->cellularTransceiver, this->latency);
+    this->currentState->updatePowerStatus (this->cellularTransceiver, this->batteryStatus);
+    this->currentState->obtainGNSSPosition (this->currentGNSSModule, this->currentGNSSdata);
+    this->currentState->connectToMobileNetwork (this->cellularTransceiver,
+    this->currentCellInformation);
+    this->currentState->obtainNeighborCellsInformation (this->cellularTransceiver, 
+    neighborsCellInformation, numberOfNeighbors );
+    this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
+    this->currentGNSSdata, neighborsCellInformation, this->batteryStatus); 
+    // agregar dato IMU
+    this->currentState->exchangeMessages (this->cellularTransceiver,
+    formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
+    this->currentState->goToSleep (this->cellularTransceiver);
+    /*
     this->cellularTransceiver->startStopUpdate();
     //this->currentGNSSModule->startStopUpdate();
+
+
 
     if (this->latency->read() && transimissionSecuenceActive == false) { // WRITE
         transimissionSecuenceActive = true;
@@ -220,6 +228,13 @@ void Tracker::update () {
     }
 
     watchdog.kick();
+    */
+}
+
+
+void Tracker::changeState  (TrackerState * newTrackerState) {
+    delete this->currentState;
+    this->currentState = newTrackerState;
 }
 
 //=====[Implementations of private methods]==================================

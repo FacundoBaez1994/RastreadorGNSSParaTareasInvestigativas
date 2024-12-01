@@ -86,8 +86,8 @@ Tracker::~Tracker() {
 */
 void Tracker::update () {
     
-    static char formattedMessage [200];
-    static char receivedMessage [200];
+    static char formattedMessage [500];
+    static char receivedMessage [500];
 
     static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
@@ -107,6 +107,16 @@ void Tracker::update () {
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
     this->currentState->goToSleep (this->cellularTransceiver);
+    
+
+    /*
+    bool newDataAvailable;
+    cellularTransceiver->enableTransceiver();
+    cellularTransceiver->exchangeMessages (formattedMessage, socketTargetted,
+        receivedMessage, &newDataAvailable);
+        */
+
+
     /*
     this->cellularTransceiver->startStopUpdate();
     //this->currentGNSSModule->startStopUpdate();

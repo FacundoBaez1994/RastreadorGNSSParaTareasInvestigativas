@@ -3,6 +3,7 @@
 #include "ExchangingMessages.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
+#include "GoingToSleep.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -81,12 +82,16 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage ){
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
+    static bool enableTransceiver = false;
     char logMessage [50];
-
+    
     if (this->connectedToMobileNetwork == true) {
-        cellularTransceiver->enableTransceiver();
-        cellularTransceiver->exchangeMessages (message, socketTargetted,
-        receivedMessage, &newDataAvailable);
+        if (enableTransceiver == false) {
+            cellularTransceiver->enableTransceiver();
+            enableTransceiver = true; 
+        }
+       currentTransmitionStatus = cellularTransceiver->exchangeMessages (message, socketTargetted,
+       receivedMessage, &newDataAvailable);
 
         if (currentTransmitionStatus == CELLULAR_TRANSCEIVER_STATUS_SEND_OK) {
             snprintf(logMessage, sizeof(logMessage), "The message was send with success");
@@ -103,8 +108,13 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             uartUSB.write (logMessage , strlen (logMessage ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             newDataAvailable = false;
+            this->tracker->changeState (new GoingToSleep (this->tracker));
             return;
             } else {
+                snprintf(logMessage, sizeof(logMessage),"No Messages received:");
+                uartUSB.write (logMessage , strlen (logMessage));  // debug only
+                uartUSB.write ( "\r\n",  3 );  // debug only}
+                this->tracker->changeState (new GoingToSleep (this->tracker));
                 return;
             }    
         }  else if (currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND
@@ -115,6 +125,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             uartUSB.write ( "\r\n",  3 );  // debug only}
 
             // save message in memory..
+            this->tracker->changeState (new GoingToSleep (this->tracker));
             return;
         }
     } else {

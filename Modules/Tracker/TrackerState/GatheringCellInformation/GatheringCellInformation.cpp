@@ -66,12 +66,15 @@ void GatheringCellInformation::obtainGNSSPosition (GNSSModule * currentGNSSModul
 
 void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
+
     if (cellularTransceiver->retrivNeighborCellsInformation(neighborsCellInformation,
      numberOfNeighbors) == true){
          this->tracker->changeState (new FormattingMessage (this->tracker, true, false));
          return;
      }
     // Format message for LoRa 
+
+
     return; 
 }
     // IMU Method 1

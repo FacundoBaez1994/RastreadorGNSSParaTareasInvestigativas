@@ -81,27 +81,22 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
 
     if (this->connectedToMobileNetwork == true) {
         if (this->GNSSObtain == true) {
-
             char StringToSendUSB [50] = "Formating MN,GNSS message\r\n";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-
             this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, batteryStatus);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
             this->tracker->changeState (new ExchangingMessages (this->tracker, true));
             return;
         }else {
-
             char StringToSendUSB [50] = "Formating MN,MN message:\r\n";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-
-
             this->formatMessage(formattedMessage, aCellInfo, 
             neighborsCellInformation, batteryStatus);
-
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-
             this->tracker->changeState (new ExchangingMessages (this->tracker, true));
             return;
         }

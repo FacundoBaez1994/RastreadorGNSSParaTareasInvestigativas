@@ -5,7 +5,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        500
+#define LATENCY        1000
 #define POWERCHANGEDURATION  700
 #define MAX_TIMEOUT_COUNTER 5
 
@@ -38,6 +38,13 @@ Tracker::Tracker () {
     this->timeout = new NonBlockingDelay (LATENCY);
 
     this->RFState = new SendingMessage (this);
+
+    this->encrypter = new Encrypter ();
+    this->authgen = new AuthenticationGenerator ();
+    this->ckgen = new ChecksumGenerator ();
+    this->checksumVerifier = new ChecksumVerifier ();
+    this->authVer = new AuthenticationVerifier ();
+    this->decrypter = new Decrypter ();
 
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
@@ -89,6 +96,20 @@ Tracker::~Tracker() {
     delete this->cellularTransceiver;
     this->cellularTransceiver = NULL;
     */
+
+
+    delete this->encrypter;
+    this->encrypter = NULL;
+    delete this->authgen;
+    this->authgen = NULL;
+    delete this->ckgen;
+    this->ckgen = NULL;
+    delete this->checksumVerifier;
+    this->checksumVerifier = NULL;
+    delete this->authVer;
+    this->authVer = NULL;
+    delete this->decrypter;
+    this->decrypter = NULL;
 }
 
 
@@ -101,38 +122,36 @@ void Tracker::update () {
     int deviceIdReceived;
     int messageNumberReceived;
     char payload[50] = {0};
-    char messageToSend[50];
+    static char messageToSend[256];
     char ACKMessage [64];
     char logMessage[50];
     int static timeoutCounter = 0;
 
     int deviceId = 1;
     static int messageNumber = 0;
-    static bool messageSent = false;
+    static bool plainTextMessageFormed = false;
     static bool debugFlag = false;
     
-
-    snprintf( messageToSend, sizeof(messageToSend), "%d,%d,hello", deviceId, messageNumber);
-
-     if (this->timeout->read()) {
-        this->RFState->sendMessage (this->LoRaTransciever,  messageToSend);
-        timeoutCounter++;
-        if (timeoutCounter > MAX_TIMEOUT_COUNTER) {
-            timeoutCounter = 0;
-            uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
-            this->changeState ( new SendingMessage (this));
-        }
+    if ( plainTextMessageFormed ==  false) {
+        snprintf( messageToSend, sizeof(messageToSend), "%d,%d,hello", deviceId, messageNumber);
+        plainTextMessageFormed =  true; 
     }
-
+    this->RFState->sendMessage (this->LoRaTransciever,  messageToSend);
 
     if (this->RFState->getAcknowledgement (this->LoRaTransciever, ACKMessage) == true) {
        if (this->checkMessageIntegrity (messageToSend, ACKMessage))  {
            messageNumber++;
+           this->timeout->restart();
+            std::fill(std::begin(messageToSend), std::end(messageToSend), '\0');
+            plainTextMessageFormed =  false; 
+            this->changeState ( new SendingMessage (this));
        }
     }
     
     if (this->timeout->read()) {
         uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
+        std::fill(std::begin(messageToSend), std::end(messageToSend), '\0');
+        plainTextMessageFormed =  false; 
         this->changeState ( new SendingMessage (this));
     }
 }
@@ -190,15 +209,22 @@ void Tracker::changeState  (RFTransicieverState * newState) {
     }
  }
 
-
-void Tracker::LoRa_rxMode(){
-  LoRa.enableInvertIQ();                // active invert I and Q signals
-  //LoRa.receive();                       // set receive mode
+bool Tracker::prepareMessage (char * messageOutput) {
+    this->encrypter->setNextHandler(this->authgen)->setNextHandler(this->ckgen);
+    if (this->encrypter->handleMessage (messageOutput) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
-void Tracker::LoRa_txMode(){
-  LoRa.idle();                          // set standby mode
-  LoRa.disableInvertIQ();               // normal mode
+bool Tracker::processMessage (char * incomingMessage) {
+    this->checksumVerifier->setNextHandler(this->authVer)->setNextHandler(this->decrypter);
+    if (this->encrypter->handleMessage (incomingMessage) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 

@@ -82,10 +82,14 @@ void WaitingAcknowledgement::sendMessage (LoRaClass * LoRaModule, char * message
         if (iterations >= maxIterations) {
             uartUSB.write("Warning: Exceeded max iterations\r\n", strlen("Warning: Exceeded max iterations\r\n"));
         }
+        if (this->tracker->processMessage(ACKMessage) == false) {
+            return false;
+        }
         uartUSB.write ("\n", strlen("\n"));
         int packetRSSI = LoRaModule->packetRssi();
         snprintf(logMessage, sizeof(logMessage), "packet RSSI: %d\r\n", packetRSSI);
         uartUSB.write(logMessage, strlen(logMessage));
+
 
         this->tracker->changeState(new SendingMessage (this->tracker));
         return true;

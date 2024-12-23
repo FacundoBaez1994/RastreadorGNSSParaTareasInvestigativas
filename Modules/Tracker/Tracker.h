@@ -13,6 +13,15 @@
 #include "RFTransicieverState.h"
 #include "SendingMessage.h"
 
+#include "MessageHandler.h"
+#include "MessageHandlerStatus.h"
+#include "AuthenticationGenerator.h"
+#include "AuthenticationVerifier.h"
+#include "BaseMessageHandler.h"
+#include "ChecksumVerifier.h"
+#include "ChecksumGenerator.h"
+#include "Decrypter.h"
+#include "Encrypter.h"
 
 
 //=====[Declaration of public defines]=========================================
@@ -32,10 +41,10 @@ public:
     virtual ~Tracker ();
     void update();
     void changeState  (RFTransicieverState * newState);
-    
+    bool prepareMessage (char * messageOutput);
+    bool processMessage (char * incomingMessage);
+
 private:
-    void LoRa_rxMode();
-    void LoRa_txMode();
 
     RFTransicieverState * RFState;
 
@@ -54,6 +63,13 @@ private:
     NonBlockingDelay * timeout;
     BatteryData  * batteryStatus;
 
+    // Message Handlers
+    MessageHandler * encrypter;
+    MessageHandler * authgen;
+    MessageHandler * ckgen;
+    MessageHandler * checksumVerifier;
+    MessageHandler * authVer;
+    MessageHandler * decrypter;
 };
 
 

@@ -68,7 +68,8 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
         // Copiar la cadena original y agregar '|'
         strcpy(buffer, messageToBeSend);
         buffer[originalLength ] = '|';  // Agregar '|'
-        buffer[originalLength + 1] = '\0';      // Asegurar terminación nula
+        buffer[originalLength + 1] = '|';      // Asegurar terminación nula
+        buffer[originalLength + 2] = '\0';      // Asegurar terminación nula
 
          uartUSB.write("\r\n", strlen("\r\n"));
         uartUSB.write ( buffer, strlen ( buffer));  // debug only
@@ -92,7 +93,7 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
           
             wait_us(2500000); // bloqueo eliminar luego!
         }
-        
+
 
         uartUSB.write("\r\n", strlen("\r\n"));
         uartUSB.write ("Changing State to Waiting Acknowledgement:\r\n", 

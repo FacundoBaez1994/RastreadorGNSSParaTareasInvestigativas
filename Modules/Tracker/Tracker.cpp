@@ -123,6 +123,7 @@ void Tracker::update () {
     int messageNumberReceived;
     char payload[50] = {0};
     static char messageToSend[256];
+    static char plainMessageToSend[256];
     char ACKMessage [64];
     char logMessage[50];
     int static timeoutCounter = 0;
@@ -134,12 +135,13 @@ void Tracker::update () {
     
     if ( plainTextMessageFormed ==  false) {
         snprintf( messageToSend, sizeof(messageToSend), "%d,%d,hello", deviceId, messageNumber);
+        strcpy (plainMessageToSend, messageToSend);
         plainTextMessageFormed =  true; 
     }
     this->RFState->sendMessage (this->LoRaTransciever,  messageToSend);
 
     if (this->RFState->getAcknowledgement (this->LoRaTransciever, ACKMessage) == true) {
-       if (this->checkMessageIntegrity (messageToSend, ACKMessage))  {
+       if (this->checkMessageIntegrity (plainMessageToSend, ACKMessage))  {
            messageNumber++;
            this->timeout->restart();
             std::fill(std::begin(messageToSend), std::end(messageToSend), '\0');
@@ -220,7 +222,7 @@ bool Tracker::prepareMessage (char * messageOutput) {
 
 bool Tracker::processMessage (char * incomingMessage) {
     this->checksumVerifier->setNextHandler(this->authVer)->setNextHandler(this->decrypter);
-    if (this->encrypter->handleMessage (incomingMessage) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    if (this->checksumVerifier->handleMessage (incomingMessage) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;

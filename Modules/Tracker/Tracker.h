@@ -11,7 +11,7 @@
 #include "CellularModule.h"
 #include "LoRa.h"
 #include "RFTransicieverState.h"
-#include "SendingMessage.h"
+#include "AddingRFFormat.h"
 
 #include "MessageHandler.h"
 #include "MessageHandlerStatus.h"
@@ -43,14 +43,14 @@ public:
     void changeState  (RFTransicieverState * newState);
     bool prepareMessage (char * messageOutput);
     bool processMessage (char * incomingMessage);
-
+    bool checkMessageIntegrity ( char *messageReceived);
 private:
 
     RFTransicieverState * RFState;
     int deviceId;
     int messageNumber;
 
-    bool checkMessageIntegrity ( char * messageSent, char *messageReceived);
+
     char* formMessage (GNSSData * GNSSInfo);
     char* formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
     &neighborsCellInformation, BatteryData  * batteryStatus); 

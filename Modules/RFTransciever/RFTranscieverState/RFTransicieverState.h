@@ -22,6 +22,7 @@ struct RFPacketMessage;
 class RFTransicieverState {
 public:
 //=====[Declaration of public methods]=========================================
+    virtual void addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend);
     virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime);
     virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved, NonBlockingDelay * timeOut);
 //=====[Declaration of privates atributes]=========================================

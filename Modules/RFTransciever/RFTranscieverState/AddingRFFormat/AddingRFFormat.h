@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _SENDING_MESSAGE_H_
-#define _SENDING_MESSAGE_H_
+#ifndef _ADDING_RF_FORMAT_H_
+#define _ADDING_RF_FORMAT_H_
 
 //==================[Libraries]===============================================
 
@@ -9,7 +9,7 @@
 #include "arm_book_lib.h"
 #include "Non_Blocking_Delay.h"
 #include "RFTransicieverState.h"
-//#include "WaitingAcknowledgement.h"
+#include "string.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada
@@ -20,20 +20,16 @@ class Tracker; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class SendingMessage : public RFTransicieverState {
+class AddingRFFormat : public RFTransicieverState {
 public:
 //=====[Declaration of public methods]=========================================
-    SendingMessage  (Tracker * tracker);
-    virtual ~SendingMessage  ();
+    AddingRFFormat  (Tracker * tracker);
+    virtual ~AddingRFFormat ();
     virtual void addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend);
     virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime);
     virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved, NonBlockingDelay * timeOut);
 private:
     Tracker * tracker;
-   // int IdDevice;
-    //int messageNumber;
-    //int connectionRetries;
-    // char payload [50];
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -44,4 +40,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _SENDING_MESSAGE_H_
+#endif //  _ADDING_RF_FORMAT_H_

@@ -2,6 +2,7 @@
 #include "WaitingAcknowledgement.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
+#include "AddingRFFormat.h"
 
 //=====[Declaration of private defines]========================================
 #define MAX_RETRIES 3
@@ -48,6 +49,10 @@ WaitingAcknowledgement::~WaitingAcknowledgement() {
      this->tracker = NULL;
 }
 
+void WaitingAcknowledgement::addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend) {
+    return;
+}
+
 void WaitingAcknowledgement::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, 
 NonBlockingDelay * backoffTime) {
     return; 
@@ -67,18 +72,31 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
 
     int deviceId = 0;
     int messageNumber = 0;
-    static int delayCounter = 0;
-    static int delayMax = 3; 
 
+    static bool firstPacketReceived = false;
+    static bool firstEntryOnThisMethod = true;
     static int stringInsertCount = 0;
 
     uint8_t receivedBuffer[64];
+
+    if (firstEntryOnThisMethod == true) {
+        timeOut->restart();
+        uartUSB.write("time out restart\r\n", strlen("time out restart\r\n")); // Debug
+        firstEntryOnThisMethod = false;
+    }
 
     if (messageReceived  == false) {
         LoRaModule->enableInvertIQ();    
         int packetSize = LoRaModule->parsePacket();
         if (packetSize) {
             uartUSB.write("Packet Received!\r\n", strlen("Packet Received!\r\n")); // Debug
+
+             //restart timeOut Timer
+            if (firstPacketReceived == false) {
+                timeOut->restart ();
+                uartUSB.write("time out restart\r\n", strlen("time out restart\r\n")); // Debug
+                firstPacketReceived = true;
+            }
 
             int maxIterations = 100; // Límite para evitar un ciclo infinito
             int iterations = 0;
@@ -156,10 +174,23 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
         accumulatedBuffer.clear(); // Elimina todos los elementos del vector
         stringInsertCount = 0;
         fullMessage.clear();       // Elimina todo el contenido de la cadena
-        uartUSB.write("Changing To Sending Message\r\n", strlen("Changing To Sending Message\r\n"));
-        wait_us(3000000); //backoff
-        this->tracker->changeState(new SendingMessage (this->tracker));
-        return true;
+      
+        if (this->tracker->checkMessageIntegrity (messageRecieved)) {
+             wait_us(3000000); //backoff Nota este back eliminalo luego porque con la rutina principal no tiene sentido
+            uartUSB.write("Changing To AddingRFFormat\r\n", strlen("Changing To AddingRFFormat\r\n"));
+            firstEntryOnThisMethod  = true;
+            firstPacketReceived = false;
+            this->tracker->changeState(new AddingRFFormat (this->tracker));
+            return true;
+        }
+    }
+
+    if (timeOut->read() && firstEntryOnThisMethod == false) {
+        uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
+        uartUSB.write("Changing To AddingRFFormat\r\n", strlen("Changing To AddingRFFormat\r\n"));
+        firstEntryOnThisMethod  = true;
+        firstPacketReceived = false;
+        this->tracker->changeState(new AddingRFFormat (this->tracker));
     }
     return false;
 }

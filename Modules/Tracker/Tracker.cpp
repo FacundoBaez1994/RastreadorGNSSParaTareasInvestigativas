@@ -37,7 +37,7 @@ Tracker::Tracker () {
     this->LoRaTransciever->setSignalBandwidth(125E3); // 125 kHz
     this->timeout = new NonBlockingDelay (LATENCY);
 
-    this->RFState = new SendingMessage (this);
+    this->RFState = new AddingRFFormat (this);
 
     this->encrypter = new Encrypter ();
     this->authgen = new AuthenticationGenerator ();
@@ -47,8 +47,8 @@ Tracker::Tracker () {
     this->decrypter = new Decrypter ();
 
 
-    int deviceId = 1;
-    int messageNumber = 0;
+    this->deviceId = 1;
+    this->messageNumber = 0;
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_MS);
@@ -125,22 +125,26 @@ void Tracker::update () {
     int deviceIdReceived;
     int messageNumberReceived;
     char payload[50] = {0};
-    static char messageToSend[256];
-    static char plainMessageToSend[256];
+    static char messageToSend[256] = "hello";
+    //static char plainMessageToSend[256];
     static char ACKMessage [256];
     char logMessage[50];
     int static timeoutCounter = 0;
 
     static bool plainTextMessageFormed = false;
     static bool debugFlag = false;
-    
+     /*
     if ( plainTextMessageFormed ==  false) {
         snprintf( messageToSend, sizeof(messageToSend), "%d,%d,hello", this->deviceId, this->messageNumber);
         strcpy (plainMessageToSend, messageToSend);
         plainTextMessageFormed =  true; 
     }
+     */
+    this->RFState->addRFFormatToMessage (this->deviceId, this->messageNumber,  messageToSend);
     this->RFState->sendMessage (this->LoRaTransciever,  messageToSend, this->timeout);
+    this->RFState->getAcknowledgement (this->LoRaTransciever, ACKMessage, this->timeout);
 
+ /*
     if (this->RFState->getAcknowledgement (this->LoRaTransciever, ACKMessage, this->timeout) == true) {
        if (this->checkMessageIntegrity (plainMessageToSend, ACKMessage))  {
            this->messageNumber++;
@@ -150,13 +154,15 @@ void Tracker::update () {
             this->changeState ( new SendingMessage (this));
        }
     }
-    
+    */
+    /*
     if (this->timeout->read()) {
         uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
         std::fill(std::begin(messageToSend), std::end(messageToSend), '\0');
         plainTextMessageFormed =  false; 
         this->changeState ( new SendingMessage (this));
     }
+    */
 }
 
 
@@ -165,27 +171,20 @@ void Tracker::changeState  (RFTransicieverState * newState) {
     this->RFState = newState;
 }
 
-//=====[Implementations of private methods]==================================
- bool Tracker::checkMessageIntegrity ( char * messageSent, char *messageReceived) {
+ bool Tracker::checkMessageIntegrity ( char *messageReceived) {
     char logMessage [60];
-    int deviceId;
-    int messageNumber; 
+
     char payload [60];
     int deviceIdReceived;
     int messageNumberReceived; 
     char payloadReceived [60];
-    uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
-    uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
 
-
-    sscanf(messageSent, "%d,%d,%49s", &deviceId, &messageNumber, payload);
-
-    if (sscanf(messageReceived, "%d,%d,%49s", &deviceIdReceived, &messageNumberReceived, payloadReceived) == 3) {
+    if (sscanf(messageReceived, "%d,%d,%s", &deviceIdReceived, &messageNumberReceived, payloadReceived) == 3) {
         bool messageCorrect = false;
         uartUSB.write ("\r\n", strlen("\r\n"));
         snprintf(logMessage, sizeof(logMessage), "Device ID Received: %d\r\n", deviceIdReceived);
         uartUSB.write(logMessage, strlen(logMessage));
-        if (deviceIdReceived == deviceId) {
+        if (deviceIdReceived == this->deviceId) {
             uartUSB.write("OK\r\n", strlen("OK\r\n"));
         } else {
             uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
@@ -193,7 +192,7 @@ void Tracker::changeState  (RFTransicieverState * newState) {
         }
         snprintf(logMessage, sizeof(logMessage), "Message Number Received: %d\r\n", messageNumberReceived);
         uartUSB.write(logMessage, strlen(logMessage));
-        if (messageNumberReceived == messageNumber) {
+        if (messageNumberReceived == this->messageNumber) {
             uartUSB.write("OK\r\n", strlen("OK\r\n"));
         } else {
             uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
@@ -208,6 +207,7 @@ void Tracker::changeState  (RFTransicieverState * newState) {
             uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
             return false;
         }
+        this->messageNumber ++;
         return true;
     } else {
         uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
@@ -232,6 +232,8 @@ bool Tracker::processMessage (char * incomingMessage) {
         return false;
     }
 }
+
+//=====[Implementations of private methods]==================================
 
 
 

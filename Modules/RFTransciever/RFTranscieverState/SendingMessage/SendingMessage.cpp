@@ -49,6 +49,10 @@ SendingMessage::~SendingMessage() {
      this->tracker = NULL;
 }
 
+void SendingMessage::addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend) {
+    return;
+}
+
 void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime) {
         char buffer [256];
         uartUSB.write ("Sending plaintext message:\r\n", strlen ("Sending plaintext message:\r\n"));  // debug only

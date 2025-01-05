@@ -49,7 +49,7 @@ SendingMessage::~SendingMessage() {
      this->tracker = NULL;
 }
 
-void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend) {
+void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime) {
         char buffer [256];
         uartUSB.write ("Sending plaintext message:\r\n", strlen ("Sending plaintext message:\r\n"));  // debug only
         uartUSB.write ( messageToBeSend, strlen ( messageToBeSend));  // debug only
@@ -60,10 +60,9 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
         }
         uartUSB.write ("coded message:\r\n", strlen ("coded message:\r\n"));  // debug only
         uartUSB.write ( messageToBeSend, strlen ( messageToBeSend) + 4);  // debug only
-         uartUSB.write("\r\n", strlen("\r\n"));
+        uartUSB.write("\r\n", strlen("\r\n"));
 
         size_t originalLength = strlen(messageToBeSend);
-        size_t newLength = originalLength + 1; // +1 para el carácter '|'
 
         // Copiar la cadena original y agregar '|'
         strcpy(buffer, messageToBeSend);
@@ -71,13 +70,12 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
         buffer[originalLength + 1] = '|';      // Asegurar terminación nula
         buffer[originalLength + 2] = '\0';      // Asegurar terminación nula
 
-         uartUSB.write("\r\n", strlen("\r\n"));
+        uartUSB.write("\r\n", strlen("\r\n"));
         uartUSB.write ( buffer, strlen ( buffer));  // debug only
-         uartUSB.write("\r\n", strlen("\r\n"));
+        uartUSB.write("\r\n", strlen("\r\n"));
 
         size_t totalLength = strlen(buffer);
-        size_t chunkSize = 15;  // Fragmentos de 50 bytes
-
+        size_t chunkSize = 5;  // Fragmentos de 50 bytes
 
         for (size_t i = 0; i < totalLength; i += chunkSize) {
             LoRaModule->idle();                          // set standby mode
@@ -91,7 +89,7 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
             LoRaModule->write((uint8_t*)(buffer + i), currentChunkSize);
             LoRaModule->endPacket();
           
-            wait_us(2500000); // bloqueo eliminar luego!
+            wait_us(3000000); // bloqueo eliminar luego!
         }
 
 
@@ -103,7 +101,7 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
         return;
 }
 
- bool SendingMessage::getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved){
+ bool SendingMessage::getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved, NonBlockingDelay * timeOut){
       return false;
  }
 //=====[Implementations of private functions]==================================

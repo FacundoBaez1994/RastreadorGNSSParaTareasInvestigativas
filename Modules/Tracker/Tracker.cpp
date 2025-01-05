@@ -5,7 +5,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        1000
+#define LATENCY        8000
 #define POWERCHANGEDURATION  700
 #define MAX_TIMEOUT_COUNTER 5
 
@@ -46,6 +46,9 @@ Tracker::Tracker () {
     this->authVer = new AuthenticationVerifier ();
     this->decrypter = new Decrypter ();
 
+
+    int deviceId = 1;
+    int messageNumber = 0;
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_MS);
@@ -124,25 +127,23 @@ void Tracker::update () {
     char payload[50] = {0};
     static char messageToSend[256];
     static char plainMessageToSend[256];
-    char ACKMessage [64];
+    static char ACKMessage [256];
     char logMessage[50];
     int static timeoutCounter = 0;
 
-    int deviceId = 1;
-    static int messageNumber = 0;
     static bool plainTextMessageFormed = false;
     static bool debugFlag = false;
     
     if ( plainTextMessageFormed ==  false) {
-        snprintf( messageToSend, sizeof(messageToSend), "%d,%d,hello", deviceId, messageNumber);
+        snprintf( messageToSend, sizeof(messageToSend), "%d,%d,hello", this->deviceId, this->messageNumber);
         strcpy (plainMessageToSend, messageToSend);
         plainTextMessageFormed =  true; 
     }
-    this->RFState->sendMessage (this->LoRaTransciever,  messageToSend);
+    this->RFState->sendMessage (this->LoRaTransciever,  messageToSend, this->timeout);
 
-    if (this->RFState->getAcknowledgement (this->LoRaTransciever, ACKMessage) == true) {
+    if (this->RFState->getAcknowledgement (this->LoRaTransciever, ACKMessage, this->timeout) == true) {
        if (this->checkMessageIntegrity (plainMessageToSend, ACKMessage))  {
-           messageNumber++;
+           this->messageNumber++;
            this->timeout->restart();
             std::fill(std::begin(messageToSend), std::end(messageToSend), '\0');
             plainTextMessageFormed =  false; 
@@ -173,6 +174,9 @@ void Tracker::changeState  (RFTransicieverState * newState) {
     int deviceIdReceived;
     int messageNumberReceived; 
     char payloadReceived [60];
+    uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+    uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+
 
     sscanf(messageSent, "%d,%d,%49s", &deviceId, &messageNumber, payload);
 

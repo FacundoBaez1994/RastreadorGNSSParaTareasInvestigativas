@@ -9,6 +9,7 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "LoRa.h"
+#include "Non_Blocking_Delay.h"
 
 //=====[Declaration of public data types]======================================
 struct RFPacketMessage;
@@ -21,8 +22,8 @@ struct RFPacketMessage;
 class RFTransicieverState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend);
-    virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved);
+    virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime);
+    virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved, NonBlockingDelay * timeOut);
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

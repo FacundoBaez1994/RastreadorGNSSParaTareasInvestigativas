@@ -25,8 +25,8 @@ public:
 //=====[Declaration of public methods]=========================================
     SendingMessage  (Tracker * tracker);
     virtual ~SendingMessage  ();
-    virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend);
-    virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved);
+    virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime);
+    virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved, NonBlockingDelay * timeOut);
 private:
     Tracker * tracker;
    // int IdDevice;

@@ -47,6 +47,8 @@ public:
 private:
 
     RFTransicieverState * RFState;
+    int deviceId;
+    int messageNumber;
 
     bool checkMessageIntegrity ( char * messageSent, char *messageReceived);
     char* formMessage (GNSSData * GNSSInfo);

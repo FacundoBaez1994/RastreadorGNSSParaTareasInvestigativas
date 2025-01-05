@@ -11,6 +11,10 @@
 #include "Non_Blocking_Delay.h"
 #include "RFTransicieverState.h"
 #include "SendingMessage.h"
+#include <algorithm> // Para std::find
+#include <string>
+#include <vector>
+#include <cstring> 
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada
@@ -26,8 +30,8 @@ public:
 //=====[Declaration of public methods]=========================================
     WaitingAcknowledgement  (Tracker * tracker);
     virtual ~WaitingAcknowledgement  ();
-    virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend);
-    virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved);
+    virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime);
+    virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved, NonBlockingDelay * timeOut);
 private:
     Tracker * tracker;
    // int IdDevice;

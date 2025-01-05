@@ -48,9 +48,9 @@ ChecksumVerifier::~ChecksumVerifier () {
     this->nextHandler = nullptr;
 }
 
-
 MessageHandlerStatus_t ChecksumVerifier::handleMessage(char *message) {
     MbedCRC<POLY_32BIT_ANSI, 32> crc32;
+
 
     int packetSize = strlen(message);
     if (packetSize < 8) { // Si el mensaje es demasiado corto para contener un CRC de 8 caracteres
@@ -99,6 +99,7 @@ MessageHandlerStatus_t ChecksumVerifier::handleMessage(char *message) {
         return this->nextHandler->handleMessage(message);
     }
 }
+
 
 
 

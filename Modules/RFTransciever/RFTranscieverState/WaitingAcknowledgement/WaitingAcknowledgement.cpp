@@ -5,7 +5,7 @@
 #include "AddingRFFormat.h"
 
 //=====[Declaration of private defines]========================================
-#define MAX_RETRIES 3
+#define TIMEOUT        8000
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -80,6 +80,7 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
     uint8_t receivedBuffer[64];
 
     if (firstEntryOnThisMethod == true) {
+        timeOut->write(TIMEOUT);
         timeOut->restart();
         uartUSB.write("time out restart\r\n", strlen("time out restart\r\n")); // Debug
         firstEntryOnThisMethod = false;

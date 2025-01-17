@@ -3,8 +3,8 @@
 #include "I2CInterfaceHandler.h"
 
 //=====[Declaration of private defines]========================================
-#define I2C_SDA PB_7
-#define I2C_SCL PB_6 
+#define I2C_SDA PA_10
+#define I2C_SCL PA_9 
 
 //=====[Declaration of private data types]=====================================
 

@@ -31,6 +31,8 @@
 //=====[Declarations (prototypes) of private functions]========================
 
 //=====[Implementations of public methods]===================================
+
+
 /** 
 * @brief Contructor method creates a new trackerGPS instance ready to be used
 */

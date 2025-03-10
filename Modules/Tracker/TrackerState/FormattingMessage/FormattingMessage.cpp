@@ -87,6 +87,9 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, batteryStatus);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
             this->tracker->changeState (new ExchangingMessages (this->tracker, true));
             return;
         }else {
@@ -96,6 +99,9 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             this->formatMessage(formattedMessage, aCellInfo, 
             neighborsCellInformation, batteryStatus);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->tracker->changeState (new ExchangingMessages (this->tracker, true));
             return;
@@ -159,7 +165,12 @@ std::vector<CellInformation*> &neighborsCellInformation, BatteryData  * batteryS
             );
     snprintf(neighbors, sizeof(neighbors),"size of vector %d", neighborsCellInformation.size()); 
     uartUSB.write (neighbors , strlen (neighbors ));  // debug only
-    uartUSB.write ( "\r\n",  3 );  // debug only        
+    uartUSB.write ( "\r\n",  3 );  // debug only 
+    if ( neighborsCellInformation.size() == 0) {
+        strcpy (formattedMessage, message);
+        return;
+    }
+       
     for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
         tech = neighborsCellInformation[i]->tech;
         mcc = neighborsCellInformation[i]->mcc;
@@ -182,7 +193,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
  GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
-             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%X,%X,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
+             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%X,%X,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d\r\n", 
             GNSSInfo->latitude,
             GNSSInfo->longitude,
             GNSSInfo->hdop,

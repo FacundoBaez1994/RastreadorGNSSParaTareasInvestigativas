@@ -76,9 +76,16 @@ PowerONState::~PowerONState () {
 * @returns 
 */
 powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
-
+    int static turnOffCounter = 0;
     // PowerStatus ON equals 
+
+    if (this->manager->readPowerStatus()  == OFF) {
+        turnOffCounter = 0;
+    }
     if (this->manager->readPowerStatus()  == ON) {
+         turnOffCounter ++;
+    }
+    if (turnOffCounter == 10) {
         ////////////  //////////// ////////////
             char StringToSend [30] = "POWER OFF DETECTED";;
             uartUSB.write (StringToSend, strlen (StringToSend));  // debug only

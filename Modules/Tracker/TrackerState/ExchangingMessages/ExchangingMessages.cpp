@@ -108,12 +108,15 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             uartUSB.write (logMessage , strlen (logMessage ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             newDataAvailable = false;
+            enableTransceiver = false;
             this->tracker->changeState (new GoingToSleep (this->tracker));
             return;
             } else {
                 snprintf(logMessage, sizeof(logMessage),"No Messages received:");
                 uartUSB.write (logMessage , strlen (logMessage));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only}
+                newDataAvailable = false;
+                enableTransceiver = false;
                 this->tracker->changeState (new GoingToSleep (this->tracker));
                 return;
             }    
@@ -125,6 +128,8 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             uartUSB.write ( "\r\n",  3 );  // debug only}
 
             // save message in memory..
+            newDataAvailable = false;
+            enableTransceiver = false;
             this->tracker->changeState (new GoingToSleep (this->tracker));
             return;
         }

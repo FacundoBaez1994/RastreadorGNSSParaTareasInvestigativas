@@ -5,7 +5,6 @@
 //==================[Libraries]===============================================
 
 #include "mbed.h"
-#include "math.h"
 #include "Non_Blocking_Delay.h"
 
 //=====[Declaration of public data types]======================================
@@ -18,11 +17,10 @@ class I2CInterfaceHandler {
 public:
     I2CInterfaceHandler ();
     virtual ~I2CInterfaceHandler ();
-
-    // mover a I2C interface handler
-    void writeByte(uint8_t address, uint8_t subAddress, uint8_t data);
-    char readByte(uint8_t address, uint8_t subAddress);
-    void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest);
+    void write_byte(uint8_t address, uint8_t subAddress, uint8_t data);
+    uint8_t read_byte(uint8_t address, uint8_t subAddress);
+    void read_bytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t* dest);
+    void print_i2c_error();
        
 
  private:
@@ -30,6 +28,7 @@ public:
 
     //=====[Declaration of private atributtes]=========================================
     I2C * i2cInterface;
+    uint8_t i2c_err_;
 
 };
 

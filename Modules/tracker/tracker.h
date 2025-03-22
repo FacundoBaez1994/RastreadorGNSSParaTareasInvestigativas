@@ -5,9 +5,9 @@
 
 #include "mbed.h"
 #include "Non_Blocking_Delay.h"
-#include "arm_book_lib.h"
+//#include "arm_book_lib.h"
 #include "string.h"
-#include "InertialSensor.h"
+#include "IMU.h"
 
 //=====[Declaration of public defines]=========================================
 
@@ -26,9 +26,16 @@ public:
     virtual ~tracker ();
     void update();
 private:
-    NonBlockingDelay * latency;
-    InertialSensor * sensor;
-    Timer t;
+    IMU * imu;
+    //void print_roll_pitch_yaw ();
+    //void print_acceleration ();
+    //void print_Gyro ();
+    //void print_calibration ();
+    
+
+   // NonBlockingDelay * latency;
+   // InertialSensor * sensor;
+   // Timer t;
 };
 
 

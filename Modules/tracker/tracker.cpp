@@ -1,22 +1,17 @@
 //=====[Libraries]=============================================================
-
+#include "mbed.h"
 #include "tracker.h"
-#include "Debugger.h" // due to global usbUart
-
+#include "QuaternionFilter.h"
+#include "Debugger.h"
+#include "MPU9250RegisterMap.h"
 
 //=====[Declaration of private defines]========================================
-#define LATENCY     500
-#define POWERCHANGEDURATION  700
+//using namespace std::chrono;
+#define I2C_SDA PA_10
+#define I2C_SCL PA_9 
+#define CALIB_GYRO_SENSITIVITY 131     // LSB/degrees/sec
+#define CALIB_ACCEL_SENSITIVITY 16384  // LSB/g 
 
-#define WHO_AM_I_MPU9250 0x75 // Should return 0x71
-
-#define ADO 0
-#if ADO
-#define MPU9250_ADDRESS 0x69<<1  // Device address when ADO = 1
-#else
-#define MPU9250_ADDRESS 0x68<<1  // Device address when ADO = 0
-#endif  
-#define INT_STATUS 0x3A
 
 //=====[Declaration of private data types]=====================================
 
@@ -32,16 +27,60 @@
 
 //=====[Implementations of public methods]===================================
 
+/*
+void tracker::print_roll_pitch_yaw() {
+    char buffer[128];
+    int len = snprintf(buffer, sizeof(buffer),
+                       "Yaw, Pitch, Roll: %.2f, %.2f, %.2f\n\r",
+                       this->imu->getYaw(), this->imu->getPitch(), this->imu->getRoll());
+    uartUSB.write(buffer, len);
+}
+
+void tracker::print_acceleration () {
+    char buffer[128];
+    int len = snprintf(buffer, sizeof(buffer),
+                       "AccX, AccY, AccZ: %.2f, %.2f, %.2f\n\r",
+                       this->imu->getAccX (), this->imu->getAccY (), this->imu->getAccZ());
+    uartUSB.write(buffer, len);
+}
+
+void tracker::print_Gyro () {
+    char buffer[128];
+    int len = snprintf(buffer, sizeof(buffer),
+                       "GyroX, GyroY, GyroZ: %.2f, %.2f, %.2f\n\r",
+                       this->imu->getGyroX (), this->imu->getGyroY (), this->imu->getGyroZ());
+    uartUSB.write(buffer, len);
+}
+
+void tracker::print_calibration() {
+    char buffer[256];
+    int len = snprintf(buffer, sizeof(buffer),
+                       "< calibration parameters >\n\r"
+                       "accel bias [g]: %.3f, %.3f, %.3f\n\r"
+                       "gyro bias [deg/s]: %.3f, %.3f, %.3f\n\r"
+                       "mag bias [mG]: %.3f, %.3f, %.3f\n\r"
+                       "mag scale []: %.3f, %.3f, %.3f\n\r",
+                       this->imu->getAccBiasX() * 1000.f / (float) CALIB_ACCEL_SENSITIVITY,
+                       this->imu->getAccBiasY() * 1000.f / (float) CALIB_ACCEL_SENSITIVITY,
+                       this->imu->getAccBiasZ() * 1000.f / (float) CALIB_ACCEL_SENSITIVITY,
+                       this->imu->getGyroBiasX() / (float) CALIB_GYRO_SENSITIVITY,
+                       this->imu->getGyroBiasY() / (float) CALIB_GYRO_SENSITIVITY,
+                       this->imu->getGyroBiasZ() / (float) CALIB_GYRO_SENSITIVITY,
+                       this->imu->getMagBiasX(), this->imu->getMagBiasY(), this->imu->getMagBiasZ(),
+                       this->imu->getMagScaleX(), this->imu->getMagScaleY(), this->imu->getMagScaleZ());
+    uartUSB.write(buffer, len);
+}
+*/
 
 /** 
 * @brief Contructor method creates a new trackerGPS instance ready to be used
 */
 tracker::tracker () {
-    this->latency = new NonBlockingDelay (LATENCY);
-    this->sensor = new InertialSensor ();
-    this->t.start();
+   // I2C * interface = new I2C (I2C_SDA, I2C_SCL);
+   // interface->frequency (400000);
+   // this->imu = new MPU9250 (interface);
+   this->imu = new IMU ();
 }
-
 
 tracker::~tracker() {
 
@@ -54,41 +93,61 @@ tracker::~tracker() {
 *
 */
 void tracker::update () {
-    char buffer [80];
-    static bool sensorsReady =  false;
-    static bool transmissionSecuenceActive = true;
-    static float deltat = 0.0f;                             // integration interval for both filter schemes
-    static int lastUpdate = 0, firstUpdate = 0, Now = 0;    // used to calculate integration interval    
-  
+
+    this->imu->obtainInertialMeasures();
+
+    /*
+    static bool initialize =  false; 
+    I2C * interface;
+    static Timer timer; // Temporizador estático
+    //auto prev_time = Kernel::Clock::now(); // Obtiene el tiempo actual
 
 
-    if (this->latency->read() && transmissionSecuenceActive == false) { // WRITE
-        transmissionSecuenceActive = true;
+    if (initialize == false) {
+        wait_us (2000);
+        if (!this->imu->setup(0x68)) {  // change to your own address
+                uartUSB.write("MPU connection failed\n\r", strlen ("MPU connection failed\n\r")); 
+                wait_us (2000);
+                //delay(5000); ARDUINO
+                return;
+        }
+        // calibrate anytime you want to
+        uartUSB.write("Accel Gyro calibration will start in 5sec\n\r", 
+        strlen ("Accel Gyro calibration will start in 5sec\n\r")); 
+        uartUSB.write("Please leave the device still on the flat plane\n\r", 
+        strlen ("Please leave the device still on the flat plane\n\r")); 
+        this->imu->verbose(true);
+        wait_us(5000000);
+        //delay(5000);
+        this->imu->calibrateAccelGyro();
 
+        uartUSB.write("Mag calibration will start in 5sec\n\r", 
+        strlen ("Mag calibration will start in 5sec\n\r")); 
+        uartUSB.write("Please Wave device in a figure eight until done\n\r", 
+        strlen ("Please Wave device in a figure eight until done\n\r")); 
+
+        //delay(5000);
+        wait_us(5000000);
+        this->imu->calibrateMag();
+
+        print_calibration();
+        this->imu->verbose(false);
+
+        initialize =  true; 
+        timer.start(); // Inicia el temporizador después de la calibración
     }
+    
+    
 
-    if ( sensorsReady == false){
-        if (this->sensor->initializeSensors()){
-             sensorsReady = true;
+    if (this->imu->update()) {
+        if (timer.elapsed_time() >= 25ms) {   // Comprueba si han pasado xms
+           print_roll_pitch_yaw();
+           // print_acceleration ();
+          //  print_Gyro();
         }
     }
 
-    Now =  chrono::duration_cast<chrono::microseconds>(this->t.elapsed_time()).count();
-    deltat =  static_cast<float>((Now - lastUpdate)/1000000.0f) ; // set integration time by time elapsed since last filter update
-    lastUpdate = Now;
-
-    if ( sensorsReady == true && transmissionSecuenceActive  == true) {
-        if(this->sensor->acquireData(deltat)) {
-      
-            snprintf(buffer, sizeof(buffer), "now = %d  \n\r", Now);
-            uartUSB.write(buffer, strlen(buffer));
-
-            snprintf(buffer, sizeof(buffer), "delta T = %f  \n\r", deltat);
-            uartUSB.write(buffer, strlen(buffer));
-            transmissionSecuenceActive = false;
-        }
-    }
-
+    */
 }
 
 //=====[Implementations of private methods]==================================

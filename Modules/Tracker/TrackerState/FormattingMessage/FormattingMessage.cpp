@@ -179,7 +179,7 @@ std::vector<CellInformation*> &neighborsCellInformation, BatteryData  * batteryS
         lac = neighborsCellInformation[i]->lac;
         idCell = neighborsCellInformation[i]->cellId;
         prx = neighborsCellInformation[i]->signalLevel;
-        snprintf(neighbors, sizeof(neighbors),",%dG,%d,%d,%X,%X,%f",tech,mcc,mnc,lac,idCell,prx); 
+        snprintf(neighbors, sizeof(neighbors),",%dG,%d,%d,%X,%X,%.2f",tech,mcc,mnc,lac,idCell,prx); 
         uartUSB.write (neighbors , strlen (neighbors ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         // Concatenar el mensaje de la celda vecina al mensaje principal

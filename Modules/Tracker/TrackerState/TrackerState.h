@@ -10,6 +10,7 @@
 #include "arm_book_lib.h"
 #include "CellularModule.h"
 #include "GNSSModule.h"
+#include "IMU.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -24,6 +25,8 @@ struct BatteryData;
 class TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
+    virtual void calibrateIMU (IMU * inertialSensor);
+    virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
     virtual void obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata);
     virtual void connectToMobileNetwork (CellularModule * cellularTransceiver,

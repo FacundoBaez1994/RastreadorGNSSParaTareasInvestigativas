@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 #include "GatheringCellInformation.h"
 #include "GoingToSleep.h"
-#include "FormattingMessage.h"
+#include "GatheringInertialData.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -38,21 +38,9 @@
 * 
 * @param 
 */
-ConnectingToMobileNetwork::ConnectingToMobileNetwork (Tracker * tracker, bool wasGNSSObtain) {
-    this->wasGNSSObtain = wasGNSSObtain;
+ConnectingToMobileNetwork::ConnectingToMobileNetwork (Tracker * tracker, trackerStatus_t trackerStatus) {
+    this->currentStatus = trackerStatus;
     this->tracker = tracker;
-    /*
-    if (wasGNSSObtain) {
-        char StringToSendUSB [50] = "ConnectingToMobileNetwork GNSS true";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
-    } else {
-        char StringToSendUSB [50] = "ConnectingToMobileNetwork GNSS false";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
-    }
-    */
-
 }
 
 /** 
@@ -87,8 +75,8 @@ void ConnectingToMobileNetwork::obtainNeighborCellsInformation (CellularModule* 
     cellularTransceiver->enableConnection();
     currentConnectionStatus = cellularTransceiver->connectToMobileNetwork (currentCellInformation);
     if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK){
-        if (wasGNSSObtain == true) {
-            this->tracker->changeState (new FormattingMessage (this->tracker, wasGNSSObtain , true));
+        if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN) {
+            this->tracker->changeState (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK));
             return;
         } else {
             this->tracker->changeState  (new GatheringCellInformation (this->tracker));
@@ -100,6 +88,7 @@ void ConnectingToMobileNetwork::obtainNeighborCellsInformation (CellularModule* 
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
         // Go to sleep
+        // USE IMU PLUS MEMORY INSTED 
         this->tracker->changeState  (new GoingToSleep (this->tracker));
         return;
     }
@@ -108,8 +97,6 @@ void ConnectingToMobileNetwork::obtainNeighborCellsInformation (CellularModule* 
     return; 
 }
 
-    // IMU Method 1
-    // IMU Methord 2
 void ConnectingToMobileNetwork::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     BatteryData  * batteryStatus) {
@@ -128,6 +115,15 @@ void ConnectingToMobileNetwork::goToSleep (CellularModule * cellularTransceiver 
 
 void ConnectingToMobileNetwork::awake (CellularModule * cellularTransceiver, 
 NonBlockingDelay * latency ) {
+    return;
+}
+
+void ConnectingToMobileNetwork::calibrateIMU (IMU * inertialSensor) {
+    return;
+}
+
+void ConnectingToMobileNetwork::obtainInertialMeasures (IMU * inertialSensor,
+ char * dataObtain, float * temperatureObtain) {
     return;
 }
 

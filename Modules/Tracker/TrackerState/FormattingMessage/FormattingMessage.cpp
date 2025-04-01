@@ -11,7 +11,6 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
@@ -36,11 +35,9 @@
 * 
 * @param 
 */
-FormattingMessage::FormattingMessage (Tracker * tracker,
- bool connectedToMobileNetwork, bool GNSSObtain) {
+FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
-    this->connectedToMobileNetwork = connectedToMobileNetwork;
-    this->GNSSObtain = GNSSObtain; 
+    this->currentStatus = trackerStatus;
 }
 
 /** 
@@ -79,8 +76,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
     BatteryData  * batteryStatus) {
     /// Cifrado iria aca tambien..
 
-    if (this->connectedToMobileNetwork == true) {
-        if (this->GNSSObtain == true) {
+    if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
             char StringToSendUSB [50] = "Formating MN,GNSS message\r\n";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -90,9 +86,11 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->tracker->changeState (new ExchangingMessages (this->tracker, true));
+            this->tracker->changeState (new ExchangingMessages (this->tracker, 
+            TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK));
             return;
-        }else {
+    }
+    if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
             char StringToSendUSB [50] = "Formating MN,MN message:\r\n";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -103,19 +101,10 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->tracker->changeState (new ExchangingMessages (this->tracker, true));
+            this->tracker->changeState (new ExchangingMessages (this->tracker, 
+            TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK));
             return;
         }
-
-    } else {
-        if (this->GNSSObtain == true) {
-
-            return;
-        }else {
-
-            return;
-        } 
-    }
         
     return;
 }
@@ -134,7 +123,14 @@ void FormattingMessage::awake (CellularModule * cellularTransceiver,
     return;
 }
 
+void FormattingMessage::calibrateIMU (IMU * inertialSensor) {
+    return;
+}
 
+void FormattingMessage::obtainInertialMeasures (IMU * inertialSensor,
+ char * dataObtain, float * temperatureObtain) {
+    return;
+}
 
 
 //=====[Implementations of private methods]==================================

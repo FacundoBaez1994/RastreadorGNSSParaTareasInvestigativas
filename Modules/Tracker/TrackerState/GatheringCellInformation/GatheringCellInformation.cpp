@@ -3,7 +3,7 @@
 #include "GatheringCellInformation.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
-#include "FormattingMessage.h"
+#include "GatheringInertialData.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -69,12 +69,11 @@ void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* c
 
     if (cellularTransceiver->retrivNeighborCellsInformation(neighborsCellInformation,
      numberOfNeighbors) == true){
-         this->tracker->changeState (new FormattingMessage (this->tracker, true, false));
+         this->tracker->changeState (new GatheringInertialData (this->tracker, 
+         TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK));
          return;
      }
     // Format message for LoRa 
-
-
     return; 
 }
     // IMU Method 1
@@ -99,6 +98,17 @@ void GatheringCellInformation::awake (CellularModule * cellularTransceiver,
  NonBlockingDelay * latency ) {
     return;
 }
+
+void GatheringCellInformation::calibrateIMU (IMU * inertialSensor) {
+    return;
+}
+
+void GatheringCellInformation::obtainInertialMeasures (IMU * inertialSensor,
+ char * dataObtain, float * temperatureObtain) {
+    return;
+}
+
+
 
 
 

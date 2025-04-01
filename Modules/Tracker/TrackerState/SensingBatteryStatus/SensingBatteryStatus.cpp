@@ -66,7 +66,8 @@ void SensingBatteryStatus::connectToMobileNetwork (CellularModule * cellularTran
     return;
 }
 
-void SensingBatteryStatus::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
+void SensingBatteryStatus::obtainGNSSPosition (GNSSModule * currentGNSSModule, 
+GNSSData * currentGNSSdata) {
     return;
 }
 void SensingBatteryStatus::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
@@ -99,5 +100,17 @@ void SensingBatteryStatus::awake (CellularModule * cellularTransceiver,
 NonBlockingDelay * latency ) {
     return;
 }
+
+void SensingBatteryStatus::calibrateIMU (IMU * inertialSensor) {
+    return;
+}
+
+
+void SensingBatteryStatus::obtainInertialMeasures (IMU * inertialSensor,
+ char * dataObtain, float * temperatureObtain) {
+    return;
+}
+
+
 
 

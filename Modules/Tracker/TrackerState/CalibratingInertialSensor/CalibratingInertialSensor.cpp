@@ -1,9 +1,9 @@
 //=====[Libraries]=============================================================
 
-#include "GoingToSleep.h"
-#include "Slepping.h"
+#include "CalibratingInertialSensor.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
+#include "SensingBatteryStatus.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -36,7 +36,7 @@
 * 
 * @param 
 */
-GoingToSleep::GoingToSleep (Tracker * tracker) {
+CalibratingInertialSensor::CalibratingInertialSensor (Tracker * tracker) {
     this->tracker = tracker;
 }
 
@@ -45,61 +45,75 @@ GoingToSleep::GoingToSleep (Tracker * tracker) {
 * 
 * @param 
 */
-GoingToSleep::~GoingToSleep () {
+CalibratingInertialSensor::~CalibratingInertialSensor() {
     this->tracker = NULL;
 }
 
-void GoingToSleep::updatePowerStatus (CellularModule * cellularTransceiver,
+void CalibratingInertialSensor::updatePowerStatus (CellularModule * cellularTransceiver,
  BatteryData * currentBatteryStatus) {
-    cellularTransceiver->startStopUpdate();
+    //cellularTransceiver->startStopUpdate();
  }
 
-void GoingToSleep::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
+void CalibratingInertialSensor::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
     return;
 }
 
- void GoingToSleep::connectToMobileNetwork (CellularModule * cellularTransceiver,
+ void CalibratingInertialSensor::connectToMobileNetwork (CellularModule * cellularTransceiver,
     CellInformation * currentCellInformation) {
     return; 
 }
 
 
-void GoingToSleep::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
+void CalibratingInertialSensor::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
     return;
 }
     // IMU Method 1
     // IMU Methord 2
 
-void GoingToSleep::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
+void CalibratingInertialSensor::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     BatteryData  * batteryStatus) {
     return;
 }
 
-void GoingToSleep::exchangeMessages (CellularModule * cellularTransceiver,
+void CalibratingInertialSensor::exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage ){
 
     return;
 }
     // agregar LoRa // exchageMessages (Lora * LoRaModule);
-void GoingToSleep::goToSleep (CellularModule * cellularTransceiver ) {
-    if (cellularTransceiver->goToSleep()) {
-        this->tracker->changeState  (new Slepping (this->tracker));
-        return;
+void CalibratingInertialSensor::goToSleep (CellularModule * cellularTransceiver ) {
+    return;
+}
+
+void CalibratingInertialSensor::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency ) {
+    return;
+ }
+
+void CalibratingInertialSensor::calibrateIMU (IMU * inertialSensor) {
+    static bool firstcalibrationOK = false;
+    char inertialData [100];
+    float temp;
+
+    if (firstcalibrationOK == false) {
+        if (inertialSensor->calibrate() == true) {
+            firstcalibrationOK = true;
+            
+        }
+    }
+    if (firstcalibrationOK == true ) { 
+        // primera lectura de prueba
+        if (inertialSensor->obtainInertialMeasures(inertialData, &temp) == true) {
+            this->tracker->changeState(new SensingBatteryStatus (this->tracker));
+            firstcalibrationOK = false;
+            return;
+        }
     }
     return;
 }
 
-void GoingToSleep::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency) {
-    return;
-}
-
-void GoingToSleep::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void GoingToSleep::obtainInertialMeasures (IMU * inertialSensor,
+void CalibratingInertialSensor::obtainInertialMeasures (IMU * inertialSensor,
  char * dataObtain, float * temperatureObtain) {
     return;
 }

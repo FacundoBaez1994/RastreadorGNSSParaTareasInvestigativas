@@ -23,6 +23,8 @@ public:
 //=====[Declaration of public methods]=========================================
     GoingToSleep (Tracker * tracker);
     virtual ~GoingToSleep ();
+    virtual void calibrateIMU (IMU * inertialSensor);
+    virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
     virtual void obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata);
     virtual void connectToMobileNetwork (CellularModule * cellularTransceiver,
@@ -40,7 +42,6 @@ public:
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
 private:
-    //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;
   
 

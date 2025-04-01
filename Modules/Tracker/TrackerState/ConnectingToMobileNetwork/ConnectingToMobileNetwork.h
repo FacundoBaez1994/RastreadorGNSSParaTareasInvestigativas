@@ -9,6 +9,7 @@
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "TrackerState.h"
+#include "TrackerStatus.h"
 #include "Tracker.h"
 
 //=====[Declaration of public data types]======================================
@@ -22,8 +23,10 @@ class Tracker; //debido a declaracion adelantada
 class ConnectingToMobileNetwork : public TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConnectingToMobileNetwork (Tracker * tracker, bool wasGNSSObtain);
+    ConnectingToMobileNetwork (Tracker * tracker, trackerStatus_t trackerStatus);
     virtual ~ConnectingToMobileNetwork ();
+    virtual void calibrateIMU (IMU * inertialSensor);
+    virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
     virtual void obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata);
     virtual void connectToMobileNetwork (CellularModule * cellularTransceiver,
@@ -43,7 +46,7 @@ public:
 private:
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;
-    bool wasGNSSObtain;
+    trackerStatus_t currentStatus;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

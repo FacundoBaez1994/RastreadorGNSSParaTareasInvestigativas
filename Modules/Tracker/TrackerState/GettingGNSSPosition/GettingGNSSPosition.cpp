@@ -64,14 +64,14 @@ void GettingGNSSPosition::obtainGNSSPosition (GNSSModule * currentGNSSModule, GN
         snprintf(logMessage, sizeof(logMessage), "GNSS OBTAIN!!!!");
         uartUSB.write (logMessage , strlen (logMessage ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-        this->tracker->changeState  (new ConnectingToMobileNetwork (this->tracker, true));
+        this->tracker->changeState  (new ConnectingToMobileNetwork (this->tracker, TRACKER_STATUS_GNSS_OBTAIN));
         return;
     }
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_UNAVAILABLE ) {
         snprintf(logMessage, sizeof(logMessage), "GNSS UNAVAILABLE!!!!");
         uartUSB.write (logMessage , strlen (logMessage ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
-        this->tracker->changeState  (new ConnectingToMobileNetwork (this->tracker, false));
+        this->tracker->changeState  (new ConnectingToMobileNetwork (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE));
         return;
     }
 
@@ -110,6 +110,16 @@ void GettingGNSSPosition::awake (CellularModule * cellularTransceiver,
 NonBlockingDelay * latency ) {
     return;
 }
+
+void GettingGNSSPosition::calibrateIMU (IMU * inertialSensor) {
+    return;
+}
+
+void GettingGNSSPosition::obtainInertialMeasures (IMU * inertialSensor,
+ char * dataObtain, float * temperatureObtain) {
+    return;
+}
+
 
 
 

@@ -95,6 +95,14 @@ void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * l
     return;
  }
 
+void Slepping::calibrateIMU (IMU * inertialSensor) {
+    return;
+}
+
+void Slepping::obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain) {
+    return;
+}
+
 
 
 

@@ -12,6 +12,8 @@
 #include "arm_book_lib.h"
 #include "string.h"
 #include "TrackerState.h"
+#include "TrackerStatus.h"
+#include "IMU.h"
 
 
 
@@ -36,15 +38,8 @@ public:
     void changeState  (TrackerState * newTrackerState);
     
 private:
-
-
-    char* formMessage (GNSSData * GNSSInfo);
-    char* formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
-    &neighborsCellInformation, BatteryData  * batteryStatus); 
-    char* formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus);
-    
-
     TrackerState * currentState;
+    IMU * inertialSensor;
     
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;

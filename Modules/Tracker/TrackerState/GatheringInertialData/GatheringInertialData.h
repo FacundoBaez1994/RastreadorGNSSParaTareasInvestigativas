@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _SLEEPING_H_
-#define _SLEEPING_H_
+#ifndef _GATHERING_INERTIAL_DATA_H_
+#define _GATHERING_INERTIAL_DATA_H_
 
 //==================[Libraries]===============================================
 
@@ -9,6 +9,7 @@
 #include "arm_book_lib.h"
 #include "TrackerState.h"
 #include "Tracker.h"
+#include "Non_Blocking_Delay.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada
@@ -18,11 +19,11 @@ class Tracker; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class Slepping : public TrackerState {
+class GatheringInertialData: public TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
-    Slepping (Tracker * tracker);
-    virtual ~Slepping ();
+    GatheringInertialData (Tracker * tracker, trackerStatus_t trackerStatus);
+    virtual ~GatheringInertialData ();
     virtual void calibrateIMU (IMU * inertialSensor);
     virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
@@ -31,8 +32,6 @@ public:
     CellInformation * currentCellInformation);
     virtual void obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
-    // IMU Method 1
-    // IMU Methord 2
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     BatteryData  * batteryStatus); 
@@ -42,10 +41,9 @@ public:
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
 private:
-    //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;
-  
-
+    NonBlockingDelay * timeBeetwenSamples;
+    trackerStatus_t currentStatus;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -56,4 +54,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif // _SLEEPING_H_
+#endif // _GATHERING_INERTIAL_DATA_H_

@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _SLEEPING_H_
-#define _SLEEPING_H_
+#ifndef _CALIBRATING_INERTIAL_SENSOR_H_
+#define _CALIBRATING_INERTIAL_SENSOR_H_
 
 //==================[Libraries]===============================================
 
@@ -18,11 +18,11 @@ class Tracker; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
-class Slepping : public TrackerState {
+class CalibratingInertialSensor: public TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
-    Slepping (Tracker * tracker);
-    virtual ~Slepping ();
+    CalibratingInertialSensor (Tracker * tracker);
+    virtual ~CalibratingInertialSensor ();
     virtual void calibrateIMU (IMU * inertialSensor);
     virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
@@ -42,7 +42,6 @@ public:
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
 private:
-    //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;
   
 
@@ -56,4 +55,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif // _SLEEPING_H_
+#endif //  _CALIBRATING_INERTIAL_SENSOR_H_

@@ -21,16 +21,16 @@ class Tracker; //debido a declaracion adelantada
 class FormattingMessage : public TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
-    FormattingMessage (Tracker * tracker, bool connectedToMobileNetwork, bool GNSSObtain);
+    FormattingMessage (Tracker * tracker, trackerStatus_t trackerStatus);
     virtual ~FormattingMessage ();
+    virtual void calibrateIMU (IMU * inertialSensor);
+    virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
     virtual void obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata);
     virtual void connectToMobileNetwork (CellularModule * cellularTransceiver,
     CellInformation * currentCellInformation);
     virtual void obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
-    // IMU Method 1
-    // IMU Methord 2
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     BatteryData  * batteryStatus); 
@@ -47,8 +47,7 @@ private:
 
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;
-    bool connectedToMobileNetwork;
-    bool GNSSObtain;
+    trackerStatus_t currentStatus;
 
 //=====[Declaration of privates atributes]=========================================
 

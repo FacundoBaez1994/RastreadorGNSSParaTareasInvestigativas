@@ -36,9 +36,9 @@
 * 
 * @param 
 */
-ExchangingMessages::ExchangingMessages (Tracker * tracker, bool connectedToMobileNetwork) {
+ExchangingMessages::ExchangingMessages (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
-    this->connectedToMobileNetwork = connectedToMobileNetwork;
+    this->currentStatus = trackerStatus;
 }
 
 /** 
@@ -52,7 +52,7 @@ ExchangingMessages::~ExchangingMessages () {
 
 void ExchangingMessages::updatePowerStatus (CellularModule * cellularTransceiver,
  BatteryData * currentBatteryStatus) {
-    //cellularTransceiver->startStopUpdate();
+    cellularTransceiver->startStopUpdate();
  }
 
 void ExchangingMessages::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
@@ -85,7 +85,8 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static bool enableTransceiver = false;
     char logMessage [50];
     
-    if (this->connectedToMobileNetwork == true) {
+    if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
+     || this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
         if (enableTransceiver == false) {
             cellularTransceiver->enableTransceiver();
             enableTransceiver = true; 
@@ -151,8 +152,13 @@ void ExchangingMessages::awake (CellularModule * cellularTransceiver,
     return;
 }
 
+void ExchangingMessages::calibrateIMU (IMU * inertialSensor) {
+    return;
+}
 
-
-
+void ExchangingMessages::obtainInertialMeasures (IMU * inertialSensor,
+ char * dataObtain, float * temperatureObtain) {
+    return;
+}
 
 //=====[Implementations of private methods]==================================

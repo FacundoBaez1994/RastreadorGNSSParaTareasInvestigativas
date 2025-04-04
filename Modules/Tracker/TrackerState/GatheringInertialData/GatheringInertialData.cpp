@@ -78,7 +78,7 @@ void GatheringInertialData::obtainNeighborCellsInformation (CellularModule* cell
 
 void GatheringInertialData::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus) {
+     char * inertialData, BatteryData  * batteryStatus) {
     return;
 }
 
@@ -103,11 +103,18 @@ void GatheringInertialData::calibrateIMU (IMU * inertialSensor) {
 void GatheringInertialData::obtainInertialMeasures (IMU * inertialSensor,
  char * dataObtain, float * temperatureObtain) {
     float temperature;
+    static char newInertialData [100];
+    static char temporalBuffer [100];
+
     //inertialSensor->calibrate();
     if (this->currentStatus != TRACKER_STATUS_NONE_LOCALIZATION_MEAN_AVAILABLE) {
-        if (inertialSensor->obtainInertialMeasures (dataObtain, &temperature)) {
-            uartUSB.write (dataObtain , strlen (dataObtain ));  // debug only
-          //  inertialSensor->changeState(new initializeMPU9250 (inertialSensor));
+        if (inertialSensor->obtainInertialMeasures (newInertialData , &temperature)) {
+            snprintf(temporalBuffer, sizeof(temporalBuffer), "%.2f,%s", temperature, newInertialData);
+            strcpy (dataObtain, temporalBuffer );
+            uartUSB.write("inertial data Obtain:", strlen("inertial data Obtain:"));
+            uartUSB.write("\n\r", strlen("\n\r"));
+            uartUSB.write (dataObtain, strlen (dataObtain ));  // debug only
+            uartUSB.write("\n\r", strlen("\n\r"));
             this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
             return;
         }

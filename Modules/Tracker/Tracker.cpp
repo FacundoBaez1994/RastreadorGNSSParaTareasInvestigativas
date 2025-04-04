@@ -28,7 +28,7 @@
 */
 Tracker::Tracker () {
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
-    //watchdog.start(TIMEOUT_MS);
+    watchdog.start(TIMEOUT_MS);
     char StringToSendUSB [50] = "Tracker initialization";
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
 
@@ -101,9 +101,7 @@ void Tracker::update () {
 
 
 
-   // watchdog.kick();
-
-    
+    watchdog.kick();
     this->currentState->awake(this->cellularTransceiver, this->latency);
     this->currentState->calibrateIMU (this->inertialSensor);
     this->currentState->updatePowerStatus (this->cellularTransceiver, this->batteryStatus);
@@ -114,7 +112,7 @@ void Tracker::update () {
     neighborsCellInformation, numberOfNeighbors );
     this->currentState->obtainInertialMeasures(this->inertialSensor, inertialData, &temperature);
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
-    this->currentGNSSdata, neighborsCellInformation, this->batteryStatus); 
+    this->currentGNSSdata, neighborsCellInformation, inertialData, this->batteryStatus); 
     // agregar dato IMU
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento

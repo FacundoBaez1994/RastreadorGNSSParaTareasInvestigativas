@@ -68,12 +68,10 @@ void GoingToSleep::obtainNeighborCellsInformation (CellularModule* cellularTrans
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
     return;
 }
-    // IMU Method 1
-    // IMU Methord 2
 
 void GoingToSleep::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus) {
+     char * inertialData, BatteryData  * batteryStatus) {
     return;
 }
 

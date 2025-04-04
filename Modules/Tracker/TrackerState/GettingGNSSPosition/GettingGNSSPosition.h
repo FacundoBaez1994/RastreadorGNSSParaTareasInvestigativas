@@ -33,7 +33,7 @@ public:
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus); 
+     char * inertialData, BatteryData  * batteryStatus); 
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     // agregar LoRa // exchageMessages (Lora * LoRaModule);

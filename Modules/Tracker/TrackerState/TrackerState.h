@@ -33,15 +33,12 @@ public:
     CellInformation * currentCellInformation);
     virtual void obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
-    // IMU Method 1
-    // IMU Methord 2
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus); 
-    // agregar dato IMU
+     char * inertialData, BatteryData  * batteryStatus); 
+    // agregar LoRa // exchageMessages (Lora * LoRaModule);
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
     

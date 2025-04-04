@@ -83,7 +83,7 @@ NonBlockingDelay * refresh) {
         strlen ("Accel Gyro calibration will start in 5sec\n\r")); 
         uartUSB.write("Please leave the device still on the flat plane\n\r", 
         strlen ("Please leave the device still on the flat plane\n\r"));
-        wait_us(5000000); // quitar
+        //wait_us(5000000); // quitar
         this->imu->changeState  (new calibratingAccelGyro (this->imu, this->mpuI2CAddr) );
         return;
     }

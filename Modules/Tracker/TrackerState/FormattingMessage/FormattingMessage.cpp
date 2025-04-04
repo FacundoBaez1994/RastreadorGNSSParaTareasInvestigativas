@@ -68,19 +68,18 @@ void FormattingMessage::obtainNeighborCellsInformation (CellularModule* cellular
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
     return;
 }
-    // IMU Method 1
-    // IMU Methord 2
+
 
 void FormattingMessage::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus) {
+     char * inertialData, BatteryData  * batteryStatus) {
     /// Cifrado iria aca tambien..
 
     if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
             char StringToSendUSB [50] = "Formating MN,GNSS message\r\n";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, batteryStatus);
+            this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, inertialData, batteryStatus);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
@@ -95,7 +94,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, 
-            neighborsCellInformation, batteryStatus);
+            neighborsCellInformation, inertialData, batteryStatus);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
@@ -135,7 +134,7 @@ void FormattingMessage::obtainInertialMeasures (IMU * inertialSensor,
 
 //=====[Implementations of private methods]==================================
 void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-std::vector<CellInformation*> &neighborsCellInformation, BatteryData  * batteryStatus) {
+std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, BatteryData  * batteryStatus) {
     static char message[500];
     char neighbors[50];
     int lac;
@@ -145,20 +144,21 @@ std::vector<CellInformation*> &neighborsCellInformation, BatteryData  * batteryS
     int mnc;
     float prx;
     snprintf(message, sizeof(message), 
-            "MN,MN,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%s,%d,%d", 
-            aCellInfo->mcc,
-            aCellInfo->mnc,
-            aCellInfo->lac,
-            aCellInfo->cellId,
-            aCellInfo->signalLevel,
-            aCellInfo->accessTechnology,
-            aCellInfo->registrationStatus,
-            aCellInfo->channel,
-            aCellInfo->band,
-            aCellInfo->date,
-            aCellInfo->time,
-            batteryStatus->batteryChargeStatus,
-            batteryStatus->chargeLevel
+            "MN,MN,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%s,%s,%d,%d", 
+            aCellInfo->mcc,  // 1
+            aCellInfo->mnc,  // 2
+            aCellInfo->lac,  // 3
+            aCellInfo->cellId,  // 4
+            aCellInfo->signalLevel, // 5
+            aCellInfo->accessTechnology, // 6
+            aCellInfo->registrationStatus, // 7
+            aCellInfo->channel, // 8
+            aCellInfo->band, // 9
+            aCellInfo->date, // 10 
+            aCellInfo->time, // 11
+            inertialData,  //12 temp, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
+            batteryStatus->batteryChargeStatus, //19
+            batteryStatus->chargeLevel //20
             );
     snprintf(neighbors, sizeof(neighbors),"size of vector %d", neighborsCellInformation.size()); 
     uartUSB.write (neighbors , strlen (neighbors ));  // debug only
@@ -188,29 +188,30 @@ std::vector<CellInformation*> &neighborsCellInformation, BatteryData  * batteryS
 }
 
 void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo,
- GNSSData* GNSSInfo, BatteryData  * batteryStatus) {
+ GNSSData* GNSSInfo,  char * inertialData, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
-             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%X,%X,%d,%d,%.2f,%d,%d,%d,%s,%s,%s,%d,%d\r\n", 
-            GNSSInfo->latitude,
-            GNSSInfo->longitude,
-            GNSSInfo->hdop,
-            GNSSInfo->altitude,
-            GNSSInfo->cog,
-            GNSSInfo->spkm,
-            aCellInfo->lac,
-            aCellInfo->cellId,
-            aCellInfo->mcc,
-            aCellInfo->mnc,
-            aCellInfo->signalLevel,
-            aCellInfo->accessTechnology,
-            aCellInfo->registrationStatus,
-            aCellInfo->channel,
-            aCellInfo->band,
-            GNSSInfo->date,
-            GNSSInfo->utc,
-            batteryStatus->batteryChargeStatus,
-            batteryStatus->chargeLevel
+             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%s,%s,%d,%d\r\n", 
+            GNSSInfo->latitude, // 1
+            GNSSInfo->longitude,  // 2
+            GNSSInfo->hdop,  // 3
+            GNSSInfo->altitude,  // 4
+            GNSSInfo->cog,  // 5
+            GNSSInfo->spkm,  // 6
+            aCellInfo->mnc,  // 7
+            aCellInfo->mcc,  // 8
+            aCellInfo->lac,  // 9
+            aCellInfo->cellId,  // 10
+            aCellInfo->signalLevel, //11
+            aCellInfo->accessTechnology, //12
+            aCellInfo->registrationStatus, // 13
+            aCellInfo->channel, // 14
+            aCellInfo->band, // 15
+            GNSSInfo->date, // 16
+            GNSSInfo->utc, // 17
+            inertialData, //18 temp, 19 ax, 20 ay, 21 az, 22 yaw, 23 roll, 24 pitch
+            batteryStatus->batteryChargeStatus, // 25
+            batteryStatus->chargeLevel // 26
             );
     strcpy (formattedMessage, message);
 }

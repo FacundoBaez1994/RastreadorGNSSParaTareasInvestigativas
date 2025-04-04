@@ -69,12 +69,10 @@ void ExchangingMessages::obtainNeighborCellsInformation (CellularModule* cellula
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
     return;
 }
-    // IMU Method 1
-    // IMU Methord 2
 
 void ExchangingMessages::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus) {
+     char * inertialData, BatteryData  * batteryStatus) {
     return;
 }
 

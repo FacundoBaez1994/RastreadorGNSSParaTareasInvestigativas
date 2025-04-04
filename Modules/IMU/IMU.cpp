@@ -58,14 +58,11 @@ bool IMU::obtainInertialMeasures (char * dataObtain, float * temperatureObtain) 
     float temperature; 
     
     if (this->currentState->obtainInertialData(this->interface, newData) == true){
-        uartUSB.write(newData, strlen(newData));
         this->currentState->obtainTemperature(this->interface, &temperature);
-        char buffer [20];
-         snprintf(buffer, sizeof(buffer),
-                        "\n\rtemperature = %f °C\n\r", temperature);
-        uartUSB.write(buffer, strlen(buffer));
+
         *temperatureObtain =  temperature;
         strcpy (dataObtain, newData);
+
         return true;  
     }
     return false;

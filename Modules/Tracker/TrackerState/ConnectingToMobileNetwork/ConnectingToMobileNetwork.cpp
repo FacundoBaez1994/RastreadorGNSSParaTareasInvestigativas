@@ -99,7 +99,7 @@ void ConnectingToMobileNetwork::obtainNeighborCellsInformation (CellularModule* 
 
 void ConnectingToMobileNetwork::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus) {
+     char * inertialData, BatteryData  * batteryStatus) {
 
     return;
 }

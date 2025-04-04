@@ -33,7 +33,7 @@ public:
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus); 
+     char * inertialData, BatteryData  * batteryStatus); 
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     // agregar LoRa // exchageMessages (Lora * LoRaModule);
@@ -41,9 +41,9 @@ public:
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
 private:
     void formatMessage(char * formattedMessage, CellInformation* aCellInfo,
-     GNSSData* GNSSInfo, BatteryData  * batteryStatus);
+     GNSSData* GNSSInfo, char * inertialData, BatteryData  * batteryStatus);
     void formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-    std::vector<CellInformation*> &neighborsCellInformation, BatteryData  * batteryStatus); 
+    std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, BatteryData  * batteryStatus); 
 
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;

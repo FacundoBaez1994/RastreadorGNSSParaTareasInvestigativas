@@ -76,11 +76,10 @@ void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* c
     // Format message for LoRa 
     return; 
 }
-    // IMU Method 1
-    // IMU Methord 2
+
 void GatheringCellInformation::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    BatteryData  * batteryStatus) {
+     char * inertialData, BatteryData  * batteryStatus) {
         
     return;
 }

@@ -103,8 +103,8 @@ void PowerManager::awake ( ) {
 * 
 * @returns 
 */
-void PowerManager::reboot ( ) {
-    this->currentPowerState->reboot(this->ATHandler, this->powerChangeDurationTimer);
+bool PowerManager::reboot ( ) {
+    return this->currentPowerState->reboot(this->ATHandler, this->powerChangeDurationTimer);
 }
 
 

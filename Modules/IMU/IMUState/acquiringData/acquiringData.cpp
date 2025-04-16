@@ -183,7 +183,7 @@ bool acquiringData::obtainInertialData(I2CInterfaceHandler * interface, char * n
         this->q[3] = oldq [3];
     }
 
-    //this->print_roll_pitch_yaw ();
+    this->print_roll_pitch_yaw ();
     this->promAcumulatedMeasurement();
     if (this->samplesCounter == 3100) {
         char buffer[128];

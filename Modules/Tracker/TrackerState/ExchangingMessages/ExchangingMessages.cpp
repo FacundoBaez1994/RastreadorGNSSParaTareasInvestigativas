@@ -81,6 +81,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
+    static bool rebootTransceiver = false;
     char logMessage [50];
     
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
@@ -125,19 +126,22 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             snprintf(logMessage, sizeof(logMessage),"The message couldn't be sent");
             uartUSB.write (logMessage , strlen (logMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-
-            // save message in memory..
-            newDataAvailable = false;
-            enableTransceiver = false;
-            this->tracker->changeState (new GoingToSleep (this->tracker));
-            return;
+            rebootTransceiver = true;
         }
     } else {
         // try with LoRa
     }
 
-    
-
+    if (rebootTransceiver == true) {
+        if (cellularTransceiver->reboot()) {
+            // save message in memory..
+            newDataAvailable = false;
+            enableTransceiver = false;
+            rebootTransceiver = false; 
+            this->tracker->changeState (new GoingToSleep (this->tracker));
+            return;
+        }
+    }
     return;
 }
     // agregar LoRa // exchageMessages (Lora * LoRaModule);

@@ -154,7 +154,7 @@ powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonB
 * 
 * @returns 
 */
-void PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool readyToSend = true;
     char StringToSend [15] = "AT+QPOWD";
     char StringToBeRead [256];
@@ -186,12 +186,14 @@ void PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////            
             this->manager->changePowerState (new PowerOFFState (this->manager));
+            return true;
         }
     }
 
     if (powerChangeDurationTimer->read()) {
         readyToSend = true;
     }
+    return false;
 }
 
 /** 

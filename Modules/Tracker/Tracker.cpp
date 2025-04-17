@@ -55,6 +55,7 @@ Tracker::Tracker () {
 
     this->currentState =  new CalibratingInertialSensor (this);
 
+    this->jwt = new CustomJWT (this->JWTKey, 256);
 }
 
 
@@ -125,5 +126,32 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
     delete this->currentState;
     this->currentState = newTrackerState;
 }
+
+void Tracker::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
+    char logMessage [250];
+    this->jwt->allocateJWTMemory();
+    snprintf(logMessage, sizeof(logMessage), "Generating a JWT"); 
+    uartUSB.write(logMessage , strlen(logMessage ));
+
+    this->jwt->encodeJWT( payloadToJWT);
+
+    snprintf(logMessage, sizeof(logMessage), "Header Info"); 
+    uartUSB.write(logMessage , strlen(logMessage ));
+    printData(jwt.header, jwt.headerLength);
+
+    snprintf(logMessage, sizeof(logMessage), "Payload Info"); 
+    uartUSB.write(logMessage , strlen(logMessage ));
+    printData(jwt.payload, jwt.payloadLength);
+
+    snprintf(logMessage, sizeof(logMessage), "Signaure Info"); 
+    uartUSB.write(logMessage , strlen(logMessage ));;
+    printData(jwt.signature, jwt.signatureLength);
+
+    snprintf(logMessage, sizeof(logMessage), "Final Output Info"); 
+    uartUSB.write(logMessage , strlen(logMessage ));;
+    printData(jwt.out, jwt.outputLength);
+    this->jwt->clear();
+}
+
 
 //=====[Implementations of private methods]==================================

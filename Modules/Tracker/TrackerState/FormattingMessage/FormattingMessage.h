@@ -49,6 +49,7 @@ private:
     Tracker * tracker;
     trackerStatus_t currentStatus;
 
+
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

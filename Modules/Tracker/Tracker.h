@@ -14,6 +14,7 @@
 #include "TrackerState.h"
 #include "TrackerStatus.h"
 #include "IMU.h"
+#include <CustomJWT.h>
 
 
 
@@ -49,6 +50,9 @@ private:
     GNSSData * currentGNSSdata;
     NonBlockingDelay * latency;
     BatteryData  * batteryStatus;
+
+    CustomJWT * jwt;
+    char JWTKey [40] = "a-string-secret-at-least-256-bits-long";
 
 };
 

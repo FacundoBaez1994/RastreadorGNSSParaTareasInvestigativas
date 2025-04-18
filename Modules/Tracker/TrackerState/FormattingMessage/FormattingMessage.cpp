@@ -134,9 +134,87 @@ void FormattingMessage::obtainInertialMeasures (IMU * inertialSensor,
 
 //=====[Implementations of private methods]==================================
 void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
+    std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, BatteryData  * batteryStatus) {
+
+    static char message[2024];
+    static char tempBuffer[250]; // buffer auxiliar para formateo
+    size_t currentLen = 0;
+
+    // Encabezado principal del mensaje JSON con los datos de la celda principal
+    currentLen = snprintf(message, sizeof(message),
+        "{\"Type\":\"MNMN\","
+        "\"MCC\":%d,"
+        "\"MNC\":%d,"
+        "\"LAC\":\"%X\","
+        "\"CID\":\"%X\","
+        "\"SLVL\":%.2f,"
+        "\"TECH\":%d,"
+        "\"REGS\":%d,"
+        "\"CHNL\":%d,"
+        "\"BAND\":\"%s\","
+        "\"DATE\":\"%s\","
+        "\"TIME\":\"%s\","
+        "\"BSTA\":%d,"
+        "\"BLVL\":%d",
+        aCellInfo->mcc,               // 1
+        aCellInfo->mnc,               // 2
+        aCellInfo->lac,               // 3
+        aCellInfo->cellId,            // 4
+        aCellInfo->signalLevel,       // 5
+        aCellInfo->accessTechnology,  // 6
+        aCellInfo->registrationStatus,// 7
+        aCellInfo->channel,           // 8
+        aCellInfo->band,              // 9
+        aCellInfo->date,              // 10
+        aCellInfo->time,              // 11
+        batteryStatus->batteryChargeStatus, // 12
+        batteryStatus->chargeLevel          // 13
+    );
+    // inertialData,  //12 temp, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
+
+    // Agregar array de celdas vecinas si existen
+    if (!neighborsCellInformation.empty()) {
+        currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Neighbors\":[");
+        
+        for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
+            CellInformation* neighbor = neighborsCellInformation[i];
+            snprintf(tempBuffer, sizeof(tempBuffer),
+                "{\"TECH\":%d,\"MCC\":%d,\"MNC\":%d,\"LAC\":\"%X\",\"CID\":\"%X\",\"SLVL\":%.2f}",
+                neighbor->tech,
+                neighbor->mcc,
+                neighbor->mnc,
+                neighbor->lac,
+                neighbor->cellId,
+                neighbor->signalLevel
+            );
+            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+
+            // Si no es el último, agregamos coma
+            if (i < neighborsCellInformation.size() - 1) {
+                strncat(message, ",", sizeof(message) - strlen(message) - 1);
+            }
+
+            delete neighbor;
+            neighbor = nullptr;
+        }
+        neighborsCellInformation.clear();
+        strncat(message, "]", sizeof(message) - strlen(message) - 1);
+    }
+
+    // Cierre del JSON
+    strncat(message, "}", sizeof(message) - strlen(message) - 1);
+
+    // Copiamos el mensaje al buffer de salida
+    //strcpy(formattedMessage, message);
+    this->tracker->encodeJWT (message, formattedMessage);
+}
+
+/*
+void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
 std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, BatteryData  * batteryStatus) {
     static char message[500];
     char neighbors[50];
+    char closeJWTString [3] = ",}"; 
     int lac;
     int idCell;
     int tech;
@@ -144,7 +222,7 @@ std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, Ba
     int mnc;
     float prx;
     snprintf(message, sizeof(message), 
-            "MN,MN,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%s,%s,%d,%d", 
+            "{\"Type\":\"MNMN\",\"MCC\":%d,\"MNC\":%d,\"LAC\":%X,\"CID\":%X,\"SLVL\":%.2f,\"TECH\":%d,\"REGS\":%d,\"CHNL\":%d,\"BAND\":\"%s\",\"DATE\":\"%s\",\"TIME\":\"%s\",\"BSTA\":%d,\"BLVL\":%d", 
             aCellInfo->mcc,  // 1
             aCellInfo->mnc,  // 2
             aCellInfo->lac,  // 3
@@ -154,16 +232,16 @@ std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, Ba
             aCellInfo->registrationStatus, // 7
             aCellInfo->channel, // 8
             aCellInfo->band, // 9
-            aCellInfo->date, // 10 
-            aCellInfo->time, // 11
-            inertialData,  //12 temp, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
+            aCellInfo->date, // 10  // deberia ser un solo campo
+            aCellInfo->time, // 11  // deberia ser un solo campo
             batteryStatus->batteryChargeStatus, //19
             batteryStatus->chargeLevel //20
-            );
+            );   // inertialData,  //12 temp, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
     snprintf(neighbors, sizeof(neighbors),"size of vector %d", neighborsCellInformation.size()); 
     uartUSB.write (neighbors , strlen (neighbors ));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only 
     if ( neighborsCellInformation.size() == 0) {
+        strncat (message, closeJWTString, sizeof(message) - strlen(message) - 1); // completar aca CHAT GPT
         strcpy (formattedMessage, message);
         return;
     }
@@ -183,10 +261,68 @@ std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, Ba
         delete neighborsCellInformation[i];
         neighborsCellInformation[i] = NULL;
     }
+    strncat (message, closeJWTString, sizeof(message) - strlen(message) - 1); // completar aca CHAT GPT
     strcpy (formattedMessage, message);
     neighborsCellInformation.clear();
 }
+*/
 
+void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo,
+ GNSSData* GNSSInfo,  char * inertialData, BatteryData  * batteryStatus) {
+
+    static char message[512];
+    size_t currentLen = 0;
+
+    currentLen = snprintf(message, sizeof(message),
+        "{"
+        "\"Type\":\"MNGNSS\","
+        "\"LAT\":%.6f,"
+        "\"LONG\":%.6f,"
+        "\"HDOP\":%.2f,"
+        "\"ALT\":%.2f,"
+        "\"COG\":%.2f,"
+        "\"SPD\":%.2f,"
+        "\"MNC\":%d,"
+        "\"MCC\":%d,"
+        "\"LAC\":\"%X\","
+        "\"CID\":\"%X\","
+        "\"SLVL\":%.2f,"
+        "\"TECH\":%d,"
+        "\"REGS\":%d,"
+        "\"CHNL\":%d,"
+        "\"BAND\":\"%s\","
+        "\"DATE\":\"%s\","
+        "\"TIME\":\"%s\","
+        "\"BSTA\":%d,"
+        "\"BLVL\":%d"
+        "}",
+        GNSSInfo->latitude,            // 1
+        GNSSInfo->longitude,           // 2
+        GNSSInfo->hdop,                // 3
+        GNSSInfo->altitude,            // 4
+        GNSSInfo->cog,                 // 5
+        GNSSInfo->spkm,                // 6
+        aCellInfo->mnc,                // 7
+        aCellInfo->mcc,                // 8
+        aCellInfo->lac,                // 9
+        aCellInfo->cellId,             // 10
+        aCellInfo->signalLevel,        // 11
+        aCellInfo->accessTechnology,   // 12
+        aCellInfo->registrationStatus, // 13
+        aCellInfo->channel,            // 14
+        aCellInfo->band,               // 15
+        GNSSInfo->date,                // 16
+        GNSSInfo->utc,                 // 17
+        batteryStatus->batteryChargeStatus, // 19
+        batteryStatus->chargeLevel          // 20
+    );
+    //         inertialData,                  // 18
+
+    //strcpy(formattedMessage, message);
+    this->tracker->encodeJWT (message, formattedMessage);
+}
+
+/*
 void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo,
  GNSSData* GNSSInfo,  char * inertialData, BatteryData  * batteryStatus) {
     static char message[200]; 
@@ -215,5 +351,5 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
             );
     strcpy (formattedMessage, message);
 }
-
+*/
 

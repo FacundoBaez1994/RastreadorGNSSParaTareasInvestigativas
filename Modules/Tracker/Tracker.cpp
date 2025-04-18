@@ -91,10 +91,10 @@ Tracker::~Tracker() {
 */
 void Tracker::update () {
     
-    static char formattedMessage [500];
+    static char formattedMessage [2024];
     static char inertialData [200];
     float temperature;
-    static char receivedMessage [500];
+    static char receivedMessage [2024];
 
     static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
@@ -127,6 +127,15 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
     this->currentState = newTrackerState;
 }
 
+void printData(char *data, size_t dataLen) {
+    char logMessage [150];
+    snprintf(logMessage, sizeof(logMessage), "\n\rData: = %s \n\r", data);
+    uartUSB.write(logMessage , strlen(logMessage ));
+      snprintf(logMessage, sizeof(logMessage), "\n\rData Length: = %i \n\r", dataLen);
+    uartUSB.write(logMessage , strlen(logMessage ));
+}
+
+
 void Tracker::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
     char logMessage [250];
     this->jwt->allocateJWTMemory();
@@ -137,19 +146,51 @@ void Tracker::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
 
     snprintf(logMessage, sizeof(logMessage), "Header Info"); 
     uartUSB.write(logMessage , strlen(logMessage ));
-    printData(jwt.header, jwt.headerLength);
+    printData(this->jwt->header, this->jwt->headerLength);
 
     snprintf(logMessage, sizeof(logMessage), "Payload Info"); 
     uartUSB.write(logMessage , strlen(logMessage ));
-    printData(jwt.payload, jwt.payloadLength);
+    printData(this->jwt->payload, this->jwt->payloadLength);
 
     snprintf(logMessage, sizeof(logMessage), "Signaure Info"); 
     uartUSB.write(logMessage , strlen(logMessage ));;
-    printData(jwt.signature, jwt.signatureLength);
+    printData(this->jwt->signature, this->jwt->signatureLength);
 
     snprintf(logMessage, sizeof(logMessage), "Final Output Info"); 
     uartUSB.write(logMessage , strlen(logMessage ));;
-    printData(jwt.out, jwt.outputLength);
+    printData(this->jwt->out, this->jwt->outputLength);
+
+    strcpy (jwtEncoded, this->jwt->out);
+    this->jwt->clear();
+}
+
+
+
+void Tracker::decodeJWT (char * jwtToDecode, char * payloadRetrived) {
+    char logMessage [150];
+    this->jwt->allocateJWTMemory();
+    //Decode the JWT
+    snprintf(logMessage, sizeof(logMessage), "Decoding and verifying the JWT\n\r");
+    uartUSB.write(logMessage , strlen(logMessage ));
+    snprintf(logMessage, sizeof(logMessage), "JWT Decode ended with result: \n\r");
+    uartUSB.write(logMessage , strlen(logMessage ));
+    //Code 0: Decode success \n Code 1: Memory not allocated \n Code 2: Invalid JWT \n Code 3: Signature Mismatch
+    snprintf(logMessage, sizeof(logMessage), "\n\rCode result = %i \n\r", this->jwt->decodeJWT(jwtToDecode)); 
+    uartUSB.write(logMessage , strlen(logMessage ));
+
+    snprintf(logMessage, sizeof(logMessage), "Header Info"); 
+    uartUSB.write(logMessage , strlen(logMessage ));
+    printData(this->jwt->header, this->jwt->headerLength);
+
+    snprintf(logMessage, sizeof(logMessage), "Payload Info"); 
+    uartUSB.write(logMessage , strlen(logMessage ));
+    printData(this->jwt->payload, this->jwt->payloadLength);
+
+    snprintf(logMessage, sizeof(logMessage), "Signaure Info"); 
+    uartUSB.write(logMessage , strlen(logMessage ));
+    printData(this->jwt->signature, this->jwt->signatureLength);
+    
+    strcpy (payloadRetrived, this->jwt->payload);
     this->jwt->clear();
 }
 

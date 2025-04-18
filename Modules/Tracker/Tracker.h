@@ -37,6 +37,8 @@ public:
     virtual ~Tracker ();
     void update();
     void changeState  (TrackerState * newTrackerState);
+    void encodeJWT(char * payloadToJWT, char * jwtEncoded);
+    void decodeJWT (char * jwtToDecode, char * payloadRetrived);
     
 private:
     TrackerState * currentState;

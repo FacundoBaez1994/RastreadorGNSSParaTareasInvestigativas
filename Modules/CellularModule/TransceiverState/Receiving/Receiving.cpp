@@ -6,6 +6,7 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+#define TIMETORESEND 10
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -85,7 +86,7 @@ void Receiving::enableTransceiver () {
     char retrivedMessage [200];
     char StringToBeRead [200];
 
-    static bool readyToSend = false;
+    static bool readyToSend = true;
     static int attempts = 0; 
     static int maxConnectionAttempts = MAXATTEMPTS; 
     static bool thereIsdataToRetriv = false;
@@ -109,6 +110,8 @@ void Receiving::enableTransceiver () {
         uartUSB.write (StringToBeSend  , strlen (StringToBeSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         ////   ////   ////   ////   ////   ////   
+        refreshTime->write(TIMETORESEND);
+        refreshTime->restart();
     }
 
     if ( ATHandler->readATResponse ( StringToBeRead) == true) {
@@ -129,11 +132,13 @@ void Receiving::enableTransceiver () {
             if (strcmp (StringToBeRead, expectedResponse) == 0) {
 
                 *newDataAvailable = true; 
-
-                attempts = 0;
-                char StringToSendUSB [40] = "Cambiando de estado 80?";
+                char StringToSendUSB [40] = "Closing Socket";
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
+                bool readyToSend = true;
+                attempts = 0; 
+                maxConnectionAttempts = MAXATTEMPTS; 
+                thereIsdataToRetriv = false;
                 this->mobileNetworkModule->changeTransceiverState
                  (new CloseSocket (this->mobileNetworkModule, true));
                 return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
@@ -159,7 +164,13 @@ void Receiving::enableTransceiver () {
         readyToSend = true;
         attempts++;
         if (attempts >= maxConnectionAttempts) {
+            char StringToSendUSB [40] = "Closing Socket";
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
             attempts = 0;
+            bool readyToSend = true;
+            maxConnectionAttempts = MAXATTEMPTS; 
+            thereIsdataToRetriv = false;
              this->mobileNetworkModule->changeTransceiverState (new CloseSocket (this->mobileNetworkModule, true));
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
         }

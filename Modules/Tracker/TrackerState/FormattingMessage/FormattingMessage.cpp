@@ -194,17 +194,18 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
                 strncat(message, ",", sizeof(message) - strlen(message) - 1);
             }
 
-            delete neighbor;
-            neighbor = nullptr;
+            //delete neighborsCellInformation[i];
+            //neighborsCellInformation[i] = NULL;
         }
-        neighborsCellInformation.clear();
+        //neighborsCellInformation.clear();
         strncat(message, "]", sizeof(message) - strlen(message) - 1);
     }
 
     // Cierre del JSON
     strncat(message, "}", sizeof(message) - strlen(message) - 1);
 
-    // Copiamos el mensaje al buffer de salida
+    message[sizeof(message) - 1] = '\0';
+
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
 }
@@ -316,10 +317,11 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
         batteryStatus->batteryChargeStatus, // 19
         batteryStatus->chargeLevel          // 20
     );
-    //         inertialData,                  // 18
+    message[sizeof(message) - 1] = '\0';
 
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
+
 }
 
 /*

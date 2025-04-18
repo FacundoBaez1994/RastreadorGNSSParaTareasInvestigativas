@@ -161,6 +161,7 @@ void Tracker::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
     printData(this->jwt->out, this->jwt->outputLength);
 
     strcpy (jwtEncoded, this->jwt->out);
+    jwtEncoded [this->jwt->outputLength] = '\0';
     this->jwt->clear();
 }
 

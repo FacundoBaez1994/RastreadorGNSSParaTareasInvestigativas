@@ -92,6 +92,10 @@ void CalibratingInertialSensor::awake (CellularModule * cellularTransceiver, Non
  }
 
 void CalibratingInertialSensor::calibrateIMU (IMU * inertialSensor) {
+
+     this->tracker->changeState(new SensingBatteryStatus (this->tracker));
+     
+    /*
     static bool firstcalibrationOK = false;
     char inertialData [100];
     float temp;
@@ -111,6 +115,7 @@ void CalibratingInertialSensor::calibrateIMU (IMU * inertialSensor) {
         }
     }
     return;
+    */
 }
 
 void CalibratingInertialSensor::obtainInertialMeasures (IMU * inertialSensor,

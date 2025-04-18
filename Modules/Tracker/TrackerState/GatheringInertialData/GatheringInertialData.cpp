@@ -102,6 +102,10 @@ void GatheringInertialData::calibrateIMU (IMU * inertialSensor) {
 
 void GatheringInertialData::obtainInertialMeasures (IMU * inertialSensor,
  char * dataObtain, float * temperatureObtain) {
+
+     this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
+
+     /*
     float temperature;
     static char newInertialData [100];
     static char temporalBuffer [100];
@@ -120,6 +124,7 @@ void GatheringInertialData::obtainInertialMeasures (IMU * inertialSensor,
         }
     }
     return;
+    */
 }
 
 

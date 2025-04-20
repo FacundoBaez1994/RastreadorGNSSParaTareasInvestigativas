@@ -6,6 +6,8 @@
 
 //=====[Declaration of private defines]========================================
 #define BACKOFFTIME        300
+#define MAX_CHUNK_SIZE     10
+#define FLY_TIME           500
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -55,6 +57,7 @@ void SendingMessage::addRFFormatToMessage (int deviceId, int messageNumber, char
 
 void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime) {
     char buffer [256];
+    static bool firstChunkSent = false;
     static bool firstDelayPassed = false;
     static bool messageFormatted = false;
     static bool firstEntryOnThisMethod = true;
@@ -106,9 +109,13 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
 
 
 
-    if (backoffTime->read()) {
+    if (backoffTime->read() || firstChunkSent == false) {
+        firstChunkSent = true;
+        backoffTime->write(FLY_TIME);
+        backoffTime->restart();
+
         size_t totalLength = strlen(buffer);
-        size_t chunkSize = 5;  // Fragmentos de 50 bytes
+        size_t chunkSize = MAX_CHUNK_SIZE;  // Fragmentos de 50 bytes
         LoRaModule->idle();                          // set standby mode
         LoRaModule->disableInvertIQ();               // normal mode
         size_t currentChunkSize = (totalLength - stringIndex < chunkSize) ? (totalLength - stringIndex) : chunkSize;

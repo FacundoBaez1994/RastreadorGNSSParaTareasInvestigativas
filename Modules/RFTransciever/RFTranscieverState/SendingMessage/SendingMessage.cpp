@@ -5,9 +5,9 @@
 #include "WaitingAcknowledgement.h"
 
 //=====[Declaration of private defines]========================================
-#define BACKOFFTIME        300
-#define MAX_CHUNK_SIZE     10
-#define FLY_TIME           500
+#define BACKOFFTIME        500
+#define MAX_CHUNK_SIZE     5
+#define FLY_TIME           800
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============

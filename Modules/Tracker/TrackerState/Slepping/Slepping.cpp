@@ -54,39 +54,6 @@ void Slepping::updatePowerStatus (CellularModule * cellularTransceiver,
     cellularTransceiver->startStopUpdate();
  }
 
-void Slepping::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
-    return;
-}
-
- void Slepping::connectToMobileNetwork (CellularModule * cellularTransceiver,
-    CellInformation * currentCellInformation) {
-    return; 
-}
-
-
-void Slepping::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
-    std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
-    return;
-}
-    // IMU Method 1
-    // IMU Methord 2
-
-void Slepping::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
-    return;
-}
-
-void Slepping::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
-
-    return;
-}
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
-void Slepping::goToSleep (CellularModule * cellularTransceiver ) {
-    return;
-}
-
 void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency ) {
     if (latency->read()) {
         cellularTransceiver->awake();
@@ -95,13 +62,6 @@ void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * l
     return;
  }
 
-void Slepping::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void Slepping::obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain) {
-    return;
-}
 
 
 

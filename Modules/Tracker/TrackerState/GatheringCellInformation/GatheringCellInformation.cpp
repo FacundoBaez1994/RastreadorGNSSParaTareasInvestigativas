@@ -54,16 +54,6 @@ void GatheringCellInformation::updatePowerStatus (CellularModule * cellularTrans
     cellularTransceiver->startStopUpdate();
  }
 
-void GatheringCellInformation::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
-    return;
-}
-
- void GatheringCellInformation::connectToMobileNetwork (CellularModule * cellularTransceiver,
-    CellInformation * currentCellInformation) {
-    return; 
-}
-
-
 void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
 
@@ -75,36 +65,6 @@ void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* c
      }
     // Format message for LoRa 
     return; 
-}
-
-void GatheringCellInformation::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
-        
-    return;
-}
-
-void GatheringCellInformation::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
-    return;
-}
-
-void GatheringCellInformation::goToSleep (CellularModule * cellularTransceiver ) {
-    return;
-}
-
-void GatheringCellInformation::awake (CellularModule * cellularTransceiver,
- NonBlockingDelay * latency ) {
-    return;
-}
-
-void GatheringCellInformation::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void GatheringCellInformation::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
-    return;
 }
 
 

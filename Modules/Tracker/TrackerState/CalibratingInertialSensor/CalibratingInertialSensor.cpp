@@ -49,47 +49,6 @@ CalibratingInertialSensor::~CalibratingInertialSensor() {
     this->tracker = NULL;
 }
 
-void CalibratingInertialSensor::updatePowerStatus (CellularModule * cellularTransceiver,
- BatteryData * currentBatteryStatus) {
-    //cellularTransceiver->startStopUpdate();
- }
-
-void CalibratingInertialSensor::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
-    return;
-}
-
- void CalibratingInertialSensor::connectToMobileNetwork (CellularModule * cellularTransceiver,
-    CellInformation * currentCellInformation) {
-    return; 
-}
-
-
-void CalibratingInertialSensor::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
-    std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
-    return;
-}
-    // IMU Method 1
-    // IMU Methord 2
-
-void  CalibratingInertialSensor::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
-    return;
-}
-
-void CalibratingInertialSensor::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
-
-    return;
-}
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
-void CalibratingInertialSensor::goToSleep (CellularModule * cellularTransceiver ) {
-    return;
-}
-
-void CalibratingInertialSensor::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency ) {
-    return;
- }
 
 void CalibratingInertialSensor::calibrateIMU (IMU * inertialSensor) {
 
@@ -117,12 +76,6 @@ void CalibratingInertialSensor::calibrateIMU (IMU * inertialSensor) {
     return;
     */
 }
-
-void CalibratingInertialSensor::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
-    return;
-}
-
 
 
 

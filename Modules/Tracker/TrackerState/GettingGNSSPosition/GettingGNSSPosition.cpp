@@ -6,7 +6,7 @@
 #include "ConnectingToMobileNetwork.h"
 
 //=====[Declaration of private defines]========================================
-#define MAXATTEMPTS 20
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -77,47 +77,4 @@ void GettingGNSSPosition::obtainGNSSPosition (GNSSModule * currentGNSSModule, GN
 
     return;
 }
-
-void GettingGNSSPosition::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
-    std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) { 
-    return; 
-}
-
-void GettingGNSSPosition::connectToMobileNetwork (CellularModule * cellularTransceiver,
-    CellInformation * currentCellInformation) {
-    return;
-}
-
-void GettingGNSSPosition::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
-
-    return;
-}
-
-void GettingGNSSPosition::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
-    return;
-}
-
-void GettingGNSSPosition::goToSleep (CellularModule * cellularTransceiver ) {
-    return;
-}
-
-void GettingGNSSPosition::awake (CellularModule * cellularTransceiver, 
-NonBlockingDelay * latency ) {
-    return;
-}
-
-void GettingGNSSPosition::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void GettingGNSSPosition::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
-    return;
-}
-
-
-
 

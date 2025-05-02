@@ -57,16 +57,6 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
     cellularTransceiver->startStopUpdate();
  }
 
-void ConnectingToMobileNetwork::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
-
-    return;
-}
-void ConnectingToMobileNetwork::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
-    std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) { 
-    return; 
-}
-
-
  void ConnectingToMobileNetwork::connectToMobileNetwork (CellularModule * cellularTransceiver,
     CellInformation * currentCellInformation) {
     static CellularConnectionStatus_t currentConnectionStatus;
@@ -97,35 +87,6 @@ void ConnectingToMobileNetwork::obtainNeighborCellsInformation (CellularModule* 
     return; 
 }
 
-void ConnectingToMobileNetwork::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
-
-    return;
-}
-
-void ConnectingToMobileNetwork::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
-    return;
-}
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
-void ConnectingToMobileNetwork::goToSleep (CellularModule * cellularTransceiver ) {
-    return;
-}
-
-void ConnectingToMobileNetwork::awake (CellularModule * cellularTransceiver, 
-NonBlockingDelay * latency ) {
-    return;
-}
-
-void ConnectingToMobileNetwork::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void ConnectingToMobileNetwork::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
-    return;
-}
 
 
 

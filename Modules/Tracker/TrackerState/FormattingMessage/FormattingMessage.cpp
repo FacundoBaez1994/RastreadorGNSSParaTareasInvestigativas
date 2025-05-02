@@ -6,7 +6,7 @@
 #include "ExchangingMessages.h"
 
 //=====[Declaration of private defines]========================================
-#define MAXATTEMPTS 20
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -54,21 +54,6 @@ void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
     cellularTransceiver->startStopUpdate();
  }
 
-void FormattingMessage::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
-    return;
-}
-
- void FormattingMessage::connectToMobileNetwork (CellularModule * cellularTransceiver,
-    CellInformation * currentCellInformation) {
-    return; 
-}
-
-
-void FormattingMessage::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
-    std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
-    return;
-}
-
 
 void FormattingMessage::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
@@ -108,28 +93,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
     return;
 }
 
-void FormattingMessage::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
-    return;
-}
 
-void FormattingMessage::goToSleep (CellularModule * cellularTransceiver ) {
-    return;
-}
-
-void FormattingMessage::awake (CellularModule * cellularTransceiver,
- NonBlockingDelay * latency ) {
-    return;
-}
-
-void FormattingMessage::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void FormattingMessage::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
-    return;
-}
 
 
 //=====[Implementations of private methods]==================================

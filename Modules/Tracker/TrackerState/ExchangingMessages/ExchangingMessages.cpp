@@ -55,27 +55,6 @@ void ExchangingMessages::updatePowerStatus (CellularModule * cellularTransceiver
     cellularTransceiver->startStopUpdate();
  }
 
-void ExchangingMessages::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
-    return;
-}
-
- void ExchangingMessages::connectToMobileNetwork (CellularModule * cellularTransceiver,
-    CellInformation * currentCellInformation) {
-    return; 
-}
-
-
-void ExchangingMessages::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
-    std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
-    return;
-}
-
-void ExchangingMessages::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
-    return;
-}
-
 void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage ){
     static CellularTransceiverStatus_t currentTransmitionStatus;
@@ -144,23 +123,5 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     }
     return;
 }
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
-void ExchangingMessages::goToSleep (CellularModule * cellularTransceiver ) {
-    return;
-}
-
-void ExchangingMessages::awake (CellularModule * cellularTransceiver,
- NonBlockingDelay * latency ) {
-    return;
-}
-
-void ExchangingMessages::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void ExchangingMessages::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
-    return;
-}
-
+ 
 //=====[Implementations of private methods]==================================

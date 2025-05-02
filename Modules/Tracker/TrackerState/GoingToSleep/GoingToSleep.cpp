@@ -6,7 +6,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define MAXATTEMPTS 20
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -54,51 +54,12 @@ void GoingToSleep::updatePowerStatus (CellularModule * cellularTransceiver,
     cellularTransceiver->startStopUpdate();
  }
 
-void GoingToSleep::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
-    return;
-}
-
- void GoingToSleep::connectToMobileNetwork (CellularModule * cellularTransceiver,
-    CellInformation * currentCellInformation) {
-    return; 
-}
-
-
-void GoingToSleep::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
-    std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
-    return;
-}
-
-void GoingToSleep::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
-    return;
-}
-
-void GoingToSleep::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
-
-    return;
-}
     // agregar LoRa // exchageMessages (Lora * LoRaModule);
 void GoingToSleep::goToSleep (CellularModule * cellularTransceiver ) {
     if (cellularTransceiver->goToSleep()) {
         this->tracker->changeState  (new Slepping (this->tracker));
         return;
     }
-    return;
-}
-
-void GoingToSleep::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency) {
-    return;
-}
-
-void GoingToSleep::calibrateIMU (IMU * inertialSensor) {
-    return;
-}
-
-void GoingToSleep::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
     return;
 }
 

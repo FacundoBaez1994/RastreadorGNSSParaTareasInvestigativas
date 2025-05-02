@@ -50,31 +50,14 @@ CalibratingInertialSensor::~CalibratingInertialSensor() {
 }
 
 
-void CalibratingInertialSensor::calibrateIMU (IMU * inertialSensor) {
-
-     this->tracker->changeState(new SensingBatteryStatus (this->tracker));
-     
-    /*
-    static bool firstcalibrationOK = false;
-    char inertialData [100];
-    float temp;
-
-    if (firstcalibrationOK == false) {
-        if (inertialSensor->calibrate() == true) {
-            firstcalibrationOK = true;
-            
-        }
+void CalibratingInertialSensor::calibrateIMU (IMUManager * inertialSensor) {
+    if (inertialSensor->initialize () == false) {
+        return;
+    } else {
+        this->tracker->changeState(new SensingBatteryStatus (this->tracker));
+        return; 
     }
-    if (firstcalibrationOK == true ) { 
-        // primera lectura de prueba
-        if (inertialSensor->obtainInertialMeasures(inertialData, &temp) == true) {
-            this->tracker->changeState(new SensingBatteryStatus (this->tracker));
-            firstcalibrationOK = false;
-            return;
-        }
-    }
-    return;
-    */
+
 }
 
 

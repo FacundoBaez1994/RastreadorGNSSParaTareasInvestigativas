@@ -24,7 +24,7 @@ public:
 //=====[Declaration of public methods]=========================================
     GatheringInertialData (Tracker * tracker, trackerStatus_t trackerStatus);
     virtual ~GatheringInertialData ();
-    virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
+    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * imuData);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
 private:
     Tracker * tracker;

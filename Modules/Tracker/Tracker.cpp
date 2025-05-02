@@ -51,7 +51,7 @@ Tracker::Tracker () {
     this->currentGNSSdata = new GNSSData;
     this->batteryStatus = new BatteryData;
 
-    this->inertialSensor = new IMU (); 
+    this->inertialSensor = new IMUManager (); 
 
     this->currentState =  new CalibratingInertialSensor (this);
 
@@ -92,9 +92,9 @@ Tracker::~Tracker() {
 void Tracker::update () {
     
     static char formattedMessage [2024];
-    static char inertialData [200];
-    float temperature;
     static char receivedMessage [2024];
+
+    static IMUData_t imuData;
 
     static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
@@ -111,10 +111,9 @@ void Tracker::update () {
     this->currentCellInformation);
     this->currentState->obtainNeighborCellsInformation (this->cellularTransceiver, 
     neighborsCellInformation, numberOfNeighbors );
-    this->currentState->obtainInertialMeasures(this->inertialSensor, inertialData, &temperature);
+    this->currentState->obtainInertialMeasures(this->inertialSensor, &imuData);
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
-    this->currentGNSSdata, neighborsCellInformation, inertialData, this->batteryStatus); 
-    // agregar dato IMU
+    this->currentGNSSdata, neighborsCellInformation, &imuData, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
     this->currentState->goToSleep (this->cellularTransceiver);

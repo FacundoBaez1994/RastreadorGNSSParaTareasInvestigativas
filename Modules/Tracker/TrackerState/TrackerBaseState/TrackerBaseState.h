@@ -21,8 +21,8 @@ class Tracker; //debido a declaracion adelantada
 class TrackerBaseState : public TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual void calibrateIMU (IMU * inertialSensor);
-    virtual void obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain);
+    virtual void calibrateIMU (IMUManager * inertialSensor);
+    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * inertialData);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
     virtual void obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata);
     virtual void connectToMobileNetwork (CellularModule * cellularTransceiver,
@@ -31,7 +31,7 @@ public:
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus); 
+    IMUData_t * imuData, BatteryData  * batteryStatus); 
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     // agregar LoRa // exchageMessages (Lora * LoRaModule);

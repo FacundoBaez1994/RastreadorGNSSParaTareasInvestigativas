@@ -13,7 +13,7 @@
 #include "string.h"
 #include "TrackerState.h"
 #include "TrackerStatus.h"
-#include "IMU.h"
+#include "IMUManager.h"
 #include <CustomJWT.h>
 
 
@@ -42,7 +42,7 @@ public:
     
 private:
     TrackerState * currentState;
-    IMU * inertialSensor;
+    IMUManager * inertialSensor;
     
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;

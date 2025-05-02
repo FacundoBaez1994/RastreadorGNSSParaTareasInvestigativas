@@ -27,13 +27,13 @@ public:
 
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus); 
+     IMUData_t * imuData, BatteryData  * batteryStatus); 
 
 private:
     void formatMessage(char * formattedMessage, CellInformation* aCellInfo,
-     GNSSData* GNSSInfo, char * inertialData, BatteryData  * batteryStatus);
+     GNSSData* GNSSInfo, IMUData_t * imuData, BatteryData  * batteryStatus);
     void formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-    std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, BatteryData  * batteryStatus); 
+    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus); 
 
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;

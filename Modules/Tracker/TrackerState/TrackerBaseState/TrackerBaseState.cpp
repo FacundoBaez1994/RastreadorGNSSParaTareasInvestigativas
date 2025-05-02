@@ -54,7 +54,7 @@ void TrackerBaseState::obtainNeighborCellsInformation (CellularModule* cellularT
 
 void TrackerBaseState::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
+     IMUData_t * imuData, BatteryData  * batteryStatus) {
     return;
 }
 
@@ -72,11 +72,11 @@ void TrackerBaseState::awake (CellularModule * cellularTransceiver, NonBlockingD
     return;
  }
 
-void TrackerBaseState::calibrateIMU (IMU * inertialSensor) {
+void TrackerBaseState::calibrateIMU (IMUManager * inertialSensor) {
     return;
 }
 
-void TrackerBaseState::obtainInertialMeasures (IMU * inertialSensor, char * dataObtain, float * temperatureObtain) {
+void TrackerBaseState::obtainInertialMeasures (IMUManager * inertialSensor,  IMUData_t * inertialData) {
     return;
 }
 

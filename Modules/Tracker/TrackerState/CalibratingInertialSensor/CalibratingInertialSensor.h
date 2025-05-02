@@ -23,7 +23,7 @@ public:
 //=====[Declaration of public methods]=========================================
     CalibratingInertialSensor (Tracker * tracker);
     virtual ~CalibratingInertialSensor ();
-    virtual void calibrateIMU (IMU * inertialSensor);
+    virtual void calibrateIMU (IMUManager * inertialSensor);
 private:
     Tracker * tracker;
   

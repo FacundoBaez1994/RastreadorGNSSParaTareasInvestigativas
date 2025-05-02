@@ -57,14 +57,14 @@ void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
 
 void FormattingMessage::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     char * inertialData, BatteryData  * batteryStatus) {
+    IMUData_t * imuData, BatteryData  * batteryStatus) {
     /// Cifrado iria aca tambien..
 
     if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
             char StringToSendUSB [50] = "Formating MN,GNSS message\r\n";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, inertialData, batteryStatus);
+            this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
@@ -79,7 +79,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, 
-            neighborsCellInformation, inertialData, batteryStatus);
+            neighborsCellInformation, imuData, batteryStatus);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
@@ -98,7 +98,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
 
 //=====[Implementations of private methods]==================================
 void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-    std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, BatteryData  * batteryStatus) {
+    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus) {
 
     static char message[2024];
     static char tempBuffer[250]; // buffer auxiliar para formateo
@@ -233,7 +233,7 @@ std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, Ba
 */
 
 void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo,
- GNSSData* GNSSInfo,  char * inertialData, BatteryData  * batteryStatus) {
+ GNSSData* GNSSInfo,  IMUData_t * imuData, BatteryData  * batteryStatus) {
 
     static char message[512];
     size_t currentLen = 0;

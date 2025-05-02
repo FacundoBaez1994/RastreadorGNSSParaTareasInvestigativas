@@ -6,8 +6,6 @@
 //#include "SensingBatteryStatus.h"
 #include "FormattingMessage.h"
 
-#include "initializeMPU9250.h"
-
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
 #define TIME_BETWEEN_SAMPLES 10000
@@ -62,31 +60,33 @@ void GatheringInertialData::updatePowerStatus (CellularModule * cellularTranscei
     //cellularTransceiver->startStopUpdate();
  }
 
-void GatheringInertialData::obtainInertialMeasures (IMU * inertialSensor,
- char * dataObtain, float * temperatureObtain) {
+void GatheringInertialData::obtainInertialMeasures (IMUManager * inertialSensor,
+ IMUData_t * imuData) {
 
-     this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
+    char log [100];
 
-     /*
-    float temperature;
-    static char newInertialData [100];
-    static char temporalBuffer [100];
 
-    //inertialSensor->calibrate();
     if (this->currentStatus != TRACKER_STATUS_NONE_LOCALIZATION_MEAN_AVAILABLE) {
-        if (inertialSensor->obtainInertialMeasures (newInertialData , &temperature)) {
-            snprintf(temporalBuffer, sizeof(temporalBuffer), "%.2f,%s", temperature, newInertialData);
-            strcpy (dataObtain, temporalBuffer );
-            uartUSB.write("inertial data Obtain:", strlen("inertial data Obtain:"));
-            uartUSB.write("\n\r", strlen("\n\r"));
-            uartUSB.write (dataObtain, strlen (dataObtain ));  // debug only
-            uartUSB.write("\n\r", strlen("\n\r"));
-            this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
+        if (inertialSensor->obtainInertialMeasures (imuData)) {
+            snprintf(log, sizeof(log), "\n\r \n\r PROM RESULT:\n\r \n\r");
+            uartUSB.write(log, strlen(log));
+            snprintf(log, sizeof(log),
+                "SH2_LINEAR_ACCELERATION: ax: %.2f\t ay: %.2f\t az: %.2f\n\r",
+                imuData->acceleration.ax, imuData->acceleration.ay,
+                imuData->acceleration.az);
+            uartUSB.write(log, strlen(log));
+            snprintf(log, sizeof(log),
+                "Status: %d\tYaw: %.2f\tPitch: %.2f\tRoll: %.2f\n\r",
+                imuData->status, imuData->angles.yaw,
+                imuData->angles.pitch, imuData->angles.roll);
+            uartUSB.write(log, strlen(log));
+            this->tracker->changeState (new FormattingMessage (this->tracker, 
+            this->currentStatus));
             return;
         }
     }
     return;
-    */
+    
 }
 
 

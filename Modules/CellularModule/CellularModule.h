@@ -33,8 +33,7 @@ struct BatteryData;
     int accessTechnology; //
     int registrationStatus; // pass as int in order to decrese data lenght (translate in server)
     int channel;
-    char *  date;
-    char * time;
+    char *  timestamp;
     char * band;
     int tech; // 2 = 2G, 3 = 3G, 4 = 4G
     // Cell identifiers codes ////

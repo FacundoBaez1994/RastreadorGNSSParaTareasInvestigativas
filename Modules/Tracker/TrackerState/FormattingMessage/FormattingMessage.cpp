@@ -116,10 +116,16 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
         "\"REGS\":%d,"
         "\"CHNL\":%d,"
         "\"BAND\":\"%s\","
-        "\"DATE\":\"%s\","
         "\"TIME\":\"%s\","
         "\"BSTA\":%d,"
-        "\"BLVL\":%d",
+        "\"BLVL\":%d,"
+        "\"SIMU\":%d,"
+        "\"AX\":%.2f,"
+        "\"AY\":%.2f,"
+        "\"AZ\":%.2f,"
+        "\"YAW\":%.2f,"
+        "\"ROLL\":%.2f,"
+        "\"PTCH\":%.2f",
         aCellInfo->mcc,               // 1
         aCellInfo->mnc,               // 2
         aCellInfo->lac,               // 3
@@ -129,12 +135,18 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
         aCellInfo->registrationStatus,// 7
         aCellInfo->channel,           // 8
         aCellInfo->band,              // 9
-        aCellInfo->date,              // 10
-        aCellInfo->time,              // 11
-        batteryStatus->batteryChargeStatus, // 12
-        batteryStatus->chargeLevel          // 13
+        aCellInfo->timestamp,              // 10
+        batteryStatus->batteryChargeStatus, // 11
+        batteryStatus->chargeLevel,          // 12
+        imuData->status,                //13
+        imuData->acceleration.ax,       // 14
+        imuData->acceleration.ay,       //15
+        imuData->acceleration.az,       //16
+        imuData->angles.yaw,            // 17
+        imuData->angles.roll,           // 18
+        imuData->angles.pitch           // 19
     );
-    // inertialData,  //12 temp, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
+    // inertialData,  //13 status, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
 
     // Agregar array de celdas vecinas si existen
     if (!neighborsCellInformation.empty()) {
@@ -256,10 +268,16 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
         "\"REGS\":%d,"
         "\"CHNL\":%d,"
         "\"BAND\":\"%s\","
-        "\"DATE\":\"%s\","
         "\"TIME\":\"%s\","
         "\"BSTA\":%d,"
-        "\"BLVL\":%d"
+        "\"BLVL\":%d,"
+        "\"SIMU\":%d,"
+        "\"AX\":%.2f,"
+        "\"AY\":%.2f,"
+        "\"AZ\":%.2f,"
+        "\"YAW\":%.2f,"
+        "\"ROLL\":%.2f,"
+        "\"PTCH\":%.2f"
         "}",
         GNSSInfo->latitude,            // 1
         GNSSInfo->longitude,           // 2
@@ -276,10 +294,16 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
         aCellInfo->registrationStatus, // 13
         aCellInfo->channel,            // 14
         aCellInfo->band,               // 15
-        GNSSInfo->date,                // 16
-        GNSSInfo->utc,                 // 17
+        GNSSInfo->timestamp,                // 16
         batteryStatus->batteryChargeStatus, // 19
-        batteryStatus->chargeLevel          // 20
+        batteryStatus->chargeLevel,          // 20
+        imuData->status,
+        imuData->acceleration.ax,
+        imuData->acceleration.ay,
+        imuData->acceleration.az,
+        imuData->angles.yaw,
+        imuData->angles.roll,
+        imuData->angles.pitch
     );
     message[sizeof(message) - 1] = '\0';
 

@@ -44,8 +44,7 @@ Tracker::Tracker () {
     this->socketTargetted->TcpPort = 123;
 
     this->currentCellInformation = new CellInformation;
-    this->currentCellInformation->date  = new char [10];
-    this->currentCellInformation->time  = new char [10];
+    this->currentCellInformation->timestamp  = new char [20];
     this->currentCellInformation->band = new char [20];
 
     this->currentGNSSdata = new GNSSData;
@@ -60,10 +59,8 @@ Tracker::Tracker () {
 
 
 Tracker::~Tracker() {
-    delete[] this->currentCellInformation->date;
-    this->currentCellInformation->date = NULL;
-    delete[] this->currentCellInformation->time;
-    this->currentCellInformation->time = NULL;
+    delete[] this->currentCellInformation->timestamp;
+    this->currentCellInformation->timestamp = NULL;
     delete[] this->currentCellInformation->band;
     this->currentCellInformation->band = NULL;
     delete this->currentCellInformation;

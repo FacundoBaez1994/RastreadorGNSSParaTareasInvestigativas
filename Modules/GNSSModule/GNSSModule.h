@@ -17,7 +17,7 @@
 //=====[Declaration of public data types]======================================
 
  struct GNSSData {
-    char utc[10];          // <UTC> en formato HHMMSS.SS
+    char timestamp [20];    // <UTC> en formato HHMMSS.SS + <date> en formato DDMMYY
     float latitude;        // <latitude> en formato decimal
     float longitude;       // <longitude> en formato decimal
     float hdop;            // <hdop>
@@ -26,7 +26,7 @@
     float cog;             // <cog>
     float spkm;            // <spkm>
     float spkn;            // <spkn>
-    char date[7];          // <date> en formato DDMMYY
+
     int nsat;              // <nsat>
  };
 

@@ -27,11 +27,7 @@
 #include <CustomJWT.h>
 
 
-
-
-
 //=====[Declaration of public defines]=========================================
-
 
 //=====[Declaration of public data types]======================================
 
@@ -57,6 +53,8 @@ public:
 
     
 private:
+    I2C * i2c;
+
     TrackerState * currentState;
     IMUManager * inertialSensor;
     

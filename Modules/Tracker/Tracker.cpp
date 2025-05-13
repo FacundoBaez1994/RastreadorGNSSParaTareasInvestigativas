@@ -55,29 +55,49 @@ Tracker::Tracker () {
     this->currentState =  new CalibratingInertialSensor (this);
 
     this->jwt = new CustomJWT (this->JWTKey, 256);
+    this->encrypter = new Encrypter ();
+    this->authgen = new AuthenticationGenerator ();
+    this->ckgen = new ChecksumGenerator ();
+
+    this->checksumVerifier = new ChecksumVerifier ();
+    this->authVer = new AuthenticationVerifier ();
+    this->decrypter = new Decrypter ();
 }
 
 
 Tracker::~Tracker() {
     delete[] this->currentCellInformation->timestamp;
-    this->currentCellInformation->timestamp = NULL;
+    this->currentCellInformation->timestamp = nullptr;
     delete[] this->currentCellInformation->band;
-    this->currentCellInformation->band = NULL;
+    this->currentCellInformation->band = nullptr;
     delete this->currentCellInformation;
-    this->currentCellInformation = NULL;
+    this->currentCellInformation = nullptr;
     delete this->currentGNSSdata;
     delete[] this->socketTargetted->IpDirection; // Libera la memoria asignada a IpDirection
-    this->socketTargetted->IpDirection = NULL;
+    this->socketTargetted->IpDirection = nullptr;
     delete this->socketTargetted; // Libera la memoria asignada al socketTargetted
-    this->socketTargetted = NULL;
+    this->socketTargetted = nullptr;
     delete this->latency;
-    this->latency = NULL; 
+    this->latency = nullptr; 
     delete this->currentGNSSModule;
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
     delete this->cellularTransceiver;
-    this->cellularTransceiver = NULL;
+    this->cellularTransceiver = nullptr;
     delete this->inertialSensor;
     this->inertialSensor = nullptr;
+
+    delete this->encrypter;
+    this->encrypter = nullptr;
+    delete this->authgen;
+    this->authgen = nullptr;
+    delete this->ckgen;
+    this->ckgen = nullptr;
+    delete this->checksumVerifier;
+    this->checksumVerifier = nullptr;
+    delete this->authVer;
+    this->authVer = nullptr;
+    delete this->decrypter;
+    this->decrypter = nullptr;
 }
 
 
@@ -122,6 +142,44 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
     delete this->currentState;
     this->currentState = newTrackerState;
 }
+
+
+bool Tracker::encryptMessage (char * message) {
+    this->encrypter->setNextHandler(nullptr);
+    if (this->encrypter->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool Tracker::decryptMessage (char * message) {
+    this->decrypter->setNextHandler(nullptr);
+    if (this->decrypter->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool Tracker::prepareLoRaMessage (char * message) {
+    this->encrypter->setNextHandler(this->authgen)->setNextHandler(this->ckgen);
+    if (this->encrypter->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool Tracker::processLoRaMessage (char * message) {
+    this->checksumVerifier->setNextHandler(this->authVer)->setNextHandler(this->decrypter);
+    if (this->checksumVerifier->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 void printData(char *data, size_t dataLen) {
     char logMessage [150];

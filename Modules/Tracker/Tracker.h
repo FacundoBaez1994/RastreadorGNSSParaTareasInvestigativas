@@ -14,6 +14,16 @@
 #include "TrackerState.h"
 #include "TrackerStatus.h"
 #include "IMUManager.h"
+
+#include "MessageHandler.h"
+#include "MessageHandlerStatus.h"
+#include "AuthenticationGenerator.h"
+#include "AuthenticationVerifier.h"
+#include "BaseMessageHandler.h"
+#include "ChecksumVerifier.h"
+#include "ChecksumGenerator.h"
+#include "Decrypter.h"
+#include "Encrypter.h"
 #include <CustomJWT.h>
 
 
@@ -39,6 +49,12 @@ public:
     void changeState  (TrackerState * newTrackerState);
     void encodeJWT(char * payloadToJWT, char * jwtEncoded);
     void decodeJWT (char * jwtToDecode, char * payloadRetrived);
+    bool encryptMessage (char * message);
+    bool decryptMessage (char * message);
+
+    bool prepareLoRaMessage (char * message);
+    bool processLoRaMessage (char * message);
+
     
 private:
     TrackerState * currentState;
@@ -53,6 +69,14 @@ private:
     NonBlockingDelay * latency;
     BatteryData  * batteryStatus;
 
+
+   // Message Handlers
+    MessageHandler * encrypter;
+    MessageHandler * authgen;
+    MessageHandler * ckgen;
+    MessageHandler * checksumVerifier;
+    MessageHandler * authVer;
+    MessageHandler * decrypter;
     CustomJWT * jwt;
     char JWTKey [40] = "a-string-secret-at-least-256-bits-long";
 

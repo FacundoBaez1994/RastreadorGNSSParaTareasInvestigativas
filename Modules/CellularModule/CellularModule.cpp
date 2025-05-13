@@ -5,13 +5,7 @@
 
 //=====[Declaration of private defines]========================================
 #define REFRESHTIME  1000
-<<<<<<< HEAD
-//#define CELLULAR_MODULE_TX_UART PA_9
-//#define CELLULAR_MODULE_RX_UART PA_10
-=======
 
-
->>>>>>> StatePatternJWT
 #define CELLULAR_MODULE_TX_UART PB_6 // tx nucleo
 #define CELLULAR_MODULE_RX_UART PB_7 // rx nucleo
 

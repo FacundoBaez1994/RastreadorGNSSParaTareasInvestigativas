@@ -11,15 +11,18 @@
 //#define CELLULAR_MODULE_BAUD_RATE 115200
 /*
 #define CELLULAR_MODULE_POWER_STATUS_SIGNAL_PIN_INPUT PB_5
-#define CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT PA_0
+#define CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT PA_1
 #define CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT PB_4
 #define CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT PB_0
+<<<<<<< HEAD
 #define CELLULAR_MODULE_DTR_PIN_OUTPUT PA_3
 */
 #define CELLULAR_MODULE_POWER_STATUS_SIGNAL_PIN_INPUT PB_5
 #define CELLULAR_MODULE_POWER_CONTROL_BUTTON_PIN_INPUT PA_1
 #define CELLULAR_MODULE_POWER_KEY_PIN_OUTPUT PB_4
 #define CELLULAR_MODULE_POWER_DOWN_PIN_OUTPUT PB_0
+=======
+>>>>>>> StatePatternJWT
 #define CELLULAR_MODULE_DTR_PIN_OUTPUT PA_0
 
 
@@ -110,8 +113,8 @@ void PowerManager::awake ( ) {
 * 
 * @returns 
 */
-void PowerManager::reboot ( ) {
-    this->currentPowerState->reboot(this->ATHandler, this->powerChangeDurationTimer);
+bool PowerManager::reboot ( ) {
+    return this->currentPowerState->reboot(this->ATHandler, this->powerChangeDurationTimer);
 }
 
 

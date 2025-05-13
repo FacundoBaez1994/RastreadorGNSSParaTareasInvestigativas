@@ -116,8 +116,8 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
                 uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////            
-                strcpy (currentCellInformation->date, this->date);
-                strcpy (currentCellInformation->time, this->time);
+                strcpy(currentCellInformation->timestamp, this->date);
+                strcat(currentCellInformation->timestamp, this->time);
                 this->mobileNetworkModule->changeConnectionState 
                 (new AttachingToPacketService (this->mobileNetworkModule) );
                 return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;

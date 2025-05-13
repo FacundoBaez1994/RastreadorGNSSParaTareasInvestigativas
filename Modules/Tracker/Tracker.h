@@ -11,7 +11,12 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "string.h"
-#include "CellularModule.h"
+#include "TrackerState.h"
+#include "TrackerStatus.h"
+#include "IMUManager.h"
+#include <CustomJWT.h>
+
+
 
 
 
@@ -31,11 +36,14 @@ public:
     Tracker ();
     virtual ~Tracker ();
     void update();
+    void changeState  (TrackerState * newTrackerState);
+    void encodeJWT(char * payloadToJWT, char * jwtEncoded);
+    void decodeJWT (char * jwtToDecode, char * payloadRetrived);
+    
 private:
-    char* formMessage (GNSSData * GNSSInfo);
-    char* formMessage(CellInformation* aCellInfo, std::vector<CellInformation*> 
-    &neighborsCellInformation, BatteryData  * batteryStatus); 
-    char* formMessage(CellInformation* aCellInfo, GNSSData* GNSSInfo, BatteryData  * batteryStatus);
+    TrackerState * currentState;
+    IMUManager * inertialSensor;
+    
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 
@@ -44,6 +52,9 @@ private:
     GNSSData * currentGNSSdata;
     NonBlockingDelay * latency;
     BatteryData  * batteryStatus;
+
+    CustomJWT * jwt;
+    char JWTKey [40] = "a-string-secret-at-least-256-bits-long";
 
 };
 

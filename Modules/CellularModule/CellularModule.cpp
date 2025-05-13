@@ -5,8 +5,13 @@
 
 //=====[Declaration of private defines]========================================
 #define REFRESHTIME  1000
+<<<<<<< HEAD
 //#define CELLULAR_MODULE_TX_UART PA_9
 //#define CELLULAR_MODULE_RX_UART PA_10
+=======
+
+
+>>>>>>> StatePatternJWT
 #define CELLULAR_MODULE_TX_UART PB_6 // tx nucleo
 #define CELLULAR_MODULE_RX_UART PB_7 // rx nucleo
 
@@ -58,6 +63,18 @@ CellularModule::CellularModule () {
 * 
 */
 CellularModule::~CellularModule () {
+    delete this->refreshTime;
+    this->refreshTime = nullptr;
+    delete this->ATHandler;
+    this->ATHandler = nullptr;
+    delete this->currentConnectionState;
+    this->currentConnectionState = nullptr;
+    delete this->currentTransceiverState;
+    this->currentTransceiverState = nullptr;
+    delete this->modulePowerManager;
+    this->modulePowerManager = nullptr;
+    delete this->simCardSwitchOutput;
+    this->simCardSwitchOutput = nullptr;
 }
 
 
@@ -101,8 +118,8 @@ bool CellularModule::goToSleep () {
 * 
 *
 */
-void CellularModule::reboot () {
-    this->modulePowerManager->reboot ();
+bool CellularModule::reboot () {
+    return this->modulePowerManager->reboot ();
 }
 
 /** 

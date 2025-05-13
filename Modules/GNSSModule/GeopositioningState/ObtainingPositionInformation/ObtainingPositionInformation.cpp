@@ -6,7 +6,7 @@
 #include "TurningOffGNSS.h"
 
 //=====[Declaration of private defines]========================================
-#define MAXRETRIES  5
+#define MAXRETRIES  25
 
 //=====[Declaration of private data types]=====================================
 
@@ -113,7 +113,7 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////  
-            strncpy(Geodata->utc, this->utc, sizeof(Geodata->utc));
+            
             Geodata->latitude = this->latitude;
             Geodata->longitude = this->longitude;
             Geodata->hdop = this->hdop;
@@ -122,7 +122,8 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
             Geodata->cog = this->cog;
             Geodata->spkm = this->spkm;
             Geodata->spkn = this->spkn;
-            strncpy( Geodata->date, this->date, sizeof(Geodata->date));
+            strcpy(Geodata->timestamp, this->date);
+            strcat(Geodata->timestamp, this->utc);
             Geodata->nsat = this->nsat; 
             this->currentGNSSModule->changeGeopositioningState (new TurningOffGNSS (this->currentGNSSModule));
             return GNSS_STATE_CONNECTION_OBTAIN;
@@ -147,7 +148,7 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
         uartUSB.write ( "\r\n",  3 );  // debug only
         if (this->numberOfTries >= this->maxTries) {
              ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "GNSS UNAVAILABLE, TURNING OFF";
+            char StringToSendUSB [40] = "GNSS UNAVAILABLE, TURNING OFF GNSS";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////    

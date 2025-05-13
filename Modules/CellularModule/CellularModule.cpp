@@ -6,6 +6,7 @@
 //=====[Declaration of private defines]========================================
 #define REFRESHTIME  1000
 
+
 #define CELLULAR_MODULE_TX_UART PB_6 // tx nucleo
 #define CELLULAR_MODULE_RX_UART PB_7 // rx nucleo
 
@@ -83,8 +84,8 @@ void CellularModule::startStopUpdate () {
     if (this->currentPowerStatus != newPowerStatus) {
        this->currentPowerStatus = newPowerStatus;
        if (this->currentPowerStatus != POWER_ON) {
-            //this->changeConnectionState (new ConnectionUnavailableState (this));
-            //this->changeTransceiverState  (new TransceiverUnavailable (this));
+            this->changeConnectionState (new ConnectionUnavailableState (this));
+            this->changeTransceiverState  (new TransceiverUnavailable (this));
        }
     }
 }
@@ -228,4 +229,3 @@ ATCommandHandler* CellularModule::getATHandler (){
 
 
 //=====[Implementations of private functions]==================================
-

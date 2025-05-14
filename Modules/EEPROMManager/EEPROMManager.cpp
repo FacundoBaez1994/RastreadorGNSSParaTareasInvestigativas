@@ -8,6 +8,8 @@
 //=====[Declaration of private defines]========================================
 #define REFRESH_MEMORY 5
 #define EEPROM_SIZE 32768
+#define I2C_SDA PA_10
+#define I2C_SCL PA_9 
 
 //=====[Declaration of private data types]=====================================
 const int EEPROM_ADDRESS = 0x50 << 1; // Dirección I2C del AT24C256 (desplazada)
@@ -33,8 +35,8 @@ const int PAGE_SIZE = 64;
 /**
  * @brief
  */
-EEPROMManager::EEPROMManager(I2C * i2c) {
-    this->i2c = i2c;
+EEPROMManager::EEPROMManager() {
+    this->i2c = new I2C (I2C_SDA, I2C_SCL);
     this->address = EEPROM_ADDRESS;
     this->pageSize = PAGE_SIZE;
 

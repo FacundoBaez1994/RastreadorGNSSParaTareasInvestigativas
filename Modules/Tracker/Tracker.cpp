@@ -51,6 +51,7 @@ Tracker::Tracker () {
     this->batteryStatus = new BatteryData;
 
     this->inertialSensor = new IMUManager (); 
+    this->memory = new EEPROMManager ();
 
     this->currentState =  new CalibratingInertialSensor (this);
 
@@ -83,8 +84,11 @@ Tracker::~Tracker() {
     this->currentGNSSModule = nullptr;
     delete this->cellularTransceiver;
     this->cellularTransceiver = nullptr;
+
     delete this->inertialSensor;
     this->inertialSensor = nullptr;
+    delete this->memory;
+    this->memory = nullptr;
 
     delete this->encrypter;
     this->encrypter = nullptr;
@@ -133,6 +137,8 @@ void Tracker::update () {
     this->currentGNSSdata, neighborsCellInformation, &imuData, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
+    this->currentState->saveMessage(this->memory, formattedMessage);
+    this->currentState->loadMessage(this->memory, formattedMessage);
     this->currentState->goToSleep (this->cellularTransceiver);
     
 }

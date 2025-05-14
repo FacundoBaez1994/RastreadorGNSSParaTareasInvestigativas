@@ -4,6 +4,7 @@
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 #include "ExchangingMessages.h"
+#include "SavingMessage.h"
 
 //=====[Declaration of private defines]========================================
 
@@ -58,10 +59,11 @@ void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
 void FormattingMessage::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     IMUData_t * imuData, BatteryData  * batteryStatus) {
-    /// Cifrado iria aca tambien..
+    char StringToSendUSB [50];
 
-    if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
-            char StringToSendUSB [50] = "Formating MN,GNSS message\r\n";
+    switch (this->currentStatus ) {
+        case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK:
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,GNSS message\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus);
@@ -70,12 +72,10 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->tracker->changeState (new ExchangingMessages (this->tracker, 
-            TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK));
-            return;
-    }
-    if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
-            char StringToSendUSB [50] = "Formating MN,MN message:\r\n";
+            this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
+            break;
+        case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK:
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,MN message:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, 
@@ -85,11 +85,38 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->tracker->changeState (new ExchangingMessages (this->tracker, 
-            TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK));
+            this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
+            break;
+        case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE:
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,GNSS message to be saved\r\n");
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->formatMemoryMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->tracker->changeState (new SavingMessage (this->tracker));
+            break;
+        case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE:
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,MN message to be saved:\r\n");
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->formatMemoryMessage(formattedMessage, aCellInfo, 
+            neighborsCellInformation, imuData, batteryStatus);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->tracker->changeState (new SavingMessage (this->tracker));
+            break;
+        default:
             return;
-        }
-        
+    }
+
+ 
     return;
 }
 
@@ -178,71 +205,15 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
     }
 
     // Cierre del JSON
-    strncat(message, "}", sizeof(message) - strlen(message) - 1);
+    strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
 
     message[sizeof(message) - 1] = '\0';
 
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
-}
 
-/*
-void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-std::vector<CellInformation*> &neighborsCellInformation, char * inertialData, BatteryData  * batteryStatus) {
-    static char message[500];
-    char neighbors[50];
-    char closeJWTString [3] = ",}"; 
-    int lac;
-    int idCell;
-    int tech;
-    int mcc;
-    int mnc;
-    float prx;
-    snprintf(message, sizeof(message), 
-            "{\"Type\":\"MNMN\",\"MCC\":%d,\"MNC\":%d,\"LAC\":%X,\"CID\":%X,\"SLVL\":%.2f,\"TECH\":%d,\"REGS\":%d,\"CHNL\":%d,\"BAND\":\"%s\",\"DATE\":\"%s\",\"TIME\":\"%s\",\"BSTA\":%d,\"BLVL\":%d", 
-            aCellInfo->mcc,  // 1
-            aCellInfo->mnc,  // 2
-            aCellInfo->lac,  // 3
-            aCellInfo->cellId,  // 4
-            aCellInfo->signalLevel, // 5
-            aCellInfo->accessTechnology, // 6
-            aCellInfo->registrationStatus, // 7
-            aCellInfo->channel, // 8
-            aCellInfo->band, // 9
-            aCellInfo->date, // 10  // deberia ser un solo campo
-            aCellInfo->time, // 11  // deberia ser un solo campo
-            batteryStatus->batteryChargeStatus, //19
-            batteryStatus->chargeLevel //20
-            );   // inertialData,  //12 temp, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
-    snprintf(neighbors, sizeof(neighbors),"size of vector %d", neighborsCellInformation.size()); 
-    uartUSB.write (neighbors , strlen (neighbors ));  // debug only
-    uartUSB.write ( "\r\n",  3 );  // debug only 
-    if ( neighborsCellInformation.size() == 0) {
-        strncat (message, closeJWTString, sizeof(message) - strlen(message) - 1); // completar aca CHAT GPT
-        strcpy (formattedMessage, message);
-        return;
-    }
-       
-    for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
-        tech = neighborsCellInformation[i]->tech;
-        mcc = neighborsCellInformation[i]->mcc;
-        mnc = neighborsCellInformation[i]->mnc;
-        lac = neighborsCellInformation[i]->lac;
-        idCell = neighborsCellInformation[i]->cellId;
-        prx = neighborsCellInformation[i]->signalLevel;
-        snprintf(neighbors, sizeof(neighbors),",%dG,%d,%d,%X,%X,%.2f",tech,mcc,mnc,lac,idCell,prx); 
-        uartUSB.write (neighbors , strlen (neighbors ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        // Concatenar el mensaje de la celda vecina al mensaje principal
-        strncat(message, neighbors, sizeof(message) - strlen(message) - 1);
-        delete neighborsCellInformation[i];
-        neighborsCellInformation[i] = NULL;
-    }
-    strncat (message, closeJWTString, sizeof(message) - strlen(message) - 1); // completar aca CHAT GPT
-    strcpy (formattedMessage, message);
-    neighborsCellInformation.clear();
+     strcat(message, "\n");
 }
-*/
 
 void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo,
  GNSSData* GNSSInfo,  IMUData_t * imuData, BatteryData  * batteryStatus) {
@@ -310,36 +281,99 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
 
+    strcat(message, "\n");
+
 }
 
-/*
-void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo,
- GNSSData* GNSSInfo,  char * inertialData, BatteryData  * batteryStatus) {
+//// MNMN for save on memory
+void FormattingMessage::formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo, 
+    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus) {
+
+    static char message[2024];
+    static char tempBuffer[250]; // buffer auxiliar para formateo
+    size_t currentLen = 0;
+
+    // Encabezado principal del mensaje JSON con los datos de la celda principal
+    currentLen = snprintf(message, sizeof(message),
+        "MNMN,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
+        aCellInfo->mcc,               // 1
+        aCellInfo->mnc,               // 2
+        aCellInfo->lac,               // 3
+        aCellInfo->cellId,            // 4
+        aCellInfo->signalLevel,       // 5
+        aCellInfo->accessTechnology,  // 6
+        aCellInfo->registrationStatus,// 7
+        aCellInfo->channel,           // 8
+        aCellInfo->band,              // 9
+        aCellInfo->timestamp,              // 10
+        batteryStatus->batteryChargeStatus, // 11
+        batteryStatus->chargeLevel,          // 12
+        imuData->status,                //13
+        imuData->acceleration.ax,       // 14
+        imuData->acceleration.ay,       //15
+        imuData->acceleration.az,       //16
+        imuData->angles.yaw,            // 17
+        imuData->angles.roll,           // 18
+        imuData->angles.pitch           // 19
+    );
+    // inertialData,  //13 status, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
+
+    // Agregar array de celdas vecinas si existen
+    if (!neighborsCellInformation.empty()) {
+        currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Neighbors\":[");
+        
+        for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
+            CellInformation* neighbor = neighborsCellInformation[i];
+            snprintf(tempBuffer, sizeof(tempBuffer),
+                "|%d,%d,%d,%X,%X,%.2f",
+                neighbor->tech,
+                neighbor->mcc,
+                neighbor->mnc,
+                neighbor->lac,
+                neighbor->cellId,
+                neighbor->signalLevel
+            );
+            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+        }
+    }
+    message[sizeof(message) - 1] = '\0';
+    strcpy (formattedMessage, message );
+}
+
+
+//// MNGNSS for save on memory
+void FormattingMessage::formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo,
+ GNSSData* GNSSInfo,  IMUData_t * imuData, BatteryData  * batteryStatus) {
     static char message[200]; 
     snprintf(message, sizeof(message), 
-             "MN,GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%s,%s,%d,%d\r\n", 
-            GNSSInfo->latitude, // 1
-            GNSSInfo->longitude,  // 2
-            GNSSInfo->hdop,  // 3
-            GNSSInfo->altitude,  // 4
-            GNSSInfo->cog,  // 5
-            GNSSInfo->spkm,  // 6
-            aCellInfo->mnc,  // 7
-            aCellInfo->mcc,  // 8
-            aCellInfo->lac,  // 9
-            aCellInfo->cellId,  // 10
-            aCellInfo->signalLevel, //11
-            aCellInfo->accessTechnology, //12
-            aCellInfo->registrationStatus, // 13
-            aCellInfo->channel, // 14
-            aCellInfo->band, // 15
-            GNSSInfo->date, // 16
-            GNSSInfo->utc, // 17
-            inertialData, //18 temp, 19 ax, 20 ay, 21 az, 22 yaw, 23 roll, 24 pitch
-            batteryStatus->batteryChargeStatus, // 25
-            batteryStatus->chargeLevel // 26
+    "MNGNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%s,%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n", 
+        GNSSInfo->latitude,                 // 1 %.6f
+        GNSSInfo->longitude,                // 2 %.6f
+        GNSSInfo->hdop,                     // 3 %.2f
+        GNSSInfo->altitude,                 // 4 %.2f
+        GNSSInfo->cog,                      // 5 %.2f
+        GNSSInfo->spkm,                     // 6 %.2f
+        aCellInfo->mnc,                     // 7 %d
+        aCellInfo->mcc,                     // 8 %d
+        aCellInfo->lac,                     // 9 %X
+        aCellInfo->cellId,                  // 10 %X
+        aCellInfo->signalLevel,             // 11 %.2f
+        aCellInfo->accessTechnology,        // 12 %d
+        aCellInfo->registrationStatus,      // 13 %d
+        aCellInfo->channel,                 // 14 %s
+        aCellInfo->band,                    // 15 %s
+        GNSSInfo->timestamp,                // 16 %s
+        batteryStatus->batteryChargeStatus, // 17 %d
+        batteryStatus->chargeLevel,         // 18 %d
+        imuData->status,                    // 19 %d
+        imuData->acceleration.ax,           // 20 %.2f
+        imuData->acceleration.ay,           // %.2f
+        imuData->acceleration.az,           // %.2f
+        imuData->angles.yaw,                // %.2f
+        imuData->angles.roll,               // %.2f
+        imuData->angles.pitch               // %.2f
             );
-    strcpy (formattedMessage, message);
+        strcpy (formattedMessage, message );
 }
-*/
+
 

@@ -11,6 +11,7 @@
 #include "CellularModule.h"
 #include "GNSSModule.h"
 #include "IMUManager.h"
+#include "EEPROMManager.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -36,11 +37,12 @@ public:
     virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
      IMUData_t * imuData, BatteryData  * batteryStatus); 
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
+    virtual void saveMessage (EEPROMManager * memory, char * message);
+    virtual void loadMessage (EEPROMManager * memory, char * message);
     
 
 //=====[Declaration of privates atributes]=========================================

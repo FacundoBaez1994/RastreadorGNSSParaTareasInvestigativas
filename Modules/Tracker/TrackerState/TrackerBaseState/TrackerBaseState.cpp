@@ -80,8 +80,12 @@ void TrackerBaseState::obtainInertialMeasures (IMUManager * inertialSensor,  IMU
     return;
 }
 
+void TrackerBaseState::saveMessage (EEPROMManager * memory, char * message) {
+    return;
+}
 
-
-
+void TrackerBaseState::loadMessage (EEPROMManager * memory, char * message) {
+    return;
+}
 
 //=====[Implementations of private methods]==================================

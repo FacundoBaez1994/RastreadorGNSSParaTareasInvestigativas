@@ -4,6 +4,8 @@
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 #include "GoingToSleep.h"
+#include "SavingMessage.h"
+#include "FormattingMessage.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -63,6 +65,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static bool rebootTransceiver = false;
     char logMessage [50];
     
+    // if conected to mobile network send the message throght LTE Modem
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
      || this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
         if (enableTransceiver == false) {
@@ -88,6 +91,10 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             uartUSB.write ( "\r\n",  3 );  // debug only
             newDataAvailable = false;
             enableTransceiver = false;
+
+            // ADD MESSAGE INTERPRETATION
+
+
             this->tracker->changeState (new GoingToSleep (this->tracker));
             return;
             } else {
@@ -116,8 +123,14 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             // save message in memory..
             newDataAvailable = false;
             enableTransceiver = false;
-            rebootTransceiver = false; 
-            this->tracker->changeState (new GoingToSleep (this->tracker));
+            rebootTransceiver = false;
+            if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
+                this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+            }
+            if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
+                this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+            }
+            this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
             return;
         }
     }

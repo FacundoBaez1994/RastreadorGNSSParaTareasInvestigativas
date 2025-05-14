@@ -32,8 +32,15 @@ public:
 private:
     void formatMessage(char * formattedMessage, CellInformation* aCellInfo,
      GNSSData* GNSSInfo, IMUData_t * imuData, BatteryData  * batteryStatus);
+
     void formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus); 
+    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus);
+
+    void formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo, std::vector<CellInformation*> &neighborsCellInformation, 
+    IMUData_t * imuData, BatteryData  * batteryStatus);
+
+    void formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo, GNSSData* GNSSInfo, 
+     IMUData_t * inertialData, BatteryData  * batteryStatus);
 
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;

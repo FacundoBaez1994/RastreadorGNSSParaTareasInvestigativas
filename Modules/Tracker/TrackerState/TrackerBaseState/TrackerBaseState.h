@@ -34,9 +34,10 @@ public:
     IMUData_t * imuData, BatteryData  * batteryStatus); 
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
+    virtual void saveMessage (EEPROMManager * memory, char * message);
+    virtual void loadMessage (EEPROMManager * memory, char * message);
 private:
 //=====[Declaration of privates atributes]=========================================
 

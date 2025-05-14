@@ -22,7 +22,7 @@ enum class EEPROMStatus {
 class EEPROMManager {
     //=====[Declaration of public methods]=========================================
 public:
-    EEPROMManager (I2C * i2c);
+    EEPROMManager ();
     virtual ~EEPROMManager ();
 
     bool isEEPROMConnected();

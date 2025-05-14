@@ -6,6 +6,7 @@
 #include "Non_Blocking_Delay.h"
 #include "arm_book_lib.h"
 #include "CellularModule.h"
+#include "EEPROMManager.h"
 #include "GNSSModule.h"
 #include "mbed.h"
 #include "Non_Blocking_Delay.h"
@@ -13,7 +14,9 @@
 #include "string.h"
 #include "TrackerState.h"
 #include "TrackerStatus.h"
+
 #include "IMUManager.h"
+#include "EEPROMManager.h"
 
 #include "MessageHandler.h"
 #include "MessageHandlerStatus.h"
@@ -53,10 +56,11 @@ public:
 
     
 private:
-    I2C * i2c;
 
     TrackerState * currentState;
+
     IMUManager * inertialSensor;
+    EEPROMManager * memory;
     
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;

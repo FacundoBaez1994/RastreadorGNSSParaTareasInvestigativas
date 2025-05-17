@@ -184,6 +184,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
 
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
+
+    strcat(formattedMessage, "\n");
 }
 
 /*
@@ -310,6 +312,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
 
+    strcat(formattedMessage, "\n");
 }
 
 /*

@@ -20,7 +20,7 @@
 class MessageHandler {
 public:
 //=====[Declaration of public methods]=========================================
-    virtual MessageHandlerStatus_t handleMessage (char * message);
+    virtual MessageHandlerStatus_t handleMessage (char * message, unsigned int sizeOfMessage);
     virtual MessageHandler * setNextHandler (MessageHandler * nextHandler);
 //=====[Declaration of privates atributes]=========================================
 

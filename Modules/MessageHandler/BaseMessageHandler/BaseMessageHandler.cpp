@@ -60,7 +60,7 @@ MessageHandler * BaseMessageHandler::setNextHandler(MessageHandler * nextHandler
   return nextHandler;
 }
 
-MessageHandlerStatus_t BaseMessageHandler::handleMessage (char * message) {
+MessageHandlerStatus_t BaseMessageHandler::handleMessage (char * message, unsigned int sizeOfMessage) {
     return MESSAGE_HANDLER_STATUS_PROCESSING_MESSAGE;
 }
 

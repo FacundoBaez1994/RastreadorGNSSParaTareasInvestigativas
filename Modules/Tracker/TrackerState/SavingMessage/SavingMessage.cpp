@@ -51,21 +51,28 @@ SavingMessage::~SavingMessage  () {
 }
 
 void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
-    char log [2054];
+    char log [200];
+    static char buffer [2048] = {0};
+    static bool bufferCharged = false;
     static bool encryptionProcessFinished = false;
     EEPROMStatus state;
     
+    if ( bufferCharged  == false) {
+        strcpy (buffer, message);
+        bufferCharged = true;
+    }
     if ( encryptionProcessFinished  == false) {
-        if (this->tracker->encryptMessage (message) == true) {
+        if (this->tracker->encryptMessage ( buffer, sizeof (buffer)) == true) {
             encryptionProcessFinished  = true;
         }
     }
 
     if ( encryptionProcessFinished  == true) {
-        state = memory->pushStringToEEPROM (message);
+        state = memory->pushStringToEEPROM (buffer);
         if ( state == EEPROMStatus::PUSHOK) {
-            snprintf(log, sizeof(log), "STRINGS PUSHEADA: %s\n\r", message);
+            snprintf(log, sizeof(log), "Pushed string:\n\r");
             uartUSB.write(log, strlen(log));
+            uartUSB.write(buffer, strlen(buffer));
             encryptionProcessFinished = false;
             this->tracker->changeState  (new LoadingMessage (this->tracker));
             return;

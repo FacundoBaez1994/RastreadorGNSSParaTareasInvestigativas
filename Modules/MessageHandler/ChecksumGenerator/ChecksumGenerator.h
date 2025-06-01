@@ -26,7 +26,7 @@ public:
 //=====[Declaration of public methods]=========================================
     ChecksumGenerator();
     virtual ~ChecksumGenerator ();
-    virtual MessageHandlerStatus_t handleMessage (char * message) override;
+    virtual MessageHandlerStatus_t handleMessage (char * message, unsigned int sizeOfMessage) override;
     //virtual MessageHandler setNextHandler (MessageHandler * nextHandler);
 private:
 //=====[Declaration of privates atributes]=========================================

@@ -48,11 +48,11 @@ public:
     void changeState  (TrackerState * newTrackerState);
     void encodeJWT(char * payloadToJWT, char * jwtEncoded);
     void decodeJWT (char * jwtToDecode, char * payloadRetrived);
-    bool encryptMessage (char * message);
-    bool decryptMessage (char * message);
+    bool encryptMessage (char * message, unsigned int messageSize);
+    bool decryptMessage (char * message, unsigned int messageSize);
 
-    bool prepareLoRaMessage (char * message);
-    bool processLoRaMessage (char * message);
+    bool prepareLoRaMessage (char * message, unsigned int messageSize);
+    bool processLoRaMessage (char * message, unsigned int messageSize);
 
     
 private:
@@ -60,11 +60,14 @@ private:
     TrackerState * currentState;
 
     IMUManager * inertialSensor;
+    IMUData_t * imuData;
+
     EEPROMManager * memory;
     
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 
+    std::vector<CellInformation*> neighborsCellInformation;
 
     GNSSModule* currentGNSSModule;
     GNSSData * currentGNSSdata;

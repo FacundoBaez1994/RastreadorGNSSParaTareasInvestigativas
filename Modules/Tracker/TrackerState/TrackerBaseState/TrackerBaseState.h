@@ -29,9 +29,9 @@ public:
     CellInformation * currentCellInformation);
     virtual void obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
-    virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData, BatteryData  * batteryStatus); 
+    virtual void formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
+    const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
+    const IMUData_t * imuData, const BatteryData  * batteryStatus); 
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     virtual void goToSleep (CellularModule * cellularTransceiver);

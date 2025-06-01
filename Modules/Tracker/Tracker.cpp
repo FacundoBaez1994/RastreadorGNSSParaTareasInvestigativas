@@ -3,6 +3,7 @@
 #include "Tracker.h"
 #include "Debugger.h" // due to global usbUart
 #include "CalibratingInertialSensor.h"
+#include "SavingMessage.h"
 
 
 //=====[Declaration of private defines]========================================
@@ -50,10 +51,13 @@ Tracker::Tracker () {
     this->currentGNSSdata = new GNSSData;
     this->batteryStatus = new BatteryData;
 
+    this->imuData = new IMUData_t;
+
     this->inertialSensor = new IMUManager (); 
     this->memory = new EEPROMManager ();
 
     this->currentState =  new CalibratingInertialSensor (this);
+    //this->currentState =  new SavingMessage (this);
 
     this->jwt = new CustomJWT (this->JWTKey, 256);
     this->encrypter = new Encrypter ();
@@ -63,10 +67,20 @@ Tracker::Tracker () {
     this->checksumVerifier = new ChecksumVerifier ();
     this->authVer = new AuthenticationVerifier ();
     this->decrypter = new Decrypter ();
+
+
+    while (! this->memory->clearAll()) {
+        
+    }
+    snprintf(StringToSendUSB, sizeof(StringToSendUSB), "STRINGS LIMPIADAS\n\r");
+    uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
 }
 
 
 Tracker::~Tracker() {
+    delete this->imuData;
+    this->imuData = nullptr;
+
     delete[] this->currentCellInformation->timestamp;
     this->currentCellInformation->timestamp = nullptr;
     delete[] this->currentCellInformation->band;
@@ -111,18 +125,14 @@ Tracker::~Tracker() {
 *
 */
 void Tracker::update () {
-    
-    static char formattedMessage [2024];
-    static char receivedMessage [2024];
+    //static char formattedMessage [2048] = "MNMN,722,7,11A4,62A840F,-55.00,7,1,2850,LTE BAND 7,1,0,89,0,0.01,-0.00,-0.01,168.27,-1.52,-5.91|2,722,34,13F5,1583,62.00|2,722,34,13F5,1B48,60.00|2,722,34,13F5,1581,57.00|2,722,34,13F5,DC3,46.00|2,722,34,13F5,1582,44.00|4,722,34,3B05,7A3B603,-73.00|4,722,34,3B05,7A3B600,-92.00|4,722,34,3B05,7A3B600,-92.00|4,722,34,3B05,7A1C90E,-94.00|4,722,34,3B0C,7D44708,-122.00|2,722,310,1BD5,41E9,34.00|2,722,310,1BD5,65AF,33.00|2,722,310,1BD5,6A05,28.00|3,722,310,4317,16438A6,-75.00";
+    static char formattedMessage [2048];
+    static char receivedMessage [2048];
 
-    static IMUData_t imuData;
 
-    static std::vector<CellInformation*> neighborsCellInformation;
+    //static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
-    Watchdog &watchdog = Watchdog::get_instance(); // singletom
-
-
-
+    Watchdog &watchdog = Watchdog::get_instance(); // singleton
     watchdog.kick();
     this->currentState->awake(this->cellularTransceiver, this->latency);
     this->currentState->calibrateIMU (this->inertialSensor);
@@ -131,15 +141,16 @@ void Tracker::update () {
     this->currentState->connectToMobileNetwork (this->cellularTransceiver,
     this->currentCellInformation);
     this->currentState->obtainNeighborCellsInformation (this->cellularTransceiver, 
-    neighborsCellInformation, numberOfNeighbors );
-    this->currentState->obtainInertialMeasures(this->inertialSensor, &imuData);
+    this->neighborsCellInformation, numberOfNeighbors );
+    this->currentState->obtainInertialMeasures(this->inertialSensor, this->imuData);
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
-    this->currentGNSSdata, neighborsCellInformation, &imuData, this->batteryStatus); 
+    this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
     this->currentState->saveMessage(this->memory, formattedMessage);
     this->currentState->loadMessage(this->memory, formattedMessage);
     this->currentState->goToSleep (this->cellularTransceiver);
+    watchdog.kick();
     
 }
 
@@ -150,36 +161,36 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
 }
 
 
-bool Tracker::encryptMessage (char * message) {
+bool Tracker::encryptMessage (char * message, unsigned int messageSize) {
     this->encrypter->setNextHandler(nullptr);
-    if (this->encrypter->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    if (this->encrypter->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;
     }
 }
 
-bool Tracker::decryptMessage (char * message) {
+bool Tracker::decryptMessage (char * message, unsigned int messageSize) {
     this->decrypter->setNextHandler(nullptr);
-    if (this->decrypter->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    if (this->decrypter->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;
     }
 }
 
-bool Tracker::prepareLoRaMessage (char * message) {
+bool Tracker::prepareLoRaMessage (char * message, unsigned int messageSize) {
     this->encrypter->setNextHandler(this->authgen)->setNextHandler(this->ckgen);
-    if (this->encrypter->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    if (this->encrypter->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;
     }
 }
 
-bool Tracker::processLoRaMessage (char * message) {
+bool Tracker::processLoRaMessage (char * message, unsigned int messageSize) {
     this->checksumVerifier->setNextHandler(this->authVer)->setNextHandler(this->decrypter);
-    if (this->checksumVerifier->handleMessage (message) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    if (this->checksumVerifier->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;

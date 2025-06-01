@@ -52,9 +52,9 @@ void TrackerBaseState::obtainNeighborCellsInformation (CellularModule* cellularT
 }
 
 
-void TrackerBaseState::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     IMUData_t * imuData, BatteryData  * batteryStatus) {
+void TrackerBaseState::formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
+    const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
+    const IMUData_t * imuData, const BatteryData  * batteryStatus) {
     return;
 }
 

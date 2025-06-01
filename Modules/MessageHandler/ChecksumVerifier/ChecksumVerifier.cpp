@@ -48,7 +48,7 @@ ChecksumVerifier::~ChecksumVerifier () {
     this->nextHandler = nullptr;
 }
 
-MessageHandlerStatus_t ChecksumVerifier::handleMessage(char *message) {
+MessageHandlerStatus_t ChecksumVerifier::handleMessage(char *message, unsigned int sizeOfMessage) {
     MbedCRC<POLY_32BIT_ANSI, 32> crc32;
 
 
@@ -96,7 +96,7 @@ MessageHandlerStatus_t ChecksumVerifier::handleMessage(char *message) {
     if (this->nextHandler == nullptr) {
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     } else {
-        return this->nextHandler->handleMessage(message);
+        return this->nextHandler->handleMessage(message, sizeOfMessage);
     }
 }
 

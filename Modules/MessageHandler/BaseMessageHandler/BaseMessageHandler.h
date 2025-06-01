@@ -23,7 +23,7 @@ public:
 //=====[Declaration of public methods]=========================================
     BaseMessageHandler();
     virtual ~BaseMessageHandler ();
-    virtual MessageHandlerStatus_t handleMessage (char * incommingMessage);
+    virtual MessageHandlerStatus_t handleMessage (char * incommingMessage, unsigned int sizeOfMessage);
     virtual MessageHandler  * setNextHandler (MessageHandler * nextHandler);
 protected:
     MessageHandler * nextHandler;

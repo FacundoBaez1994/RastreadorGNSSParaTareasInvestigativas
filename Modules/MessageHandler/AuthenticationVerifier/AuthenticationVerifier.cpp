@@ -60,7 +60,7 @@ AuthenticationVerifier::~AuthenticationVerifier () {
 }
 
 
-MessageHandlerStatus_t  AuthenticationVerifier::handleMessage (char * message) {
+MessageHandlerStatus_t  AuthenticationVerifier::handleMessage (char * message, unsigned int sizeOfMessage) {
      unsigned char keyhmac [] = "KURRRVWWWWAAAAA";
 
 
@@ -124,7 +124,7 @@ MessageHandlerStatus_t  AuthenticationVerifier::handleMessage (char * message) {
     if (this->nextHandler == nullptr) {
         return  MESSAGE_HANDLER_STATUS_PROCESSED;
     } else {
-        return this->nextHandler->handleMessage (message);
+        return this->nextHandler->handleMessage (message, sizeOfMessage);
     }
     
 }

@@ -29,6 +29,8 @@ public:
     void printAllStringsFromEEPROM();
     EEPROMStatus pushStringToEEPROM(const char* newString);
     EEPROMStatus popStringFromEEPROM( char* outputBuffer, size_t bufferSize);
+    EEPROMStatus pushPartialStringToEEPROM(const char* newString);
+    EEPROMStatus popPartialStringFromEEPROM( char* outputBuffer, size_t bufferSize);
     bool clearAll();
  
  private:

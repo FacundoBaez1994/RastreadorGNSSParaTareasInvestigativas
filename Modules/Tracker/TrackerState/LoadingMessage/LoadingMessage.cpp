@@ -50,8 +50,8 @@ LoadingMessage::~LoadingMessage  () {
 }
 
 void LoadingMessage::loadMessage (EEPROMManager * memory, char * message) {
-    static char  poppedString [2054];
-    char  log [2054];
+    static char  poppedString [4048] = {0};
+    char  log [100];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;
     
@@ -59,8 +59,10 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, char * message) {
     if (popProcessFinished  == false) {
         state = memory->popStringFromEEPROM( poppedString, sizeof(poppedString));
         if (state == EEPROMStatus::POPPEDSTRINGOK) {
-            snprintf(log, sizeof(log), "popped string From Memory: %s\n\r", poppedString);
+            snprintf(log, sizeof(log), "popped string From Memory\n\r");
             uartUSB.write(log, strlen(log));
+            uartUSB.write(poppedString, strlen(poppedString));
+            uartUSB.write("\n\r", strlen("\n\r"));
 
             popProcessFinished = true;
         } else if (state ==  EEPROMStatus::EMPTY) {
@@ -70,9 +72,11 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, char * message) {
             return;
         }
     } else {
-        if (this->tracker->decryptMessage(poppedString) == true) {
-            snprintf(log, sizeof(log), "ultimo string descifrado: %s\n\r", poppedString);
+        if (this->tracker->decryptMessage(poppedString, sizeof (poppedString)) == true) {
+            snprintf(log, sizeof(log), "\n\rultimo string descifrado:\n\r");
             uartUSB.write(log, strlen(log));
+            uartUSB.write(poppedString, strlen(poppedString));
+             uartUSB.write("\n\r", strlen("\n\r"));
             this->tracker->changeState  (new GoingToSleep (this->tracker));
             return;
         }

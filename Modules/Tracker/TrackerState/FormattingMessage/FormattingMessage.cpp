@@ -56,9 +56,9 @@ void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
  }
 
 
-void FormattingMessage::formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData, BatteryData  * batteryStatus) {
+void FormattingMessage::formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
+    const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
+    const IMUData_t * imuData, const BatteryData  * batteryStatus) {
     char StringToSendUSB [50];
 
     switch (this->currentStatus ) {
@@ -75,6 +75,10 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
             break;
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK:
+
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB), "Vector size: %d\r\n", neighborsCellInformation.size());
+            uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
+
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,MN message:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -103,8 +107,10 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,MN message to be saved:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->formatMemoryMessage(formattedMessage, aCellInfo, 
+
+            this->formatMNMNMemoryMessage(formattedMessage, aCellInfo, 
             neighborsCellInformation, imuData, batteryStatus);
+            
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
@@ -124,10 +130,10 @@ void FormattingMessage::formatMessage (char * formattedMessage, CellInformation*
 
 
 //=====[Implementations of private methods]==================================
-void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus) {
+void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
+    const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus) {
 
-    static char message[2024];
+    static char message[2048];
     static char tempBuffer[250]; // buffer auxiliar para formateo
     size_t currentLen = 0;
 
@@ -212,13 +218,13 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
 
-     strcat(message, "\n");
+     strcat(formattedMessage, "\n");
 }
 
-void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* aCellInfo,
- GNSSData* GNSSInfo,  IMUData_t * imuData, BatteryData  * batteryStatus) {
+void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo,
+ const GNSSData* GNSSInfo,  const IMUData_t * imuData, const BatteryData  * batteryStatus) {
 
-    static char message[512];
+    static char message[2048];
     size_t currentLen = 0;
 
     currentLen = snprintf(message, sizeof(message),
@@ -281,17 +287,24 @@ void FormattingMessage::formatMessage(char * formattedMessage, CellInformation* 
     //strcpy(formattedMessage, message);
     this->tracker->encodeJWT (message, formattedMessage);
 
-    strcat(message, "\n");
+    strcat(formattedMessage, "\n");
 
 }
 
 //// MNMN for save on memory
-void FormattingMessage::formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo, 
-    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus) {
+void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo, 
+    const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus) {
 
-    static char message[2024];
+    static char message[2048];
     static char tempBuffer[250]; // buffer auxiliar para formateo
     size_t currentLen = 0;
+
+
+    char StringToSendUSB [100];
+    
+    snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "MN,MN save:\r\n");
+    uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only}
 
     // Encabezado principal del mensaje JSON con los datos de la celda principal
     currentLen = snprintf(message, sizeof(message),
@@ -308,20 +321,18 @@ void FormattingMessage::formatMemoryMessage(char * formattedMessage, CellInforma
         aCellInfo->timestamp,              // 10
         batteryStatus->batteryChargeStatus, // 11
         batteryStatus->chargeLevel,          // 12
-        imuData->status,                //13
-        imuData->acceleration.ax,       // 14
-        imuData->acceleration.ay,       //15
-        imuData->acceleration.az,       //16
-        imuData->angles.yaw,            // 17
-        imuData->angles.roll,           // 18
-        imuData->angles.pitch           // 19
+        imuData->status,                //13 %d
+        imuData->acceleration.ax,       // 14 %.2f
+        imuData->acceleration.ay,       //15 %.2f
+        imuData->acceleration.az,       //16 %.2f
+        imuData->angles.yaw,            // 17 %.2f
+        imuData->angles.roll,           // 18 %.2f
+        imuData->angles.pitch           // 19 %.2f
     );
     // inertialData,  //13 status, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
 
     // Agregar array de celdas vecinas si existen
     if (!neighborsCellInformation.empty()) {
-        currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Neighbors\":[");
-        
         for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
             CellInformation* neighbor = neighborsCellInformation[i];
             snprintf(tempBuffer, sizeof(tempBuffer),
@@ -334,19 +345,22 @@ void FormattingMessage::formatMemoryMessage(char * formattedMessage, CellInforma
                 neighbor->signalLevel
             );
             strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+
+            uartUSB.write ( tempBuffer,  strlen (tempBuffer) );  // debug only}
         }
     }
     message[sizeof(message) - 1] = '\0';
-    strcpy (formattedMessage, message );
+    strcpy(formattedMessage, message);
+    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
 }
 
 
 //// MNGNSS for save on memory
-void FormattingMessage::formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo,
- GNSSData* GNSSInfo,  IMUData_t * imuData, BatteryData  * batteryStatus) {
-    static char message[200]; 
+void FormattingMessage::formatMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo,
+ const GNSSData* GNSSInfo,  const IMUData_t * imuData, const BatteryData  * batteryStatus) {
+    static char message[2048]; 
     snprintf(message, sizeof(message), 
-    "MNGNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%s,%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n", 
+    "MNGNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%s,%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         GNSSInfo->latitude,                 // 1 %.6f
         GNSSInfo->longitude,                // 2 %.6f
         GNSSInfo->hdop,                     // 3 %.2f
@@ -373,7 +387,9 @@ void FormattingMessage::formatMemoryMessage(char * formattedMessage, CellInforma
         imuData->angles.roll,               // %.2f
         imuData->angles.pitch               // %.2f
             );
-        strcpy (formattedMessage, message );
+    message[sizeof(message) - 1] = '\0';       
+    strcpy(formattedMessage, message);
+    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
 }
 
 

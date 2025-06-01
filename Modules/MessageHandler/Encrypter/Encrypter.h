@@ -9,6 +9,7 @@
 #include "arm_book_lib.h"
 #include "BaseMessageHandler.h"
 #include "AES.h"
+#include "mbedtls/base64.h"
 #include <string.h>
 #include <stdio.h>
  
@@ -25,7 +26,7 @@ public:
 //=====[Declaration of public methods]=========================================
     Encrypter();
     virtual ~Encrypter ();
-    virtual MessageHandlerStatus_t handleMessage (char * message) override;
+    virtual MessageHandlerStatus_t handleMessage (char * message,  unsigned int sizeOfMessage) override;
 private:
     AES  * aes; 
     const char key[32] = {

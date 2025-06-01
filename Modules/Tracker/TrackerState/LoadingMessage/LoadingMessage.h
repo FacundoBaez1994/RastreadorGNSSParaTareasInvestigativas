@@ -26,7 +26,6 @@ public:
     virtual void loadMessage (EEPROMManager * memory, char * message);
 private:
     Tracker * tracker;
-  
 
 //=====[Declaration of privates atributes]=========================================
 

@@ -25,22 +25,22 @@ public:
     virtual ~FormattingMessage ();
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
 
-    virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-     IMUData_t * imuData, BatteryData  * batteryStatus); 
+    virtual void formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
+    const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
+    const IMUData_t * imuData, const BatteryData  * batteryStatus); 
 
 private:
-    void formatMessage(char * formattedMessage, CellInformation* aCellInfo,
-     GNSSData* GNSSInfo, IMUData_t * imuData, BatteryData  * batteryStatus);
+    void formatMessage(char * formattedMessage, const CellInformation* aCellInfo,
+    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
 
-    void formatMessage(char * formattedMessage, CellInformation* aCellInfo, 
-    std::vector<CellInformation*> &neighborsCellInformation, IMUData_t * imuData, BatteryData  * batteryStatus);
+    void formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
+    const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus);
 
-    void formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo, std::vector<CellInformation*> &neighborsCellInformation, 
-    IMUData_t * imuData, BatteryData  * batteryStatus);
+    void formatMNMNMemoryMessage (char * formattedMessage, const CellInformation* aCellInfo, const std::vector<CellInformation*> &neighborsCellInformation, 
+    const IMUData_t * imuData, const BatteryData  * batteryStatus);
 
-    void formatMemoryMessage(char * formattedMessage, CellInformation* aCellInfo, GNSSData* GNSSInfo, 
-     IMUData_t * inertialData, BatteryData  * batteryStatus);
+    void formatMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo, const GNSSData* GNSSInfo, 
+    const IMUData_t * inertialData, const BatteryData  * batteryStatus);
 
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;

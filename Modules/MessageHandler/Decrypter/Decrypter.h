@@ -8,6 +8,7 @@
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "BaseMessageHandler.h"
+#include "mbedtls/base64.h"
 #include "AES.h"
 #include <string.h>
 #include <stdio.h>
@@ -26,7 +27,7 @@ public:
 //=====[Declaration of public methods]=========================================
     Decrypter();
     virtual ~Decrypter ();
-    virtual MessageHandlerStatus_t handleMessage (char * message) override;
+    virtual MessageHandlerStatus_t handleMessage (char * message, unsigned int sizeOfMessage) override;
 
 private:
     AES  * aes; 

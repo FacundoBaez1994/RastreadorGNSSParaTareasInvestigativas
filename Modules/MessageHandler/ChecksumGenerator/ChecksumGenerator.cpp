@@ -49,7 +49,7 @@ ChecksumGenerator::~ChecksumGenerator () {
     this->nextHandler = nullptr;
 }
 
-MessageHandlerStatus_t ChecksumGenerator::handleMessage(char *message) {
+MessageHandlerStatus_t ChecksumGenerator::handleMessage(char *message, unsigned int sizeOfMessage) {
 
     // Crear una instancia de MbedCRC con el polinomio 32-bit ANSI
     MbedCRC<POLY_32BIT_ANSI, 32> crc32;
@@ -72,7 +72,7 @@ MessageHandlerStatus_t ChecksumGenerator::handleMessage(char *message) {
 
         // Calcular la longitud total del mensaje (incluyendo el CRC)
         size_t totalLength = messageLength + strlen(crcStr); // +1 para el terminador nulo
-        if (totalLength >= 256) { // Asegurarse de que el mensaje no supere el límite de 255 caracteres
+        if (totalLength >= 4000) { // Asegurarse de que el mensaje no supere el límite de caracteres
             uartUSB.write("Message too long to append CRC\r\n", strlen("Message too long to append CRC\r\n"));
             return MESSAGE_HANDLER_STATUS_FAIL_TO_COMPUTE_CHECKSUM;
         }
@@ -101,7 +101,7 @@ MessageHandlerStatus_t ChecksumGenerator::handleMessage(char *message) {
     if (this->nextHandler == nullptr) {
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     } else {
-        return this->nextHandler->handleMessage(message);
+        return this->nextHandler->handleMessage(message, sizeOfMessage);
     }
 }
 

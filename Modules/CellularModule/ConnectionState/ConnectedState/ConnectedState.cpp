@@ -102,7 +102,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
     static int mnc;
     static int mcc;
     static int counterTimeOut = 0;
-    int maxTimeOut = 80;
+    int maxTimeOut = 5;
 
     int tech;
     int idCell;
@@ -113,6 +113,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
     static int index = 0; 
 
     if (!vectorCleared) {
+        refreshTime->write(8000);
         for (auto cell : neighborsCellInformation) {
             delete cell;
         }
@@ -161,6 +162,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
             cellDataRetrived = false;
             vectorCleared = false;
             counterTimeOut = 0;
+            readyToSend = true;
             return true;
         }
 

@@ -49,7 +49,7 @@ AuthenticationGenerator::~AuthenticationGenerator () {
     this->nextHandler = nullptr;
 }
 
-MessageHandlerStatus_t AuthenticationGenerator::handleMessage(char* message) {
+MessageHandlerStatus_t AuthenticationGenerator::handleMessage(char* message, unsigned int sizeOfMessage) {
     unsigned char keyhmac[] = "KURRRVWWWWAAAAA";
     unsigned char hmac[32]; // Tamaño de SHA-256
     size_t message_len = strlen(message); // Longitud del mensaje inicial (texto cifrado)
@@ -95,7 +95,7 @@ MessageHandlerStatus_t AuthenticationGenerator::handleMessage(char* message) {
     if (this->nextHandler == nullptr) {
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     } else {
-        return this->nextHandler->handleMessage(message);
+        return this->nextHandler->handleMessage(message, sizeOfMessage);
     }
 }
 

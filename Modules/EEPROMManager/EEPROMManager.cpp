@@ -337,6 +337,14 @@ EEPROMStatus EEPROMManager::popPartialStringFromEEPROM(char* outputBuffer, size_
             readingPhase = false;
 
             if (prevString.empty()) {
+                currentAddress = 0;
+                prevAddress = 0;
+                currentString.clear();
+                prevString.clear();
+                lenToClear = 0;
+                readingPhase = true;
+                clearingPhase = false;
+                copiedToBuffer = false;
                 return EEPROMStatus::EMPTY;
             }
 

@@ -54,8 +54,14 @@ Encrypter::~Encrypter () {
 }
 
 MessageHandlerStatus_t Encrypter::handleMessage(char* message,  unsigned int sizeOfMessage) {
-    static char base64_encoded [4048] = {0};
+    static char base64_encoded [3048] = {0};
     static char log [120];
+        static bool initialization = false;
+
+    if (initialization  == false) {
+        memset(base64_encoded , 0, sizeof(base64_encoded ));
+        initialization = true;
+    }
 
     uartUSB.write("\r\nOriginal message:\r\n", strlen("\r\nOriginal message:\r\n"));
     uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
@@ -93,10 +99,12 @@ MessageHandlerStatus_t Encrypter::handleMessage(char* message,  unsigned int siz
     // Llamada al siguiente handler
     if (this->nextHandler != nullptr) {
         uartUSB.write("\r\nnextHandler\r\n", strlen("\r\nnextHandler\r\n"));
+        initialization = false;
         return this->nextHandler->handleMessage(message, sizeOfMessage);
     } else {
         uartUSB.write("\r\nMESSAGE_HANDLER_STATUS_PROCESSED\r\n",
                       strlen("\r\nMESSAGE_HANDLER_STATUS_PROCESSED\r\n"));
+        initialization = false;
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     }
 }

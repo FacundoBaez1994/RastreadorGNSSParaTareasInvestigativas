@@ -58,6 +58,7 @@ void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
     EEPROMStatus state;
     
     if ( bufferCharged  == false) {
+        memset(buffer, 0, sizeof(buffer));
         strcpy (buffer, message);
         bufferCharged = true;
     }
@@ -74,12 +75,14 @@ void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
             uartUSB.write(log, strlen(log));
             uartUSB.write(buffer, strlen(buffer));
             encryptionProcessFinished = false;
+            bufferCharged = false;
             this->tracker->changeState  (new LoadingMessage (this->tracker));
             return;
         }  else if (state ==  EEPROMStatus::NOMEMORY) {
             snprintf(log, sizeof(log), "EEPROM has no memory left\n\r");
             uartUSB.write(log, strlen(log));
             encryptionProcessFinished = false;
+            bufferCharged = false;
             this->tracker->changeState  (new GoingToSleep (this->tracker));
             return; 
         }

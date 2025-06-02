@@ -1,6 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "LoadingMessage.h"
+#include "SavingMessage.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 #include "GoingToSleep.h"
@@ -50,10 +51,17 @@ LoadingMessage::~LoadingMessage  () {
 }
 
 void LoadingMessage::loadMessage (EEPROMManager * memory, char * message) {
-    static char  poppedString [4048] = {0};
+    static char  poppedString [2048] = {0};
     char  log [100];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;
+    static bool initialization = false;
+
+    if (initialization  == false) {
+        memset(poppedString, 0, sizeof(poppedString));
+        initialization = true;
+    }
+    
     
     EEPROMStatus state;
     if (popProcessFinished  == false) {
@@ -68,6 +76,7 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, char * message) {
         } else if (state ==  EEPROMStatus::EMPTY) {
             snprintf(log, sizeof(log), "EEPROM empty\n\r");
             uartUSB.write(log, strlen(log));
+            initialization = false;
             this->tracker->changeState  (new GoingToSleep (this->tracker));
             return;
         }
@@ -76,7 +85,9 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, char * message) {
             snprintf(log, sizeof(log), "\n\rultimo string descifrado:\n\r");
             uartUSB.write(log, strlen(log));
             uartUSB.write(poppedString, strlen(poppedString));
-             uartUSB.write("\n\r", strlen("\n\r"));
+            uartUSB.write("\n\r", strlen("\n\r"));
+            initialization = false;
+            popProcessFinished = false;
             this->tracker->changeState  (new GoingToSleep (this->tracker));
             return;
         }

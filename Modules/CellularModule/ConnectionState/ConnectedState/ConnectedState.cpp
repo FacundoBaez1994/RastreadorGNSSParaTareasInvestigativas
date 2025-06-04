@@ -113,7 +113,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
     static int index = 0; 
 
     if (!vectorCleared) {
-        refreshTime->write(8000);
+        refreshTime->write(10000);
         for (auto cell : neighborsCellInformation) {
             delete cell;
         }

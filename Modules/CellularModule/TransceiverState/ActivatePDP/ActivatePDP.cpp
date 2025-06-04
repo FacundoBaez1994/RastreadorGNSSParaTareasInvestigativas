@@ -86,7 +86,7 @@ void ActivatePDP::enableTransceiver () {
 CellularTransceiverStatus_t ActivatePDP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    char StringToBeRead [20];
+    char StringToBeRead [200];
     char ExpectedResponse [15] = "OK";
     char StringToSendUSB [15] =  "ACTIVATE PDP";
     char StringToSend [50] = "AT+CGACT=1,1";

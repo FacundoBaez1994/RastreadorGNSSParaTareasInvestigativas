@@ -242,6 +242,7 @@ bool ConnectedState::retrivCellData(const char *response, int *tech, int *idCell
     if (strcmp(accessTechnologyretrived, "2G") == 0) {
         // Para 2G: index, RAT, freq, lac, ci, bsic, rxlev, c1, cba, is_gprs_support
         sscanf(response, "%*d,\"%*[^\"]\",%*d,%x,%x,%*d,%f", lac, idCell, prx);
+        *prx = *prx - 110;
         *tech = 2;
         // Convertir los valores de lac y idCell de int a cadena de caracteres
     } else if (strcmp(accessTechnologyretrived, "3G") == 0) {

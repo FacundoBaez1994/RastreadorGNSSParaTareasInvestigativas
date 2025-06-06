@@ -1,6 +1,6 @@
 //=====[Libraries]=============================================================
 
-#include "Encrypter.h"
+#include "EncrypterBase64.h"
 #include "Debugger.h" // due to global usbUart
 
 
@@ -35,7 +35,7 @@
 * 
 * @param 
 */
-Encrypter::Encrypter () {
+EncrypterBase64::EncrypterBase64  () {
     this->aes = new AES ();
     this->nextHandler = nullptr;
 }
@@ -47,14 +47,22 @@ Encrypter::Encrypter () {
 * 
 * @returns 
 */
-Encrypter::~Encrypter () {
+EncrypterBase64::~EncrypterBase64 () {
     delete this->aes;
     this->aes = nullptr;
     this->nextHandler = nullptr;
 }
 
-MessageHandlerStatus_t Encrypter::handleMessage(char* message,  unsigned int sizeOfMessage) {
-    
+MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned int sizeOfMessage) {
+    static char base64_encoded [3048] = {0};
+    static char log [120];
+    static bool initialization = false;
+
+    if (initialization  == false) {
+        memset(base64_encoded , 0, sizeof(base64_encoded ));
+        initialization = true;
+    }
+
     uartUSB.write("\r\nOriginal message:\r\n", strlen("\r\nOriginal message:\r\n"));
     uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
     uartUSB.write("\r\n", 2);
@@ -67,10 +75,33 @@ MessageHandlerStatus_t Encrypter::handleMessage(char* message,  unsigned int siz
     uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
     uartUSB.write("\r\n", 2);
 
+
+        size_t olen = 0;
+    int ret = mbedtls_base64_encode((unsigned char*)base64_encoded, sizeof(base64_encoded), &olen,
+                                    (unsigned char*)message, sizeOfMessage);
+    if (ret != 0) {
+        snprintf(log, sizeof(log), "\r\nError codificando en base64: %d\r\n", ret);
+        uartUSB.write (log, strlen (log));  // debug only
+    } else {
+        base64_encoded[olen] = '\0';
+        //uartUSB.write ("\r\nEncrypted + Base64:\r\n", strlen ("\r\nEncrypted + Base64:\r\n"));  // debug only
+        //uartUSB.write (base64_encoded, strlen (base64_encoded));
+    }
+
+    strcpy (message, base64_encoded);
+
+
+    uartUSB.write("\r\nEncrypted + Base64:\r\n", strlen("\r\nEncrypted + Base64:\r\n"));
+    uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
+    uartUSB.write("\r\n", 2);
+
+
     // Llamada al siguiente handler
     if (this->nextHandler != nullptr) {
+        initialization = false;
         return this->nextHandler->handleMessage(message, sizeOfMessage);
     } else {
+        initialization = false;
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     }
 }

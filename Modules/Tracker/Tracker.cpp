@@ -61,12 +61,14 @@ Tracker::Tracker () {
 
     this->jwt = new CustomJWT (this->JWTKey, 256);
     this->encrypter = new Encrypter ();
+    this->encrypterBase64 = new EncrypterBase64 ();
     this->authgen = new AuthenticationGenerator ();
     this->ckgen = new ChecksumGenerator ();
 
     this->checksumVerifier = new ChecksumVerifier ();
     this->authVer = new AuthenticationVerifier ();
     this->decrypter = new Decrypter ();
+    this->decrypterBase64 = new DecrypterBase64 ();
 
 
     while (! this->memory->clearAll()) {
@@ -106,6 +108,8 @@ Tracker::~Tracker() {
 
     delete this->encrypter;
     this->encrypter = nullptr;
+    delete this->encrypterBase64;
+    this->encrypterBase64 = nullptr;
     delete this->authgen;
     this->authgen = nullptr;
     delete this->ckgen;
@@ -116,6 +120,8 @@ Tracker::~Tracker() {
     this->authVer = nullptr;
     delete this->decrypter;
     this->decrypter = nullptr;
+    delete this->decrypterBase64;
+    this->decrypterBase64 = nullptr;
 }
 
 
@@ -162,8 +168,8 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
 
 
 bool Tracker::encryptMessage (char * message, unsigned int messageSize) {
-    this->encrypter->setNextHandler(nullptr);
-    if (this->encrypter->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    this->encrypterBase64->setNextHandler(nullptr);
+    if (this->encrypterBase64->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;
@@ -171,8 +177,8 @@ bool Tracker::encryptMessage (char * message, unsigned int messageSize) {
 }
 
 bool Tracker::decryptMessage (char * message, unsigned int messageSize) {
-    this->decrypter->setNextHandler(nullptr);
-    if (this->decrypter->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    this->decrypterBase64->setNextHandler(nullptr);
+    if (this->decrypterBase64->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;

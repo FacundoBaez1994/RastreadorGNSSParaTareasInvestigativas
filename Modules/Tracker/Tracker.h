@@ -27,6 +27,8 @@
 #include "ChecksumGenerator.h"
 #include "Decrypter.h"
 #include "Encrypter.h"
+#include "DecrypterBase64.h"
+#include "EncrypterBase64.h"
 #include <CustomJWT.h>
 
 
@@ -77,11 +79,13 @@ private:
 
    // Message Handlers
     MessageHandler * encrypter;
+    MessageHandler * encrypterBase64;
     MessageHandler * authgen;
     MessageHandler * ckgen;
     MessageHandler * checksumVerifier;
     MessageHandler * authVer;
     MessageHandler * decrypter;
+    MessageHandler * decrypterBase64;
     CustomJWT * jwt;
     char JWTKey [40] = "a-string-secret-at-least-256-bits-long";
 

@@ -84,8 +84,8 @@ void CellularModule::startStopUpdate () {
     if (this->currentPowerStatus != newPowerStatus) {
        this->currentPowerStatus = newPowerStatus;
        if (this->currentPowerStatus != POWER_ON) {
-            this->changeConnectionState (new ConnectionUnavailableState (this));
-            this->changeTransceiverState  (new TransceiverUnavailable (this));
+            //this->changeConnectionState (new ConnectionUnavailableState (this));
+            //this->changeTransceiverState  (new TransceiverUnavailable (this));
        }
     }
 }

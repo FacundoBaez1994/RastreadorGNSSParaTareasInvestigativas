@@ -316,11 +316,11 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
         aCellInfo->signalLevel,       // 5
         aCellInfo->accessTechnology,  // 6
         aCellInfo->registrationStatus,// 7
-        aCellInfo->channel,           // 8
-        aCellInfo->band,              // 9
-        aCellInfo->timestamp,              // 10
-        batteryStatus->batteryChargeStatus, // 11
-        batteryStatus->chargeLevel,          // 12
+        aCellInfo->channel,           // 8 %d
+        aCellInfo->band,              // 9 %s
+        aCellInfo->timestamp,              // 10 %s
+        batteryStatus->batteryChargeStatus, // 11 %d
+        batteryStatus->chargeLevel,          // 12 %d
         imuData->status,                //13 %d
         imuData->acceleration.ax,       // 14 %.2f
         imuData->acceleration.ay,       //15 %.2f
@@ -360,7 +360,7 @@ void FormattingMessage::formatMemoryMessage(char * formattedMessage, const CellI
  const GNSSData* GNSSInfo,  const IMUData_t * imuData, const BatteryData  * batteryStatus) {
     static char message[2048]; 
     snprintf(message, sizeof(message), 
-    "MNGNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%s,%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+    "MNGNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         GNSSInfo->latitude,                 // 1 %.6f
         GNSSInfo->longitude,                // 2 %.6f
         GNSSInfo->hdop,                     // 3 %.2f
@@ -374,7 +374,7 @@ void FormattingMessage::formatMemoryMessage(char * formattedMessage, const CellI
         aCellInfo->signalLevel,             // 11 %.2f
         aCellInfo->accessTechnology,        // 12 %d
         aCellInfo->registrationStatus,      // 13 %d
-        aCellInfo->channel,                 // 14 %s
+        aCellInfo->channel,                 // 14 %d
         aCellInfo->band,                    // 15 %s
         GNSSInfo->timestamp,                // 16 %s
         batteryStatus->batteryChargeStatus, // 17 %d

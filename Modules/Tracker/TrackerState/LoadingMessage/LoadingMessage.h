@@ -9,6 +9,7 @@
 #include "arm_book_lib.h"
 #include "TrackerBaseState.h"
 #include "Tracker.h"
+#include "string.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada
@@ -23,13 +24,29 @@ public:
 //=====[Declaration of public methods]=========================================
     LoadingMessage (Tracker * tracker);
     virtual ~LoadingMessage ();
-    virtual void loadMessage (EEPROMManager * memory, char * message);
+    virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
+    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
+    IMUData_t * imuData,  BatteryData  * batteryStatuss);
 private:
-    Tracker * tracker;
-
 //=====[Declaration of privates atributes]=========================================
-
+    Tracker * tracker;
 //=====[Declaration of privates methods]=========================================
+    trackerStatus_t parseDecryptedMessage(const char* decryptedString, 
+        CellInformation* aCellInfo,
+        GNSSData* GNSSInfo,
+        std::vector<CellInformation*>& neighborsCellInformation,
+        IMUData_t* imuData,
+        BatteryData* batteryStatus);
+    void parseMNMN(const char* message,
+        CellInformation* aCellInfo,
+        std::vector<CellInformation*>& neighborsCellInformation,
+        IMUData_t* imuData,
+        BatteryData* batteryStatus);
+    void parseMNGNSS(const char* message,
+        CellInformation* aCellInfo,
+        GNSSData* GNSSInfo,
+        IMUData_t* imuData,
+        BatteryData* batteryStatus);
 };
 
 

@@ -37,7 +37,9 @@ public:
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
     virtual void saveMessage (EEPROMManager * memory, char * message);
-    virtual void loadMessage (EEPROMManager * memory, char * message);
+    virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
+    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
+    IMUData_t * imuData,  BatteryData  * batteryStatus);
 private:
 //=====[Declaration of privates atributes]=========================================
 

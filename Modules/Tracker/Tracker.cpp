@@ -154,7 +154,8 @@ void Tracker::update () {
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
     this->currentState->saveMessage(this->memory, formattedMessage);
-    this->currentState->loadMessage(this->memory, formattedMessage);
+    this->currentState->loadMessage(this->memory, this->currentCellInformation,
+    this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->batteryStatus);
     this->currentState->goToSleep (this->cellularTransceiver);
     watchdog.kick();
     

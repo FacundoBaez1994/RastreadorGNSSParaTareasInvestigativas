@@ -30,6 +30,8 @@ public:
 private:
 //=====[Declaration of privates atributes]=========================================
     Tracker * tracker;
+    //char * poppedString = nullptr;
+    //size_t sizeOfPoppedString = 2048;
 //=====[Declaration of privates methods]=========================================
     trackerStatus_t parseDecryptedMessage(const char* decryptedString, 
         CellInformation* aCellInfo,

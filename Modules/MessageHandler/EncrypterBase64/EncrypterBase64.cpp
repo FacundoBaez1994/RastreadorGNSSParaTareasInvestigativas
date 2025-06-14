@@ -54,12 +54,11 @@ EncrypterBase64::~EncrypterBase64 () {
 }
 
 MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned int sizeOfMessage) {
-    static char base64_encoded [3048] = {0};
     static char log [120];
     static bool initialization = false;
 
     if (initialization  == false) {
-        memset(base64_encoded , 0, sizeof(base64_encoded ));
+        this->base64_encoded = new char [this->sizeOfBuffer];
         initialization = true;
     }
 
@@ -68,7 +67,8 @@ MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned i
     uartUSB.write("\r\n", 2);
 
     this->aes->setup(this->key, AES::KEY_256, AES::MODE_CBC, this->iv);
-    this->aes->encrypt(message, sizeOfMessage);
+     int encryptedSize = ((sizeOfMessage + 15) / 16) * 16;
+    this->aes->encrypt(message, encryptedSize);
     this->aes->clear();
 
     uartUSB.write("\r\nEncrypted message:\r\n", strlen("\r\nEncrypted message:\r\n"));
@@ -76,9 +76,9 @@ MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned i
     uartUSB.write("\r\n", 2);
 
 
-        size_t olen = 0;
-    int ret = mbedtls_base64_encode((unsigned char*)base64_encoded, sizeof(base64_encoded), &olen,
-                                    (unsigned char*)message, sizeOfMessage);
+    size_t olen = 0;
+    int ret = mbedtls_base64_encode((unsigned char*)this->base64_encoded, this->sizeOfBuffer, &olen,
+                                    (unsigned char*)message, encryptedSize);
     if (ret != 0) {
         snprintf(log, sizeof(log), "\r\nError codificando en base64: %d\r\n", ret);
         uartUSB.write (log, strlen (log));  // debug only
@@ -92,16 +92,18 @@ MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned i
 
 
     uartUSB.write("\r\nEncrypted + Base64:\r\n", strlen("\r\nEncrypted + Base64:\r\n"));
-    uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
+    uartUSB.write(message, strlen(message));  //
     uartUSB.write("\r\n", 2);
 
 
     // Llamada al siguiente handler
     if (this->nextHandler != nullptr) {
         initialization = false;
+        delete [] this->base64_encoded ;
         return this->nextHandler->handleMessage(message, sizeOfMessage);
     } else {
         initialization = false;
+        delete [] this->base64_encoded ;
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     }
 }

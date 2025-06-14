@@ -30,6 +30,9 @@ public:
     virtual MessageHandlerStatus_t handleMessage (char * message, unsigned int sizeOfMessage) override;
 
 private:
+//=====[Declaration of privates atributes]=========================================
+    char * base64_decoded;
+    size_t sizeOfBuffer = 2564;
     AES  * aes; 
     const char key[32] = {
         0x60, 0x3D, 0xEB, 0x10, 0x15, 0xCA, 0x71, 0xBE,
@@ -41,8 +44,6 @@ private:
         0x74, 0x11, 0xF0, 0x45, 0xD6, 0xA4, 0x3F, 0x69,
         0x18, 0xC6, 0x75, 0x42, 0xDF, 0x4C, 0xA7, 0x84
     };
-//=====[Declaration of privates atributes]=========================================
-
 //=====[Declaration of privates methods]=========================================
 
 };

@@ -7,6 +7,7 @@
 #include "mbed.h"
 #include "string.h"
 #include "Non_Blocking_Delay.h"
+#include <vector>
 
 //=====[Declaration of public data types]======================================
 enum class EEPROMStatus {
@@ -38,6 +39,11 @@ public:
     NonBlockingDelay * delay;
     int address;
     int pageSize;
+
+    char * buffer;
+    size_t sizeOfBuffer = 1024;
+
+    //std::vector<char> buffer;  // Buffer como vector
 
     //=====[Declaration of private methods]=========================================
     bool writeStringToEEPROM( int memoryAddress, const char* data);

@@ -39,7 +39,7 @@ const int PAGE_SIZE = 64;
 /**
  * @brief
  */
-EEPROMManager::EEPROMManager( ) {
+EEPROMManager::EEPROMManager ()  {
     this->address = EEPROM_ADDRESS;
     this->pageSize = PAGE_SIZE;
 
@@ -140,8 +140,6 @@ std::string EEPROMManager::readCStringFromEEPROM( uint16_t memoryAddress) {
 EEPROMStatus EEPROMManager::pushStringToEEPROM(const char* newString) {
     static int index = 0;
     static bool indexInit = false;
-    char c[256];
-    Watchdog &watchdog = Watchdog::get_instance(); // singleton
 
     const char* SEPARATOR = "@@";
 
@@ -185,8 +183,6 @@ EEPROMStatus EEPROMManager::pushStringToEEPROM(const char* newString) {
         if (this->pushPartialStringToEEPROM(const_cast<char*>(currentChunk.c_str())) != EEPROMStatus::PUSHOK) {
             return EEPROMStatus::PROCESSING;
         }
-            
-        watchdog.kick();
         uartUSB.write("\n\rpushedPartialString:\n\r", strlen("\n\rpushedPartialString:\n\r"));
         uartUSB.write(currentChunk.c_str(), currentChunk.length());
         index--;
@@ -208,7 +204,7 @@ EEPROMStatus EEPROMManager::pushStringToEEPROM(const char* newString) {
 void EEPROMManager::printAllStringsFromEEPROM() {
     int currentAddress = 0;
     int stringIndex = 1;
-    char log [2024];
+    char log [40];
 
     while (true) {
         std::string currentString = this->readCStringFromEEPROM(currentAddress);
@@ -217,9 +213,11 @@ void EEPROMManager::printAllStringsFromEEPROM() {
             // Llegamos al final (EEPROM vacía o no hay más strings)
             break;
         }
-
-        snprintf(log, sizeof(log), "String %d: %s\n\r", stringIndex, currentString.c_str());
+        uartUSB.write("\n\r", strlen("\n\r"));
+        snprintf(log, sizeof(log), "String %d:", stringIndex);
         uartUSB.write(log, strlen(log));
+        uartUSB.write(currentString.c_str(), currentString.length() );
+        uartUSB.write("\n\r", strlen("\n\r"));
 
         currentAddress += currentString.length() + 1; // avanzar al próximo string
         stringIndex++;
@@ -277,39 +275,52 @@ bool EEPROMManager::clearAll() {
     return false; // Aún no terminó
 }
 
+
 EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t bufferSize) {
     static std::string accumulatedString;  // Almacena los chunks acumulados
     EEPROMStatus status;
-    char buffer[1024];
-    Watchdog &watchdog = Watchdog::get_instance(); // singleton
+    std::string bufferString;
+    // char buffer[300];
+    static bool init = false;
+
+    if (init == false) {
+        this->buffer = new char [this->sizeOfBuffer];
+        init = true;
+    }
     
-    status = this->popPartialStringFromEEPROM(buffer, sizeof(buffer));
+    status = this->popPartialStringFromEEPROM(this->buffer, this->sizeOfBuffer);
     
     if (status == EEPROMStatus::POPPEDSTRINGOK) {
         uartUSB.write("\n\rpoppedPartialString:\n\r", strlen("\n\rpoppedPartialString:\n\r"));
-        uartUSB.write(buffer, strlen(buffer));
+        uartUSB.write(this->buffer, strlen(this->buffer));
         size_t len = strlen(buffer);
         bool hasSeparator = (len >= 2) && (strcmp(buffer + len - 2, "@@") == 0);
         
         if (hasSeparator) {
             // Remueve el @@ y acumula
-            buffer[len-2] = '\0';
-            accumulatedString += buffer;
+            this->buffer[len-2] = '\0';
+            accumulatedString += this->buffer;
             return EEPROMStatus::PROCESSING; // Espera siguiente chunk
         } else {
             // Último chunk, copia todo
-            accumulatedString += buffer;
+            accumulatedString += this->buffer;
             strncpy(outputBuffer, accumulatedString.c_str(), bufferSize-1);
             outputBuffer[bufferSize-1] = '\0';
             accumulatedString.clear();
+            delete [] this->buffer;
+            init = false;
             return EEPROMStatus::POPPEDSTRINGOK;
         }
     }
-    watchdog.kick();
-    if (status == EEPROMStatus:: NOMEMORY) {
-        return EEPROMStatus:: NOMEMORY;
+    if (status == EEPROMStatus::NOMEMORY) {
+        uartUSB.write("\n\rEEPROMStatus::NOMEMORY\n\r", strlen("\n\rEEPROMStatus::NOMEMORY\n\r"));
+        delete [] this->buffer;
+        init = false;
+        return EEPROMStatus::NOMEMORY;
     }
     if (status == EEPROMStatus::EMPTY) {
+        delete [] this->buffer;
+        init = false;      
         return EEPROMStatus::EMPTY;
     }
     return EEPROMStatus::PROCESSING; // Retorna otros estados (PROCESSING, EMPTY, etc)
@@ -344,7 +355,7 @@ EEPROMStatus EEPROMManager::popPartialStringFromEEPROM(char* outputBuffer, size_
                 lenToClear = 0;
                 readingPhase = true;
                 clearingPhase = false;
-                copiedToBuffer = false;
+                copiedToBuffer = false;  // NUEVO
                 return EEPROMStatus::EMPTY;
             }
 

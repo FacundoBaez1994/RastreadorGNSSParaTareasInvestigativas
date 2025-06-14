@@ -40,6 +40,7 @@
 */
 LoadingMessage::LoadingMessage  (Tracker * tracker) {
     this->tracker = tracker;
+    //this->poppedString = new char [this->sizeOfPoppedString];
 }
 
 /** 
@@ -49,26 +50,23 @@ LoadingMessage::LoadingMessage  (Tracker * tracker) {
 */
 LoadingMessage::~LoadingMessage  () {
     this->tracker = nullptr;
+    //delete [] this->poppedString;
+    //this->poppedString = nullptr;
 }
 
 void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     IMUData_t * imuData,  BatteryData  * batteryStatus) {
     static char  poppedString [2048] = {0};
-    char  log [100];
+    char  log [50];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;
-    static bool initialization = false;
-
-    if (initialization  == false) {
-        memset(poppedString, 0, sizeof(poppedString));
-        initialization = true;
-    }
     
     
     EEPROMStatus state;
     if (popProcessFinished  == false) {
-        state = memory->popStringFromEEPROM( poppedString, sizeof(poppedString));
+        //state = memory->popStringFromEEPROM( this->poppedString, this->sizeOfPoppedString);
+        state = memory->popStringFromEEPROM( poppedString, sizeof (poppedString));
         if (state == EEPROMStatus::POPPEDSTRINGOK) {
             snprintf(log, sizeof(log), "popped string From Memory\n\r");
             uartUSB.write(log, strlen(log));
@@ -79,7 +77,8 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
         } else if (state ==  EEPROMStatus::EMPTY) {
             snprintf(log, sizeof(log), "EEPROM empty\n\r");
             uartUSB.write(log, strlen(log));
-            initialization = false;
+            decryptionProcessFinished = false;
+            popProcessFinished = false;
             this->tracker->changeState  (new GoingToSleep (this->tracker));
             return;
         }
@@ -89,18 +88,23 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             uartUSB.write(log, strlen(log));
             uartUSB.write(poppedString, strlen(poppedString));
             uartUSB.write("\n\r", strlen("\n\r"));
-            initialization = false;
-            popProcessFinished = false;
             trackerStatus_t currentStatus;
             currentStatus = this->parseDecryptedMessage(poppedString, aCellInfo, GNSSInfo, 
             neighborsCellInformation, imuData, batteryStatus);
             if ( currentStatus == TRACKER_STATUS_PARSE_ERROR) {
                 snprintf(log, sizeof(log), "\n\rparse error:\n\r");
                 uartUSB.write(log, strlen(log));
+                decryptionProcessFinished = false;
+                popProcessFinished = false;
                 this->tracker->changeState  (new GoingToSleep (this->tracker));
                 return;
             }
-            this->tracker->changeState  (new FormattingMessage (this->tracker, currentStatus));
+            decryptionProcessFinished = false;
+            popProcessFinished = false;
+
+            this->tracker->changeState  (new SavingMessage (this->tracker));
+            //this->tracker->changeState  (new GoingToSleep (this->tracker));
+            //this->tracker->changeState  (new FormattingMessage (this->tracker, currentStatus));
             return;
         }
     }
@@ -131,13 +135,26 @@ void LoadingMessage::parseMNGNSS(const char* message,
     GNSSData* GNSSInfo,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
+    
+    static bool init = false;
+    char * buffer;
+    size_t sizeOfBuffer = 2048;
 
-    char buffer[2048];
-    strncpy(buffer, message, sizeof(buffer));
-    buffer[sizeof(buffer)-1] = '\0';
+    if (init == false) {
+        init = true;
+        buffer = new char [sizeOfBuffer];
+    }
+
+    strncpy(buffer, message, sizeOfBuffer);
+    buffer[sizeOfBuffer -1] = '\0';
 
     char* token = strtok(buffer, ",");
-    if (!token || strcmp(token, "MNGNSS") != 0) return;
+    if (!token || strcmp(token, "MNGNSS") != 0) {
+        init = false;
+        delete [] buffer;
+        return;
+    }
+     
 
     token = strtok(NULL, ",");
     GNSSInfo->latitude = atof(token);
@@ -195,6 +212,9 @@ void LoadingMessage::parseMNGNSS(const char* message,
     imuData->angles.roll = atof(token);
     token = strtok(NULL, ",");
     imuData->angles.pitch = atof(token);
+
+    init = false;
+    delete [] buffer;
 }
 
 
@@ -213,13 +233,29 @@ void LoadingMessage::parseMNMN(const char* message,
     if (!message || strncmp(message, "MNMN,", 5) != 0) return;
 
     // Hacer una copia del mensaje para procesar
-    char buffer[2048];
-    strncpy(buffer, message, sizeof(buffer));
-    buffer[sizeof(buffer)-1] = '\0';
+    static bool init = false;
+    char * buffer;
+    char * neighborsBuffer;
+    size_t sizeOfBuffer = 2048;
+
+    if (init == false) {
+        init = true;
+        buffer = new char [sizeOfBuffer];
+        neighborsBuffer = new char [sizeOfBuffer];
+        strncpy(buffer, message, sizeOfBuffer);
+        buffer[sizeOfBuffer-1] = '\0';
+
+    }
+
 
     // Procesar parte principal
     char* mainPart = strtok(buffer, "|");
-    if (!mainPart) return;
+    if (!mainPart) {
+        delete [] buffer;
+        delete [] neighborsBuffer;
+        init = false;
+        return;
+    } 
 
     // Extraer campos principales
     char* token = strtok(mainPart, ",");
@@ -258,16 +294,16 @@ void LoadingMessage::parseMNMN(const char* message,
     }
 
     // Procesar celdas vecinas
-    // Necesitamos trabajar con una copia nueva porque strtok modifica el buffer
-    char neighborsBuffer[2048];
-    strncpy(neighborsBuffer, message, sizeof(neighborsBuffer));
-    neighborsBuffer[sizeof(neighborsBuffer)-1] = '\0';
+    //  trabajar con una copia nueva - strtok modifica el buffer
+    //char neighborsBuffer[2048];
+    strncpy(neighborsBuffer, message, sizeOfBuffer);
+    neighborsBuffer[sizeOfBuffer - 1] = '\0';
 
     // Avanzar hasta la primera parte de vecinos
     strtok(neighborsBuffer, "|"); // Saltar la parte principal
     char* neighborPart = strtok(nullptr, "|");
 
-    char log[1000];
+    char log[50];
     while (neighborPart != nullptr) {
         snprintf(log, sizeof(log), "Celda Vecina Recargada: %s\r\n", neighborPart);
         uartUSB.write(log, strlen(log));
@@ -297,5 +333,8 @@ void LoadingMessage::parseMNMN(const char* message,
 
         neighborPart = strtok(nullptr, "|");
     }
+    delete [] buffer;
+    delete [] neighborsBuffer;
+    init = false;
 }
 

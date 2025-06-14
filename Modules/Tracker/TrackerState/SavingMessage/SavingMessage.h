@@ -26,6 +26,8 @@ public:
     virtual void saveMessage (EEPROMManager * memory, char * message);
 private:
     Tracker * tracker;
+    //char * buffer;
+    //size_t sizeOfBuffer = 2048;
   
 
 //=====[Declaration of privates atributes]=========================================

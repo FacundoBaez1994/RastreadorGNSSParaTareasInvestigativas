@@ -53,35 +53,43 @@ DecrypterBase64::~DecrypterBase64 () {
 }
 
 MessageHandlerStatus_t  DecrypterBase64::handleMessage (char * message, unsigned int sizeOfMessage) {
-    static char base64_decoded [2564] = {0};
     static char log [120];
     int ret;
     size_t decoded_len = 0;
     static bool initialization = false;
 
     if (initialization  == false) {
-        memset(base64_decoded , 0, sizeof(base64_decoded ));
+         this->base64_decoded = new char [this->sizeOfBuffer];
         initialization = true;
     }
 
-    ret = mbedtls_base64_decode((unsigned char*)base64_decoded, sizeof(base64_decoded), &decoded_len,
+    ret = mbedtls_base64_decode((unsigned char*)this->base64_decoded, this->sizeOfBuffer, &decoded_len,
                                 (unsigned char*)message, strlen (message));
 
     if (ret != 0) {
         snprintf(log, sizeof(log), "\r\nError decodificando en base64: %d\r\n", ret);
         uartUSB.write (log, strlen (log));  // debug only
-        base64_decoded[decoded_len] = '\0';
+        this->base64_decoded[decoded_len] = '\0';
     }
 
     uartUSB.write ("\r\nencrypted message:\r\n", strlen ("encrypted message:\r\n"));  // debug only
-    uartUSB.write (base64_decoded, strlen ( base64_decoded));  // debug only
+    uartUSB.write (this->base64_decoded, strlen ( this->base64_decoded));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only
     
     this->aes->setup(this->key, AES::KEY_256, AES::MODE_CBC, this->iv);
-    this->aes->decrypt(base64_decoded , sizeof (base64_decoded));
+    this->aes->decrypt(this->base64_decoded , sizeOfMessage);
     this->aes->clear();
 
-    strcpy (message, base64_decoded);
+    // 3. Eliminar el padding de AES (últimos bytes añadidos)
+    int padding = this->base64_decoded[decoded_len - 1]; // Último byte = cantidad de padding
+    if (padding > 0 && padding <= 16) {
+        decoded_len -= padding; // Ajustar tamaño real
+    }
+
+    // 4. Asegurar terminación nula y no exceder el buffer de salida
+    decoded_len = (decoded_len < sizeOfMessage) ? decoded_len : sizeOfMessage - 1;
+    memcpy(message, this->base64_decoded, decoded_len);
+    message[decoded_len] = '\0'; // Forzar terminaci
 
     uartUSB.write ( "\r\n",  3 );  // debug only
     uartUSB.write ("\r\ndecrypted message:\r\n", strlen ("decrypted message:\r\n"));  // debug only
@@ -90,8 +98,10 @@ MessageHandlerStatus_t  DecrypterBase64::handleMessage (char * message, unsigned
 
     if (this->nextHandler == nullptr) {
         initialization = false;
+        delete [] this->base64_decoded ;
         return  MESSAGE_HANDLER_STATUS_PROCESSED;
     } else {
+        delete [] this->base64_decoded ;
         initialization = false;
         return this->nextHandler->handleMessage ( message, sizeOfMessage);
     }

@@ -39,6 +39,8 @@
 */
 SavingMessage::SavingMessage  (Tracker * tracker) {
     this->tracker = tracker;
+    //this->buffer = new char [this->sizeOfBuffer];
+
 }
 
 /** 
@@ -48,32 +50,37 @@ SavingMessage::SavingMessage  (Tracker * tracker) {
 */
 SavingMessage::~SavingMessage  () {
     this->tracker = nullptr;
+    //delete [] this->buffer;
+    //this->buffer = nullptr;
 }
 
 void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
-    char log [200];
-    static char buffer [2048] = {0};
+    char log [50];
+    static char buffer [2048];
     static bool bufferCharged = false;
     static bool encryptionProcessFinished = false;
     EEPROMStatus state;
     
     if ( bufferCharged  == false) {
-        memset(buffer, 0, sizeof(buffer));
-        strcpy (buffer, message);
+        snprintf( buffer, sizeof( buffer), "%s", message);
+        //snprintf(this->buffer, this->sizeOfBuffer, "%s", message);
         bufferCharged = true;
     }
     if ( encryptionProcessFinished  == false) {
-        if (this->tracker->encryptMessage ( buffer, sizeof (buffer)) == true) {
+        // if (this->tracker->encryptMessage ( this->buffer, strlen (message)) == true) {
+        if (this->tracker->encryptMessage ( buffer, strlen (buffer)) == true) {
             encryptionProcessFinished  = true;
         }
     }
 
     if ( encryptionProcessFinished  == true) {
+        //state = memory->pushStringToEEPROM (this->buffer);
         state = memory->pushStringToEEPROM (buffer);
         if ( state == EEPROMStatus::PUSHOK) {
             snprintf(log, sizeof(log), "Pushed string:\n\r");
             uartUSB.write(log, strlen(log));
-            uartUSB.write(buffer, strlen(buffer));
+           // uartUSB.write(this->buffer, strlen(this->buffer));
+           uartUSB.write(buffer, strlen(buffer));
             encryptionProcessFinished = false;
             bufferCharged = false;
             this->tracker->changeState  (new LoadingMessage (this->tracker));

@@ -28,6 +28,8 @@ public:
     virtual ~EncrypterBase64  ();
     virtual MessageHandlerStatus_t handleMessage (char * message,  unsigned int sizeOfMessage) override;
 private:
+    char * base64_encoded;
+    size_t sizeOfBuffer = 3048;
     AES  * aes; 
     const char key[32] = {
         0x60, 0x3D, 0xEB, 0x10, 0x15, 0xCA, 0x71, 0xBE,

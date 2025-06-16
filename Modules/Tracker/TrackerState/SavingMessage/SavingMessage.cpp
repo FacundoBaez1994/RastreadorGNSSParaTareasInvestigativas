@@ -62,7 +62,9 @@ void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
     EEPROMStatus state;
     
     if ( bufferCharged  == false) {
-        snprintf( buffer, sizeof( buffer), "%s", message);
+        memset(buffer, 0, sizeof(buffer)); 
+        strncpy(buffer, message, sizeof( buffer) - 1);
+        buffer[sizeof( buffer) - 1] = '\0';
         //snprintf(this->buffer, this->sizeOfBuffer, "%s", message);
         bufferCharged = true;
     }

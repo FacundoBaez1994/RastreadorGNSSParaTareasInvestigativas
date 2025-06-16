@@ -51,6 +51,9 @@ EncrypterBase64::~EncrypterBase64 () {
     delete this->aes;
     this->aes = nullptr;
     this->nextHandler = nullptr;
+
+    delete [] this->base64_encoded ;
+    this->base64_encoded  = nullptr;
 }
 
 MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned int sizeOfMessage) {
@@ -100,10 +103,12 @@ MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned i
     if (this->nextHandler != nullptr) {
         initialization = false;
         delete [] this->base64_encoded ;
+        this->base64_encoded  = nullptr;
         return this->nextHandler->handleMessage(message, sizeOfMessage);
     } else {
         initialization = false;
         delete [] this->base64_encoded ;
+        this->base64_encoded  = nullptr;
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     }
 }

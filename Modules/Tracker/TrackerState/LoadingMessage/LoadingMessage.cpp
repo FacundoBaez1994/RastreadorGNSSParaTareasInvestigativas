@@ -61,6 +61,12 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
     char  log [50];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;
+    static bool init = false;
+
+    if (init == false) {
+        memset(poppedString, 0, sizeof(poppedString));
+        init = true;
+    }
     
     
     EEPROMStatus state;
@@ -79,6 +85,7 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             uartUSB.write(log, strlen(log));
             decryptionProcessFinished = false;
             popProcessFinished = false;
+            init = false;
             this->tracker->changeState  (new GoingToSleep (this->tracker));
             return;
         }
@@ -96,14 +103,16 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
                 uartUSB.write(log, strlen(log));
                 decryptionProcessFinished = false;
                 popProcessFinished = false;
+                init = false;
                 this->tracker->changeState  (new GoingToSleep (this->tracker));
                 return;
             }
             decryptionProcessFinished = false;
             popProcessFinished = false;
+            init = false;
 
-            this->tracker->changeState  (new SavingMessage (this->tracker));
-            //this->tracker->changeState  (new GoingToSleep (this->tracker));
+            //this->tracker->changeState  (new SavingMessage (this->tracker));
+            this->tracker->changeState  (new GoingToSleep (this->tracker));
             //this->tracker->changeState  (new FormattingMessage (this->tracker, currentStatus));
             return;
         }
@@ -152,6 +161,7 @@ void LoadingMessage::parseMNGNSS(const char* message,
     if (!token || strcmp(token, "MNGNSS") != 0) {
         init = false;
         delete [] buffer;
+        buffer = nullptr;
         return;
     }
      
@@ -215,6 +225,7 @@ void LoadingMessage::parseMNGNSS(const char* message,
 
     init = false;
     delete [] buffer;
+    buffer = nullptr;
 }
 
 
@@ -252,7 +263,9 @@ void LoadingMessage::parseMNMN(const char* message,
     char* mainPart = strtok(buffer, "|");
     if (!mainPart) {
         delete [] buffer;
+        buffer = nullptr;
         delete [] neighborsBuffer;
+        neighborsBuffer = nullptr;
         init = false;
         return;
     } 
@@ -329,12 +342,15 @@ void LoadingMessage::parseMNMN(const char* message,
             snprintf(log, sizeof(log), "Error parsing neighbor: %s\r\n", neighborPart);
             uartUSB.write(log, strlen(log));
             delete neighbor;
+            neighbor = nullptr;
         }
 
         neighborPart = strtok(nullptr, "|");
     }
     delete [] buffer;
+    buffer = nullptr;
     delete [] neighborsBuffer;
+    neighborsBuffer = nullptr;
     init = false;
 }
 

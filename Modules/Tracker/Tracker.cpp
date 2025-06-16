@@ -56,8 +56,8 @@ Tracker::Tracker () {
     this->inertialSensor = new IMUManager (); 
     this->memory = new EEPROMManager ();
 
-    //this->currentState =  new CalibratingInertialSensor (this);
-    this->currentState =  new SavingMessage (this);
+    this->currentState =  new CalibratingInertialSensor (this);
+    //this->currentState =  new SavingMessage (this);
 
     this->jwt = new CustomJWT (this->JWTKey, 256);
     this->encrypter = new Encrypter ();
@@ -131,8 +131,8 @@ Tracker::~Tracker() {
 *
 */
 void Tracker::update () {
-    static char formattedMessage [2048] = "MNMN,722,7,11A4,62A840F,-55.00,7,1,2850,LTE BAND 7,1,0,89,0,0.01,-0.00,-0.01,168.27,-1.52,-5.91|2,722,34,13F5,1583,-62.00|2,722,34,13F5,1B48,-60.00|2,722,34,13F5,1581,57.00|2,722,34,13F5,DC3,-46.00|2,722,34,13F5,1582,-44.00|4,722,34,3B05,7A3B603,-73.00|4,722,34,3B05,7A3B600,-92.00|4,722,34,3B05,7A3B600,-92.00|4,722,34,3B05,7A1C90E,-94.00|4,722,34,3B0C,7D44708,-122.00|2,722,310,1BD5,41E9,-34.00|2,722,310,1BD5,65AF,-33.00|2,722,310,1BD5,6A05,-28.00|3,722,310,4317,16438A6,-75.00";
-    //static char formattedMessage [2048];
+    //static char formattedMessage [2048] = "MNMN,722,7,11A4,62A840F,-55.00,7,1,2850,LTE BAND 7,1,0,89,0,0.01,-0.00,-0.01,168.27,-1.52,-5.91|2,722,34,13F5,1583,-62.00|2,722,34,13F5,1B48,-60.00|2,722,34,13F5,1581,57.00|2,722,34,13F5,DC3,-46.00|2,722,34,13F5,1582,-44.00|4,722,34,3B05,7A3B603,-73.00|4,722,34,3B05,7A3B600,-92.00|4,722,34,3B05,7A3B600,-92.00|4,722,34,3B05,7A1C90E,-94.00|4,722,34,3B0C,7D44708,-122.00|2,722,310,1BD5,41E9,-34.00|2,722,310,1BD5,65AF,-33.00|2,722,310,1BD5,6A05,-28.00|3,722,310,4317,16438A6,-75.00";
+    static char formattedMessage [2048];
     static char receivedMessage [2048];
 
 

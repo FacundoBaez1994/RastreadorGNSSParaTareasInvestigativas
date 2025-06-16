@@ -9,7 +9,7 @@
 
 
 //=====[Declaration of private defines]========================================
-#define REFRESH_MEMORY 5
+#define REFRESH_MEMORY 20
 #define CHUNK_SIZE 252
 #define EEPROM_SIZE 32768
 
@@ -308,6 +308,7 @@ EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t buffe
             outputBuffer[bufferSize-1] = '\0';
             accumulatedString.clear();
             delete [] this->buffer;
+            this->buffer = nullptr;
             init = false;
             return EEPROMStatus::POPPEDSTRINGOK;
         }
@@ -315,11 +316,13 @@ EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t buffe
     if (status == EEPROMStatus::NOMEMORY) {
         uartUSB.write("\n\rEEPROMStatus::NOMEMORY\n\r", strlen("\n\rEEPROMStatus::NOMEMORY\n\r"));
         delete [] this->buffer;
+        this->buffer = nullptr;
         init = false;
         return EEPROMStatus::NOMEMORY;
     }
     if (status == EEPROMStatus::EMPTY) {
         delete [] this->buffer;
+        this->buffer = nullptr;
         init = false;      
         return EEPROMStatus::EMPTY;
     }

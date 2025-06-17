@@ -33,6 +33,8 @@ public:
     PowerManager(ATCommandHandler * AThandler);
     virtual ~PowerManager ();
     powerStatus_t startStopUpdate ();
+    bool turnOff ();
+    bool turnOn ();
     bool reboot ();
     bool goToSleep ();
     void awake ();
@@ -40,6 +42,7 @@ public:
     bool readInputControlButton ();
     bool readPowerStatus ();
     void changeDTRSignal (bool newStatus);
+    void changePowerDownSignal (bool newStatus);
     void changeKeyDigitalSignal (bool newStatus);
     BufferedSerial* getUART ();
     bool measureBattery (BatteryData * currentBatteryData);

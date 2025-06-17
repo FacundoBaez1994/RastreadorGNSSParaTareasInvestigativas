@@ -55,9 +55,17 @@ void Slepping::updatePowerStatus (CellularModule * cellularTransceiver,
  }
 
 void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency ) {
+    bool timeToWakeUp = false;
+
     if (latency->read()) {
-        cellularTransceiver->awake();
-        this->tracker->changeState  (new SensingBatteryStatus (this->tracker));
+        timeToWakeUp = true;
+    }
+    if (timeToWakeUp == true) {
+        if (cellularTransceiver->turnOn () ) {
+            timeToWakeUp = false;
+            this->tracker->changeState  (new SensingBatteryStatus (this->tracker));
+            return;
+        }
     }
     return;
  }

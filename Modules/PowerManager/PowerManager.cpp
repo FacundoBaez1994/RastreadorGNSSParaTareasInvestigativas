@@ -77,6 +77,28 @@ powerStatus_t PowerManager::startStopUpdate ( ) {
     return this->currentPowerState->startStopUpdate(this->ATHandler, this->powerChangeDurationTimer);
 }
 
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerManager::turnOff ( ) {
+    return this->currentPowerState->turnOff (this->ATHandler, this->powerChangeDurationTimer);
+}
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerManager::turnOn ( ) {
+    return this->currentPowerState->turnOn (this->ATHandler, this->powerChangeDurationTimer);
+}
+
 /** 
 * @brief 
 * 
@@ -156,6 +178,16 @@ bool PowerManager::readPowerStatus ( ) {
 void PowerManager::changeKeyDigitalSignal (bool newStatus) {
     *this->powerKeyOutput = newStatus; 
 }
+
+/** 
+* @brief 
+* 
+* @returns 
+*/
+void PowerManager::changePowerDownSignal (bool newStatus) {
+    *this->powerDownOutput  = newStatus; 
+}
+
 
 /** 
 * @brief 

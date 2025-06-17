@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define  MAX_TRIES 10
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -157,7 +157,7 @@ powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonB
 bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool readyToSend = true;
     char StringToSend [15] = "AT+QPOWD";
-    char StringToBeRead [256];
+    char StringToBeRead [40];
     char ExpectedResponse [15] = "POWERED DOWN";
     char StringToSendUSB [40] = "Rebooting";
 
@@ -205,7 +205,7 @@ bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
 bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
    static bool readyToSend = true;
     char StringToSend [15] = "AT+QSCLK=1";
-    char StringToBeRead [256];
+    char StringToBeRead [40];
     char ExpectedResponse [15] = "OK";
     char StringToSendUSB [40] = "Go To Sleep";
 
@@ -255,6 +255,89 @@ void PowerONState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * powe
     return;
 }
 
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerONState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    return true;
+}
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    static bool readyToSend = true;
+    static bool hardPowerOffUnderProcess = false;
+    static int retryCounter = 0;
+    char StringToSend [15] = "AT+QPOWD";
+    char StringToBeRead [40];
+    char ExpectedResponse [15] = "POWERED DOWN";
+    char StringToSendUSB [40] = "Turning off";
+
+    if (readyToSend == true) {
+        AThandler->sendATCommand(StringToSend);
+        readyToSend = false;
+        ////   ////   ////   ////   ////   ////
+        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+        ////   ////   ////   ////   ////   ////   
+    }
+
+
+    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+         ////   ////   ////   ////   ////   ////
+        uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+         ////   ////   ////   ////   ////   ////
+
+        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
+            ////   ////   ////   ////   ////   ////
+            char StringToSendUSB [40] = "TURNING DOWN";
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            ////   ////   ////   ////   ////   ////            
+            this->manager->changePowerState (new ManualPowerOFFState (this->manager));
+            return true;
+        }
+    }
+
+    if (retryCounter <= MAX_TRIES) {
+        if (powerChangeDurationTimer->read()  ) {
+            retryCounter++;
+            readyToSend = true;
+        }
+    } else { //// if there is no response form the module use the hard power option
+        if (powerChangeDurationTimer->read()  ) {
+            if (hardPowerOffUnderProcess  == false) {
+                this->manager->changePowerDownSignal (OFF);
+                hardPowerOffUnderProcess = true;
+            } else {
+                this->manager->changePowerDownSignal (ON);
+                readyToSend = true;
+                hardPowerOffUnderProcess = false;
+                retryCounter = 0;
+                this->manager->changePowerState (new ManualPowerOFFState (this->manager));
+                return true;
+
+            }
+
+        }
+    }
+    
+    return false;
+}
+
 /** 
 * @brief 
 * 
@@ -265,7 +348,7 @@ bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDel
     ,  BatteryData * currentBatteryData) {
     static bool readyToSend = true;
     char StringToSend [15] = "AT+CBC";
-    char StringToBeRead [256];
+    char StringToBeRead [100];
     char StringToSendUSB [40] = "Measuring Battery";
 
     if (readyToSend == true) {
@@ -294,7 +377,7 @@ bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDel
         readyToSend = true;
     }
     return false;
-    }
+}
 
 //=====[Implementations of private functions]==================================
 bool PowerONState::retrivBatteryData(char* stringToAnalyse, BatteryData* currentBatteryData) {

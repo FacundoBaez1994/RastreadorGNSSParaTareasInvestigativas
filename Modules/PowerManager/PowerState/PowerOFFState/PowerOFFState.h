@@ -34,6 +34,8 @@ public:
     void awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
     bool measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
     ,  BatteryData * currentBatteryData);
+    bool turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    bool turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
 private:
     PowerManager * manager;
     powerStatus_t status;

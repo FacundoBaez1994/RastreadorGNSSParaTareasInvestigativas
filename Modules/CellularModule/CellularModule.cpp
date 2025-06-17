@@ -95,6 +95,26 @@ void CellularModule::startStopUpdate () {
 * 
 * 
 */
+bool CellularModule::turnOn () { 
+    return this->modulePowerManager->turnOn();
+}
+
+/** 
+* 
+* 
+* 
+*/
+bool CellularModule::turnOff () { 
+    return this->modulePowerManager->turnOff();
+}
+
+
+
+/** 
+* 
+* 
+* 
+*/
 void CellularModule::awake () { 
     this->modulePowerManager->awake();
 }

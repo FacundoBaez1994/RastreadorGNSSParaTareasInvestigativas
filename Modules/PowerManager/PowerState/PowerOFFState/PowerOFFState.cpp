@@ -127,6 +127,36 @@ void PowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * pow
     return;
 }
 
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    powerStatus_t currentPowerStatus;
+    currentPowerStatus = this->startStopUpdate (AThandler, powerChangeDurationTimer);
+    if (currentPowerStatus == POWER_ON) {
+        return true;
+    }
+    return false;
+}
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool PowerOFFState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    this->manager->changePowerState (new ManualPowerOFFState ( this->manager) );
+    return true;
+}
+
+
 /** 
 * @brief 
 * 

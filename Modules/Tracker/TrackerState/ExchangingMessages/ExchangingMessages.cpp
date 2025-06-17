@@ -62,7 +62,6 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
-    static bool rebootTransceiver = false;
     char logMessage [50];
     
     // if conected to mobile network send the message throght LTE Modem
@@ -112,28 +111,23 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             snprintf(logMessage, sizeof(logMessage),"The message couldn't be sent");
             uartUSB.write (logMessage , strlen (logMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            rebootTransceiver = true;
-        }
-    } else {
-        // try with LoRa
-    }
-
-    if (rebootTransceiver == true) {
-        if (cellularTransceiver->reboot()) {
-            // save message in memory..
             newDataAvailable = false;
             enableTransceiver = false;
-            rebootTransceiver = false;
             if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
                 this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
             }
             if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
                 this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
             }
+            // new state formatting Message in order to be saved in memory
             this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
             return;
         }
+    } else {
+        // try with LoRa
     }
+
+  
     return;
 }
  

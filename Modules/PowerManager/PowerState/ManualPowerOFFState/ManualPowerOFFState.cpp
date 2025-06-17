@@ -155,6 +155,70 @@ void ManualPowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay
     return;
 }
 
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    static bool SignalTurningOn = false;
+    // If powerStatus is in OFF status the power is ON (negate logic)
+    if (this->manager->readPowerStatus()  == OFF) {
+        //////////////////////////////////////////
+        char StringToSend [30] = "Turning ON";
+        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only
+         //////////////////////////////////////////
+        this->manager->changePowerState (new PowerONState ( this->manager) );
+        this->status = POWER_ON;
+        return true;
+    }
+
+
+    // Start Stop Signal
+    if (SignalTurningOn == false  ) {
+         if (powerChangeDurationTimer->read()) {
+            //////////////////////////////////////////
+            char StringToSend [30] = "UP";
+            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            //////////////////////////////////////////
+            this->manager->changeKeyDigitalSignal (true);
+            powerChangeDurationTimer->restart();
+        SignalTurningOn = true;
+        }
+    } else {
+        if (powerChangeDurationTimer->read()) {
+            //////////////////////////////////////////
+            char StringToSend [30] = "DOWN";
+            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            //////////////////////////////////////////
+            this->manager->changeKeyDigitalSignal (false);
+            SignalTurningOn = false;
+            powerChangeDurationTimer->restart();
+        }
+    }
+
+    return false;
+}
+
+
+/** 
+* @brief 
+* 
+* 
+* @returns 
+*/
+bool ManualPowerOFFState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    return true;
+}
+
+
+
 /** 
 * @brief 
 * 

@@ -57,6 +57,8 @@ public:
     CellularModule ( );
     virtual ~CellularModule ();
     void startStopUpdate ();
+    bool turnOff ();
+    bool turnOn ();
     bool reboot ();
     void awake ();
     bool goToSleep ();

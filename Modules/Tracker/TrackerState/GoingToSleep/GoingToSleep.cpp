@@ -56,7 +56,7 @@ void GoingToSleep::updatePowerStatus (CellularModule * cellularTransceiver,
 
     // agregar LoRa // exchageMessages (Lora * LoRaModule);
 void GoingToSleep::goToSleep (CellularModule * cellularTransceiver ) {
-    if (cellularTransceiver->goToSleep()) {
+    if (cellularTransceiver->turnOff()) {
         this->tracker->changeState  (new Slepping (this->tracker));
         return;
     }

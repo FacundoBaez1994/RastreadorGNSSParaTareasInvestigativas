@@ -85,7 +85,8 @@ void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
            uartUSB.write(buffer, strlen(buffer));
             encryptionProcessFinished = false;
             bufferCharged = false;
-            this->tracker->changeState  (new LoadingMessage (this->tracker));
+            //this->tracker->changeState  (new LoadingMessage (this->tracker));
+            this->tracker->changeState  (new GoingToSleep (this->tracker));
             return;
         }  else if (state ==  EEPROMStatus::NOMEMORY) {
             snprintf(log, sizeof(log), "EEPROM has no memory left\n\r");

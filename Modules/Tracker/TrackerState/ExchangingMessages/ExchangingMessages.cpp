@@ -1,6 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "ExchangingMessages.h"
+#include "LoadingMessage.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 #include "GoingToSleep.h"
@@ -94,7 +95,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             // ADD MESSAGE INTERPRETATION
 
 
-            this->tracker->changeState (new GoingToSleep (this->tracker));
+            this->tracker->changeState (new LoadingMessage (this->tracker));
             return;
             } else {
                 snprintf(logMessage, sizeof(logMessage),"No Messages received:");
@@ -102,7 +103,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
                 uartUSB.write ( "\r\n",  3 );  // debug only}
                 newDataAvailable = false;
                 enableTransceiver = false;
-                this->tracker->changeState (new GoingToSleep (this->tracker));
+                this->tracker->changeState (new LoadingMessage (this->tracker));
                 return;
             }    
         }  else if (currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND

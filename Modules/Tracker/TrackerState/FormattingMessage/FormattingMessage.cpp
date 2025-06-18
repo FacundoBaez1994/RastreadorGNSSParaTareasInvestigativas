@@ -179,7 +179,6 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         imuData->angles.roll,           // 18
         imuData->angles.pitch           // 19
     );
-    // inertialData,  //13 status, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
 
     // Agregar array de celdas vecinas si existen
     if (!neighborsCellInformation.empty()) {
@@ -309,13 +308,13 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
     // Encabezado principal del mensaje JSON con los datos de la celda principal
     currentLen = snprintf(message, sizeof(message),
         "MNMN,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
-        aCellInfo->mcc,               // 1
-        aCellInfo->mnc,               // 2
-        aCellInfo->lac,               // 3
-        aCellInfo->cellId,            // 4
-        aCellInfo->signalLevel,       // 5
-        aCellInfo->accessTechnology,  // 6
-        aCellInfo->registrationStatus,// 7
+        aCellInfo->mcc,               // 1 %d
+        aCellInfo->mnc,               // 2 %d
+        aCellInfo->lac,               // 3 %X
+        aCellInfo->cellId,            // 4 %X
+        aCellInfo->signalLevel,       // 5 %.2f
+        aCellInfo->accessTechnology,  // 6 %d
+        aCellInfo->registrationStatus,// 7 %d
         aCellInfo->channel,           // 8 %d
         aCellInfo->band,              // 9 %s
         aCellInfo->timestamp,              // 10 %s

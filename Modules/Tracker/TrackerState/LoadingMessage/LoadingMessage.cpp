@@ -112,8 +112,8 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             init = false;
 
             //this->tracker->changeState  (new SavingMessage (this->tracker));
-            this->tracker->changeState  (new GoingToSleep (this->tracker));
-            //this->tracker->changeState  (new FormattingMessage (this->tracker, currentStatus));
+            //this->tracker->changeState  (new GoingToSleep (this->tracker));
+            this->tracker->changeState  (new FormattingMessage (this->tracker, currentStatus));
             return;
         }
     }
@@ -197,11 +197,13 @@ void LoadingMessage::parseMNGNSS(const char* message,
     aCellInfo->channel = atoi(token);
     token = strtok(NULL, ",");
     aCellInfo->band = token;
-    strncpy(aCellInfo->band, token, sizeof(aCellInfo->band) - 1);
-    aCellInfo->band[sizeof(aCellInfo->band) - 1] = '\0';
+    strcpy (aCellInfo->band, token);
+    //strncpy(aCellInfo->band, token, sizeof(aCellInfo->band) - 1);
+    //aCellInfo->band[sizeof(aCellInfo->band) - 1] = '\0';
     token = strtok(NULL, ",");
-    strncpy(GNSSInfo->timestamp, token, sizeof(GNSSInfo->timestamp) - 1);
-    GNSSInfo->timestamp[sizeof(GNSSInfo->timestamp) - 1] = '\0';
+    strcpy (GNSSInfo->timestamp, token);
+    //strncpy(GNSSInfo->timestamp, token, sizeof(GNSSInfo->timestamp) - 1);
+    //GNSSInfo->timestamp[sizeof(GNSSInfo->timestamp) - 1] = '\0';
 
     token = strtok(NULL, ",");
     batteryStatus->batteryChargeStatus = atoi(token);
@@ -285,12 +287,14 @@ void LoadingMessage::parseMNMN(const char* message,
             case 7: aCellInfo->registrationStatus = atoi(token); break;
             case 8: aCellInfo->channel = atoi(token); break;
             case 9: 
-                strncpy(aCellInfo->band, token, sizeof(aCellInfo->band));
-                aCellInfo->band[sizeof(aCellInfo->band) - 1] = '\0';
+                strcpy (aCellInfo->band, token);
+                //strncpy(aCellInfo->band, token, sizeof(aCellInfo->band));
+                //aCellInfo->band[sizeof(aCellInfo->band) - 1] = '\0';
                 break;
             case 10:
-                strncpy(aCellInfo->timestamp, token, sizeof(aCellInfo->timestamp));
-                aCellInfo->timestamp[sizeof(aCellInfo->timestamp) - 1] = '\0';
+            strcpy (aCellInfo->timestamp, token);
+                //strncpy(aCellInfo->timestamp, token, sizeof(aCellInfo->timestamp));
+                //aCellInfo->timestamp[sizeof(aCellInfo->timestamp) - 1] = '\0';
                 break;
             case 11: batteryStatus->batteryChargeStatus = atoi(token); break;
             case 12: batteryStatus->chargeLevel = atoi(token); break;
@@ -327,7 +331,7 @@ void LoadingMessage::parseMNMN(const char* message,
         float signal;
 
         if (sscanf(neighborPart, "%d,%d,%d,%X,%X,%f", &tech, &mcc, &mnc, &lac, &cellId, &signal) == 6) {
-            neighbor->accessTechnology = tech;
+            neighbor->tech = tech;
             neighbor->mcc = mcc;
             neighbor->mnc = mnc;
             neighbor->lac = lac;

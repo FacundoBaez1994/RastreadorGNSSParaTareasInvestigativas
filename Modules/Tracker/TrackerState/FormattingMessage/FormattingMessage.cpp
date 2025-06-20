@@ -140,6 +140,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     // Encabezado principal del mensaje JSON con los datos de la celda principal
     currentLen = snprintf(message, sizeof(message),
         "{\"Type\":\"MNMN\","
+        "\"IMEI\":%lld,"
         "\"MCC\":%d,"
         "\"MNC\":%d,"
         "\"LAC\":\"%X\","
@@ -159,6 +160,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         "\"YAW\":%.2f,"
         "\"ROLL\":%.2f,"
         "\"PTCH\":%.2f",
+        aCellInfo->IMEI,               // 0
         aCellInfo->mcc,               // 1
         aCellInfo->mnc,               // 2
         aCellInfo->lac,               // 3
@@ -227,8 +229,9 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     size_t currentLen = 0;
 
     currentLen = snprintf(message, sizeof(message),
-        "{"
+        "{" 
         "\"Type\":\"MNGNSS\","
+        "\"IMEI\":%lld,"
         "\"LAT\":%.6f,"
         "\"LONG\":%.6f,"
         "\"HDOP\":%.2f,"
@@ -255,6 +258,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         "\"ROLL\":%.2f,"
         "\"PTCH\":%.2f"
         "}",
+        aCellInfo->IMEI,                // 0
         GNSSInfo->latitude,            // 1
         GNSSInfo->longitude,           // 2
         GNSSInfo->hdop,                // 3

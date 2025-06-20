@@ -36,6 +36,12 @@ private:
     void formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus);
 
+    void formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo,
+    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
+
+    void formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo, 
+    const IMUData_t * imuData, const BatteryData  * batteryStatus);
+
     void formatMNMNMemoryMessage (char * formattedMessage, const CellInformation* aCellInfo, const std::vector<CellInformation*> &neighborsCellInformation, 
     const IMUData_t * imuData, const BatteryData  * batteryStatus);
 

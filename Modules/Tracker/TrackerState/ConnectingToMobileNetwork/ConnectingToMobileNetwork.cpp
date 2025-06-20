@@ -1,6 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "ConnectingToMobileNetwork.h"
+#include "FormattingMessage.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 #include "GatheringCellInformation.h"
@@ -64,6 +65,10 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
     
     cellularTransceiver->enableConnection();
     currentConnectionStatus = cellularTransceiver->connectToMobileNetwork (currentCellInformation);
+    
+    /// test only
+    //currentConnectionStatus = CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_ATTACH_TO_PACKET_SERVICE;
+
     if (currentConnectionStatus == CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK){
         if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN) {
             this->tracker->changeState (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK));
@@ -77,13 +82,18 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
         char StringToSendUSB [50] = "Access to mobile network UNAVAILABLE!!!!";
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
-        // Go to sleep
-        // USE IMU PLUS MEMORY INSTED 
-        this->tracker->changeState  (new GoingToSleep (this->tracker));
+        
+        if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN) {
+            // NO MN, TRY TO SEND GNSS DATA THROUGH LORA after gather inertial data
+            this->tracker->changeState  (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA));
+            return;
+        } else {
+             // NO MN AND NO GNSS, TRY TO SEND SOME DATA THROUGH LORA inertial data
+            this->tracker->changeState  (new GatheringInertialData(this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA));
+            return;
+        }
         return;
     }
-
-
     return; 
 }
 

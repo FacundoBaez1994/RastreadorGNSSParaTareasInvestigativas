@@ -124,8 +124,23 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
             return;
         }
-    } else {
+    } else if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA || 
+    this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA) {
+        snprintf(logMessage, sizeof(logMessage),"LoRa Sending");
+        uartUSB.write (logMessage , strlen (logMessage));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only}
+        
         // try with LoRa
+        // NOTA: ESTA PARTE DEBERIA DE SER UNO O DOS ESTADOS APARTE
+
+        snprintf(logMessage, sizeof(logMessage),"LoRa Unavailable");
+        uartUSB.write (logMessage , strlen (logMessage));  // debug only
+        uartUSB.write ( "\r\n",  3 );  // debug only}
+        if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA ){
+            this->tracker->changeState (new FormattingMessage (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE));
+        }
+        // aca iria a gathering otra vez para llenar el vector
+        this->tracker->changeState (new GoingToSleep (this->tracker));
     }
 
   

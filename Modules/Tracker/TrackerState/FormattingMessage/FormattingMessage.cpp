@@ -62,6 +62,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
     char StringToSendUSB [50];
 
     switch (this->currentStatus ) {
+        ///////////// MN Messages //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK:
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,GNSS message\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
@@ -76,9 +77,6 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             break;
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK:
 
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB), "Vector size: %d\r\n", neighborsCellInformation.size());
-            uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
-
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,MN message:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -91,6 +89,37 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
             break;
+        ///////////// Lora Messages //////////////////////////////
+        case TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA:
+
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating LORA,GNSS message:\r\n");
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->formatLoRaMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
+            break;
+
+        case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA:
+
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating LORA,LORA message:\r\n");
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->formatLoRaMessage(formattedMessage, aCellInfo, imuData, batteryStatus);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
+            break;
+
+
+        /////// Saving cases //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE:
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,GNSS message to be saved\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
@@ -130,6 +159,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
 
 
 //=====[Implementations of private methods]==================================
+//////////////////////// MN messages /// 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus) {
 
@@ -294,6 +324,63 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
 
 }
 
+/////////////////////////// LoRa Messages //////////////////////////////
+void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo, 
+  const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus) {
+  static char message[2048]; 
+    snprintf(message, sizeof(message), 
+    "LORAGNSS,%lld,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+        aCellInfo->IMEI,                    // 0 %lld         
+        GNSSInfo->latitude,                 // 1 %.6f
+        GNSSInfo->longitude,                // 2 %.6f
+        GNSSInfo->hdop,                     // 3 %.2f
+        GNSSInfo->altitude,                 // 4 %.2f
+        GNSSInfo->cog,                      // 5 %.2f
+        GNSSInfo->spkm,                     // 6 %.2f
+        GNSSInfo->timestamp,                // 7 %s
+        batteryStatus->batteryChargeStatus, // 8 %d
+        batteryStatus->chargeLevel,         // 9 %d
+        imuData->status,                    // 10 %d
+        imuData->acceleration.ax,           // 11 %.2f
+        imuData->acceleration.ay,           // 12 %.2f
+        imuData->acceleration.az,           // 13 %.2f
+        imuData->angles.yaw,                // 14 %.2f
+        imuData->angles.roll,               // 15 %.2f
+        imuData->angles.pitch               // 16 %.2f
+            );
+    message[sizeof(message) - 1] = '\0';       
+    strcpy(formattedMessage, message);
+    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
+}
+
+
+void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellInformation* aCellInfo, 
+ const IMUData_t * imuData, const BatteryData  * batteryStatus) {
+  static char message[2048]; 
+    snprintf(message, sizeof(message), 
+    "LORALORA,%lld,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+        aCellInfo->IMEI,                     // 0 %lld         
+        batteryStatus->batteryChargeStatus, // 1 %d
+        batteryStatus->chargeLevel,         // 2 %d
+        imuData->status,                    // 3 %d
+        imuData->acceleration.ax,           // 4 %.2f
+        imuData->acceleration.ay,           // 5 %.2f
+        imuData->acceleration.az,           // 6 %.2f
+        imuData->angles.yaw,                // 7 %.2f
+        imuData->angles.roll,               // 8 %.2f
+        imuData->angles.pitch               // 9 %.2f
+            );
+    message[sizeof(message) - 1] = '\0';       
+    strcpy(formattedMessage, message);
+    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
+}
+
+
+
+
+
+
+/////////////////////////// saving cases //////////////////////////////
 //// MNMN for save on memory
 void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus) {

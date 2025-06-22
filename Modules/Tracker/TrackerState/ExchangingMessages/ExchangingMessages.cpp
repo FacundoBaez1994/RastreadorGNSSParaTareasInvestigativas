@@ -67,7 +67,8 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     
     // if conected to mobile network send the message throght LTE Modem
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
-     || this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
+     || this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK 
+     || this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
         if (enableTransceiver == false) {
             cellularTransceiver->enableTransceiver();
             enableTransceiver = true; 
@@ -120,6 +121,9 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
                 this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
             }
+            if (this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
+                this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE;
+            }
             // new state formatting Message in order to be saved in memory
             this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
             return;
@@ -138,9 +142,11 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
         uartUSB.write ( "\r\n",  3 );  // debug only}
         if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA ){
             this->tracker->changeState (new FormattingMessage (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE));
+            return;
         }
         // aca iria a gathering otra vez para llenar el vector
         this->tracker->changeState (new GoingToSleep (this->tracker));
+        return;
     }
 
   

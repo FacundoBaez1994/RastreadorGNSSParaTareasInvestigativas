@@ -49,6 +49,10 @@ private:
         GNSSData* GNSSInfo,
         IMUData_t* imuData,
         BatteryData* batteryStatus);
+    void parseGNSS(const char* message,
+        GNSSData* GNSSInfo,
+        IMUData_t* imuData,
+        BatteryData* batteryStatus);
 };
 
 

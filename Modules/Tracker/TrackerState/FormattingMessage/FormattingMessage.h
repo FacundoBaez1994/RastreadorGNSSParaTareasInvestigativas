@@ -18,6 +18,8 @@ class Tracker; //debido a declaracion adelantada
  *  class - State desing pattern
  * 
  */
+
+ ////// Nota evaluar el uso de patron strategie
 class FormattingMessage : public TrackerBaseState {
 public:
 //=====[Declaration of public methods]=========================================
@@ -36,11 +38,17 @@ private:
     void formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus);
 
+    void formatMessage(char * formattedMessage, long long int IMEI,
+    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
+
     void formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo,
     const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
 
     void formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const IMUData_t * imuData, const BatteryData  * batteryStatus);
+
+    void formatGNSSMemoryMessage(char * formattedMessage, const GNSSData* GNSSInfo, 
+    const IMUData_t * inertialData, const BatteryData  * batteryStatus);
 
     void formatMNMNMemoryMessage (char * formattedMessage, const CellInformation* aCellInfo, const std::vector<CellInformation*> &neighborsCellInformation, 
     const IMUData_t * imuData, const BatteryData  * batteryStatus);

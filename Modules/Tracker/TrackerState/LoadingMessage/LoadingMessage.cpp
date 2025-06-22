@@ -135,6 +135,9 @@ trackerStatus_t LoadingMessage::parseDecryptedMessage(const char* decryptedStrin
     } else if (strncmp(decryptedString, "MNGNSS", 6) == 0) {
         parseMNGNSS(decryptedString, aCellInfo, GNSSInfo, imuData, batteryStatus);
         return TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK; 
+    }  else if (strncmp(decryptedString, "GNSS", 4) == 0) {
+        parseGNSS(decryptedString, GNSSInfo, imuData, batteryStatus);
+        return TRACKER_STATUS_GNSS_LOADED_MESSAGE;
     }
     return TRACKER_STATUS_PARSE_ERROR;
 }
@@ -357,4 +360,53 @@ void LoadingMessage::parseMNMN(const char* message,
     neighborsBuffer = nullptr;
     init = false;
 }
+
+
+void LoadingMessage::parseGNSS(const char* message,
+    GNSSData* GNSSInfo,
+    IMUData_t* imuData,
+    BatteryData* batteryStatus) {
+
+    static bool init = false;
+    char* buffer;
+    size_t sizeOfBuffer = 2048;
+
+    if (!init) {
+        buffer = new char[sizeOfBuffer];
+        init = true;
+    }
+
+    strncpy(buffer, message, sizeOfBuffer);
+    buffer[sizeOfBuffer - 1] = '\0';
+
+    char* token = strtok(buffer, ",");
+    if (!token || strcmp(token, "GNSS") != 0) {
+        delete[] buffer;
+        buffer = nullptr;
+        init = false;
+        return;
+    }
+
+    token = strtok(NULL, ","); GNSSInfo->latitude = atof(token);
+    token = strtok(NULL, ","); GNSSInfo->longitude = atof(token);
+    token = strtok(NULL, ","); GNSSInfo->hdop = atof(token);
+    token = strtok(NULL, ","); GNSSInfo->altitude = atof(token);
+    token = strtok(NULL, ","); GNSSInfo->cog = atof(token);
+    token = strtok(NULL, ","); GNSSInfo->spkm = atof(token);
+    token = strtok(NULL, ","); strcpy(GNSSInfo->timestamp, token);
+    token = strtok(NULL, ","); batteryStatus->batteryChargeStatus = atoi(token);
+    token = strtok(NULL, ","); batteryStatus->chargeLevel = atoi(token);
+    token = strtok(NULL, ","); imuData->status = atoi(token);
+    token = strtok(NULL, ","); imuData->acceleration.ax = atof(token);
+    token = strtok(NULL, ","); imuData->acceleration.ay = atof(token);
+    token = strtok(NULL, ","); imuData->acceleration.az = atof(token);
+    token = strtok(NULL, ","); imuData->angles.yaw = atof(token);
+    token = strtok(NULL, ","); imuData->angles.roll = atof(token);
+    token = strtok(NULL, ","); imuData->angles.pitch = atof(token);
+
+    delete[] buffer;
+    buffer = nullptr;
+    init = false;
+}
+
 

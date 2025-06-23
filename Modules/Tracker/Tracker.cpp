@@ -136,7 +136,6 @@ void Tracker::update () {
     static char receivedMessage [2048];
 
 
-    //static std::vector<CellInformation*> neighborsCellInformation;
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singleton
     watchdog.kick();

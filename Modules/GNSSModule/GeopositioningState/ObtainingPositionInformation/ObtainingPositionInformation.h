@@ -13,6 +13,7 @@
 #include "Non_Blocking_Delay.h"
 #include "TurningOnGNSS.h"
 #include "GNSSState.h"
+#include "timeStampTools.h"
 
 
 //=====[Declaration of public data types]======================================

@@ -80,6 +80,16 @@ void GatheringInertialData::obtainInertialMeasures (IMUManager * inertialSensor,
                 imuData->status, imuData->angles.yaw,
                 imuData->angles.pitch, imuData->angles.roll);
             uartUSB.write(log, strlen(log));
+
+            time_t seconds = time(NULL);
+            snprintf(log, sizeof(log), "\n\r \n\r TIMESTAMP RECUPERADO: \n\r \n\r");
+            uartUSB.write(log, strlen(log));
+
+            epochToTimestamp(seconds, log, sizeof(log));
+            uartUSB.write(log, strlen(log));
+            uartUSB.write("\n\r", strlen("\n\r"));
+
+
             this->tracker->changeState (new FormattingMessage (this->tracker, 
             this->currentStatus));
             return;

@@ -118,6 +118,9 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
                 ////   ////   ////   ////   ////   ////            
                 strcpy(currentCellInformation->timestamp, this->date);
                 strcat(currentCellInformation->timestamp, this->time);
+
+                set_time(timestampToEpoch (currentCellInformation->timestamp));  // save the epoch into RTC
+                
                 this->mobileNetworkModule->changeConnectionState 
                 (new AttachingToPacketService (this->mobileNetworkModule) );
                 return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;

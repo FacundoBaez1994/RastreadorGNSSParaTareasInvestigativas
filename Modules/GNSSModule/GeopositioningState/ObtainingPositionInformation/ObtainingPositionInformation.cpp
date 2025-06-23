@@ -124,6 +124,9 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
             Geodata->spkn = this->spkn;
             strcpy(Geodata->timestamp, this->date);
             strcat(Geodata->timestamp, this->utc);
+
+            set_time(timestampToEpoch (Geodata->timestamp));  // save the epoch into RTC
+
             Geodata->nsat = this->nsat; 
             this->currentGNSSModule->changeGeopositioningState (new TurningOffGNSS (this->currentGNSSModule));
             return GNSS_STATE_CONNECTION_OBTAIN;
@@ -174,7 +177,7 @@ bool ObtainingPositionInformation::retrivPositionInfo(char *response) {
     // Verificar si la respuesta comienza con "+QGPSLOC: "
     if (strncmp(response, StringToCompare, strlen(StringToCompare)) == 0) {
         // Variables para almacenar los campos parseados
-        char utc[10];          // <UTC> en formato HHMMSS.SS
+        char utc[10];          // <UTC> en formato HHMMSS
         float latitude;        // <latitude> en formato decimal
         float longitude;       // <longitude> en formato decimal
         float hdop;            // <hdop>
@@ -193,6 +196,7 @@ bool ObtainingPositionInformation::retrivPositionInfo(char *response) {
         // Verificar que se hayan parseado correctamente los 11 valores
         if (n == 11) {
             // Asignar los valores a los atributos del objeto
+            utc[6] = '\0';
             strncpy(this->utc, utc, sizeof(this->utc));
             this->latitude = latitude;
             this->longitude = longitude;

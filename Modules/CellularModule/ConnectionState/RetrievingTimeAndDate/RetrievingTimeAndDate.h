@@ -13,6 +13,7 @@
 #include "AttachingToPacketService.h"
 #include <string>
 #include "CellularModule.h"
+#include "timeStampTools.h"
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada

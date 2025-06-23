@@ -61,8 +61,11 @@ private:
 
     TrackerState * currentState;
 
+  // IMU 
     IMUManager * inertialSensor;
     IMUData_t * imuData;
+    std::vector<IMUData_t*> imuDataSamples;
+
 
     EEPROMManager * memory;
     
@@ -73,7 +76,9 @@ private:
 
     GNSSModule* currentGNSSModule;
     GNSSData * currentGNSSdata;
+
     NonBlockingDelay * latency;
+
     BatteryData  * batteryStatus;
 
 

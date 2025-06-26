@@ -76,7 +76,7 @@ void TrackerBaseState::calibrateIMU (IMUManager * inertialSensor) {
     return;
 }
 
-void TrackerBaseState::obtainInertialMeasures (IMUManager * inertialSensor,  IMUData_t * inertialData) {
+void TrackerBaseState::obtainInertialMeasures (IMUManager * inertialSensor,  IMUData_t * inertialData, std::vector<IMUData_t*> &IMUDataSamples) {
     return;
 }
 

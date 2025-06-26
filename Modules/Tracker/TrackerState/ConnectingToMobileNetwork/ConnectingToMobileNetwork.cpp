@@ -67,7 +67,7 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
     currentConnectionStatus = cellularTransceiver->connectToMobileNetwork (currentCellInformation);
     
     /// test only
-    //currentConnectionStatus = CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_ATTACH_TO_PACKET_SERVICE;
+    currentConnectionStatus = CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_ATTACH_TO_PACKET_SERVICE;
     //this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN;
     /// test only
 

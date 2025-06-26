@@ -64,7 +64,7 @@ private:
   // IMU 
     IMUManager * inertialSensor;
     IMUData_t * imuData;
-    std::vector<IMUData_t*> imuDataSamples;
+    std::vector<IMUData_t*> IMUDataSamples;
 
 
     EEPROMManager * memory;

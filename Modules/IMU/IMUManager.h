@@ -29,6 +29,8 @@ struct IMUData_t {
   euler_t angles;
   acceleration_t acceleration;
   uint8_t status;
+  char * timestamp;
+  int timeBetweenSamples;
 };
 
 

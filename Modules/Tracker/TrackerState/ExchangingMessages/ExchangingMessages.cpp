@@ -1,12 +1,14 @@
 //=====[Libraries]=============================================================
 
 #include "ExchangingMessages.h"
+#include "GatheringInertialData.h"
 #include "LoadingMessage.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 #include "GoingToSleep.h"
 #include "SavingMessage.h"
 #include "FormattingMessage.h"
+#include "GatheringInertialData.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -145,7 +147,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             return;
         }
         // aca iria a gathering otra vez para llenar el vector
-        this->tracker->changeState (new GoingToSleep (this->tracker));
+        this->tracker->changeState (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERING_INERTIAL_INFO));
         return;
     }
 

@@ -10,6 +10,7 @@
 #define LATENCY        5000
 #define TIMEOUT_MS     5000
 #define POWERCHANGEDURATION  700
+#define TIME_BETWEEN_IMU_SAMPLES 10
 
 //=====[Declaration of private data types]=====================================
 
@@ -52,6 +53,8 @@ Tracker::Tracker () {
     this->batteryStatus = new BatteryData;
 
     this->imuData = new IMUData_t;
+    this->imuData->timestamp = new char [20];
+    this->imuData->timeBetweenSamples = TIME_BETWEEN_IMU_SAMPLES;
 
     this->inertialSensor = new IMUManager (); 
     this->memory = new EEPROMManager ();
@@ -80,6 +83,8 @@ Tracker::Tracker () {
 
 
 Tracker::~Tracker() {
+    delete this->imuData->timestamp;
+    this->imuData->timestamp = nullptr;
     delete this->imuData;
     this->imuData = nullptr;
 
@@ -147,7 +152,7 @@ void Tracker::update () {
     this->currentCellInformation);
     this->currentState->obtainNeighborCellsInformation (this->cellularTransceiver, 
     this->neighborsCellInformation, numberOfNeighbors );
-    this->currentState->obtainInertialMeasures(this->inertialSensor, this->imuData);
+    this->currentState->obtainInertialMeasures(this->inertialSensor, this->imuData, this->IMUDataSamples);
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
     this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,

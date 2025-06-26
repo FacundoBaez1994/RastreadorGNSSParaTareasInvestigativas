@@ -27,7 +27,8 @@ class TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
     virtual void calibrateIMU (IMUManager * inertialSensor);
-    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * inertialData);
+    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * inertialData, 
+    std::vector<IMUData_t*> &IMUDataSamples);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
     virtual void obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata);
     virtual void connectToMobileNetwork (CellularModule * cellularTransceiver,

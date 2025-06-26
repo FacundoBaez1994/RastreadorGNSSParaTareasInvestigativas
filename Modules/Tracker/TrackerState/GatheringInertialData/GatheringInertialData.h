@@ -25,12 +25,13 @@ public:
 //=====[Declaration of public methods]=========================================
     GatheringInertialData (Tracker * tracker, trackerStatus_t trackerStatus);
     virtual ~GatheringInertialData ();
-    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * imuData);
+    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples);
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
 private:
     Tracker * tracker;
     NonBlockingDelay * timeBeetwenSamples;
     trackerStatus_t currentStatus;
+    IMUData_t * auxiliarIMUData;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

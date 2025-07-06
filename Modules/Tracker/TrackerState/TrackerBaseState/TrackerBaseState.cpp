@@ -54,7 +54,7 @@ void TrackerBaseState::obtainNeighborCellsInformation (CellularModule* cellularT
 
 void TrackerBaseState::formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
     const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
-    const IMUData_t * imuData, const BatteryData  * batteryStatus) {
+    const IMUData_t * imuData, const std::vector<IMUData_t*> &IMUDataSample, const BatteryData  * batteryStatus) {
     return;
 }
 
@@ -86,7 +86,7 @@ void TrackerBaseState::saveMessage (EEPROMManager * memory, char * message) {
 
 void TrackerBaseState::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData,  BatteryData  * batteryStatus) {
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatus) {
     return;
 }
 

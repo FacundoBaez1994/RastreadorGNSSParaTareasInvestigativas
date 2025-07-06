@@ -29,7 +29,7 @@ public:
 
     virtual void formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
     const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
-    const IMUData_t * imuData, const BatteryData  * batteryStatus); 
+    const IMUData_t * imuData,  const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus); 
 
 private:
     void formatMessage(char * formattedMessage, const CellInformation* aCellInfo,
@@ -40,6 +40,9 @@ private:
 
     void formatMessage(char * formattedMessage, long long int IMEI,
     const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
+
+    void formatMessage(char * formattedMessage, long long int IMEI, const IMUData_t * inertialData, 
+    const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus);
 
     void formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo,
     const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
@@ -55,6 +58,9 @@ private:
 
     void formatMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo, const GNSSData* GNSSInfo, 
     const IMUData_t * inertialData, const BatteryData  * batteryStatus);
+
+    void formatMemoryMessage(char * formattedMessage, const IMUData_t * inertialData, 
+    const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus);
 
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;

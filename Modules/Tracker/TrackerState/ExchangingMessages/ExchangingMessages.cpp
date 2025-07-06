@@ -70,7 +70,8 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     // if conected to mobile network send the message throght LTE Modem
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
      || this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK 
-     || this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
+     || this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE
+     || this->currentStatus ==  TRACKER_STATUS_IMU_LOADED_MESSAGE) {
         if (enableTransceiver == false) {
             cellularTransceiver->enableTransceiver();
             enableTransceiver = true; 

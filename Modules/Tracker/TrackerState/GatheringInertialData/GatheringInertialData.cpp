@@ -167,7 +167,8 @@ void GatheringInertialData::obtainInertialMeasures (IMUManager * inertialSensor,
                     vectorCleared  = false;
                     sampleCounter = 0;
                     uartUSB.write("All IMU Samples Gather\r\n", strlen("All IMU Samples Gather\r\n"));
-                    this->tracker->changeState (new GoingToSleep (this->tracker));
+                    // this->tracker->changeState (new GoingToSleep (this->tracker));
+                    this->tracker->changeState (new FormattingMessage (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERED_INERTIAL_INFO_SAVING_MESSAGE));
                     return;
                 }
             }

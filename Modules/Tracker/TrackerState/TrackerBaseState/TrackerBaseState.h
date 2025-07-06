@@ -32,7 +32,7 @@ public:
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
     virtual void formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
     const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
-    const IMUData_t * imuData, const BatteryData  * batteryStatus); 
+    const IMUData_t * imuData, const std::vector<IMUData_t*> &IMUDataSample, const BatteryData  * batteryStatus); 
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     virtual void goToSleep (CellularModule * cellularTransceiver);
@@ -40,7 +40,7 @@ public:
     virtual void saveMessage (EEPROMManager * memory, char * message);
     virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData,  BatteryData  * batteryStatus);
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatus);
 private:
 //=====[Declaration of privates atributes]=========================================
 

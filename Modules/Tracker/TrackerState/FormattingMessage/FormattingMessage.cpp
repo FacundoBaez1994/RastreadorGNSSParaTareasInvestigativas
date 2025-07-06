@@ -58,13 +58,13 @@ void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
 
 void FormattingMessage::formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
     const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
-    const IMUData_t * imuData, const BatteryData  * batteryStatus) {
+    const IMUData_t * imuData, const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus) {
     char StringToSendUSB [50];
 
     switch (this->currentStatus ) {
-        ///////////// MN Messages //////////////////////////////
+        ///////////// MN Modem Messages //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,GNSS message\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,GNSS message\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus);
@@ -77,7 +77,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             break;
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,MN message:\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,MN message:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, 
@@ -91,7 +91,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             break;
 
         case TRACKER_STATUS_GNSS_LOADED_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating GNSS message (reloaded):\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting GNSS message (reloaded):\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo->IMEI, GNSSInfo, imuData, batteryStatus);
@@ -103,9 +103,22 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
             break;
 
+        case TRACKER_STATUS_IMU_LOADED_MESSAGE:
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting IMU message (reloaded)\r\n");
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->formatMessage(formattedMessage, aCellInfo->IMEI, imuData, IMUDataSamples, batteryStatus);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
+            break;
+
         ///////////// Lora Messages //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating LORA,GNSS message:\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting LORA,GNSS message:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatLoRaMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus);
@@ -119,7 +132,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA:
 
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating LORA,LORA message:\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting LORA,LORA message:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatLoRaMessage(formattedMessage, aCellInfo, imuData, batteryStatus);
@@ -134,7 +147,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
 
         /////// Saving cases //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,GNSS message to be saved\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,GNSS message to be saved\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMemoryMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus);
@@ -147,7 +160,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             break;
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating MN,MN message to be saved:\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,MN message to be saved:\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
 
@@ -163,10 +176,23 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             break;
 
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formating GNSS message to be saved\r\n");
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting GNSS message to be saved\r\n");
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatGNSSMemoryMessage(formattedMessage, GNSSInfo, imuData, batteryStatus);
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->tracker->changeState (new SavingMessage (this->tracker));
+            break;
+
+        case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERED_INERTIAL_INFO_SAVING_MESSAGE:
+            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting IMU message to be saved\r\n");
+            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only}
+            this->formatMemoryMessage(formattedMessage, imuData, IMUDataSamples, batteryStatus);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
@@ -409,6 +435,83 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
 
 }
 
+
+
+void FormattingMessage::formatMessage(char * formattedMessage, long long int IMEI, const IMUData_t * inertialData, 
+    const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus) {
+
+    static char message[2048];
+    static char tempBuffer[250]; // buffer auxiliar para formateo
+    size_t currentLen = 0;
+
+    // Encabezado principal del mensaje JSON con los datos de la celda principal
+    currentLen = snprintf(message, sizeof(message),
+        "{\"Type\":\"IMU\","
+        "\"IMEI\":%lld,"
+        "\"TIME\":\"%s\","
+        "\"TBWS\":%d,"
+        "\"BSTA\":%d,"
+        "\"BLVL\":%d,"
+        "\"SIMU\":%d,"
+        "\"AX\":%.2f,"
+        "\"AY\":%.2f,"
+        "\"AZ\":%.2f,"
+        "\"YAW\":%.2f,"
+        "\"ROLL\":%.2f,"
+        "\"PTCH\":%.2f",
+        IMEI,               // 0
+        inertialData->timestamp, // 1 %s
+        inertialData->timeBetweenSamples, // 2 %d
+        batteryStatus->batteryChargeStatus, // 3 %d
+        batteryStatus->chargeLevel,          // 4 %d
+        inertialData->status,                // 5 %d
+        inertialData->acceleration.ax,       // 6 %.2f
+        inertialData->acceleration.ay,       // 7 %.2f
+        inertialData->acceleration.az,       // 8 %.2f
+        inertialData->angles.yaw,            // 9 %.2f
+        inertialData->angles.roll,           // 10 %.2f
+        inertialData->angles.pitch           // 11 %.2f
+    );
+
+    // Agregar array de celdas vecinas si existen
+    if (!IMUDataSamples.empty()) {
+        currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Samples\":[");
+        
+        for (size_t i = 0; i < IMUDataSamples.size(); ++i) {
+            IMUData_t* sample = IMUDataSamples[i];
+            snprintf(tempBuffer, sizeof(tempBuffer),
+                "{\"AX\":%.2f,\"AY\":%.2f,\"AZ\":%.2f,\"YAW\":\"%.2f\",\"ROLL\":\"%.2f\",\"PTCH\":%.2f}",
+                sample->acceleration.ax,       // 6 %.2f
+                sample->acceleration.ay,       // 7 %.2f
+                sample->acceleration.az,       // 8 %.2f
+                sample->angles.yaw,            // 9 %.2f
+                sample->angles.roll,           // 10 %.2f
+                sample->angles.pitch           // 11 %.2f
+            );
+            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+
+            // Si no es el último, agregamos coma
+            if (i < IMUDataSamples.size() - 1) {
+                strncat(message, ",", sizeof(message) - strlen(message) - 1);
+            }
+
+
+        }
+        strncat(message, "]", sizeof(message) - strlen(message) - 1);
+    }
+
+    // Cierre del JSON
+    strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
+
+    message[sizeof(message) - 1] = '\0';
+
+    //strcpy(formattedMessage, message);
+    this->tracker->encodeJWT (message, formattedMessage);
+
+    strcat(formattedMessage, "\n");
+
+}
+
 /////////////////////////// LoRa Messages //////////////////////////////
 void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo, 
   const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus) {
@@ -597,3 +700,55 @@ void FormattingMessage::formatGNSSMemoryMessage(char * formattedMessage, const G
 
 
 
+//// IMU for save on memory
+void FormattingMessage::formatMemoryMessage(char * formattedMessage, const IMUData_t * imuData,
+const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus) {
+
+    static char message[2048];
+    static char tempBuffer[250]; // buffer auxiliar para formateo
+    size_t currentLen = 0;
+
+
+    char StringToSendUSB [100];
+    
+    snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "IMU save:\r\n");
+    uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only}
+
+    // Encabezado principal del mensaje JSON con los datos de la celda principal
+    currentLen = snprintf(message, sizeof(message),
+        "IMU,%s,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
+        imuData->timestamp, // 1 %s
+        imuData->timeBetweenSamples, // 2 %d
+        batteryStatus->batteryChargeStatus, // 3 %d
+        batteryStatus->chargeLevel,          // 4 %d
+        imuData->status,                // 5 %d
+        imuData->acceleration.ax,       // 6 %.2f
+        imuData->acceleration.ay,       // 7 %.2f
+        imuData->acceleration.az,       // 8 %.2f
+        imuData->angles.yaw,            // 9 %.2f
+        imuData->angles.roll,           // 10 %.2f
+        imuData->angles.pitch           // 11 %.2f
+    );
+
+    // Agregar array de celdas vecinas si existen
+    if (!IMUDataSamples.empty()) {
+        for (size_t i = 0; i < IMUDataSamples.size(); ++i) {
+            IMUData_t* sample = IMUDataSamples[i];
+            snprintf(tempBuffer, sizeof(tempBuffer),
+                "|%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
+                sample->acceleration.ax,
+                sample->acceleration.ay,
+                sample->acceleration.az,
+                sample->angles.yaw,
+                sample->angles.roll,
+                sample->angles.pitch
+            );
+            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+
+            uartUSB.write ( tempBuffer,  strlen (tempBuffer) );  // debug only}
+        }
+    }
+    message[sizeof(message) - 1] = '\0';
+    strcpy(formattedMessage, message);
+}

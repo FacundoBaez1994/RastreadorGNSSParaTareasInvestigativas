@@ -56,7 +56,7 @@ LoadingMessage::~LoadingMessage  () {
 
 void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData,  BatteryData  * batteryStatus) {
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples,  BatteryData  * batteryStatus) {
     static char  poppedString [2048] = {0};
     char  log [50];
     static bool decryptionProcessFinished = false;
@@ -97,7 +97,7 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             uartUSB.write("\n\r", strlen("\n\r"));
             trackerStatus_t currentStatus;
             currentStatus = this->parseDecryptedMessage(poppedString, aCellInfo, GNSSInfo, 
-            neighborsCellInformation, imuData, batteryStatus);
+            neighborsCellInformation, imuData, IMUDataSamples, batteryStatus);
             if ( currentStatus == TRACKER_STATUS_PARSE_ERROR) {
                 snprintf(log, sizeof(log), "\n\rparse error:\n\r");
                 uartUSB.write(log, strlen(log));
@@ -127,6 +127,7 @@ trackerStatus_t LoadingMessage::parseDecryptedMessage(const char* decryptedStrin
     GNSSData* GNSSInfo,
     std::vector<CellInformation*>& neighborsCellInformation,
     IMUData_t* imuData,
+    std::vector<IMUData_t*>& IMUDataSamples,
     BatteryData* batteryStatus) {
 
     if (strncmp(decryptedString, "MNMN", 4) == 0) {
@@ -138,6 +139,9 @@ trackerStatus_t LoadingMessage::parseDecryptedMessage(const char* decryptedStrin
     }  else if (strncmp(decryptedString, "GNSS", 4) == 0) {
         parseGNSS(decryptedString, GNSSInfo, imuData, batteryStatus);
         return TRACKER_STATUS_GNSS_LOADED_MESSAGE;
+    } else if (strncmp(decryptedString, "IMU", 3) == 0) {
+        parseIMU(decryptedString, imuData, IMUDataSamples, batteryStatus);
+        return TRACKER_STATUS_IMU_LOADED_MESSAGE;
     }
     return TRACKER_STATUS_PARSE_ERROR;
 }
@@ -408,5 +412,171 @@ void LoadingMessage::parseGNSS(const char* message,
     buffer = nullptr;
     init = false;
 }
+
+
+void LoadingMessage::parseIMU(const char* message,
+    IMUData_t* imuData,
+    std::vector<IMUData_t*>& IMUDataSamples,
+    BatteryData* batteryStatus) {
+
+    char log[100];
+
+    for (auto sample : IMUDataSamples) {
+        delete sample;
+    }
+    IMUDataSamples.clear();
+
+    // Copia del mensaje original
+    char* fullCopy = new char[2048];
+    strncpy(fullCopy, message, 2048);
+    fullCopy[2047] = '\0';
+
+    // Separar la parte principal del resto usando strchr
+    char* separator = strchr(fullCopy, '|');
+    if (!separator) {
+        delete[] fullCopy;
+        return;
+    }
+
+    // Terminar la parte principal y apuntar al inicio de muestras
+    *separator = '\0';
+    char* mainPart = fullCopy;
+    char* sampleStart = separator + 1;
+
+    // --- Parsear parte principal ---
+    char* token = strtok(mainPart, ",");
+    int index = 0;
+    while (token != nullptr) {
+        switch (index) {
+            case 1: strcpy(imuData->timestamp, token); break;
+            case 2: imuData->timeBetweenSamples = atoi(token); break;
+            case 3: batteryStatus->batteryChargeStatus = atoi(token); break;
+            case 4: batteryStatus->chargeLevel = atoi(token); break;
+            case 5: imuData->status = atoi(token); break;
+            case 6: imuData->acceleration.ax = atof(token); break;
+            case 7: imuData->acceleration.ay = atof(token); break;
+            case 8: imuData->acceleration.az = atof(token); break;
+            case 9: imuData->angles.yaw = atof(token); break;
+            case 10: imuData->angles.roll = atof(token); break;
+            case 11: imuData->angles.pitch = atof(token); break;
+        }
+        token = strtok(nullptr, ",");
+        index++;
+    }
+
+    // --- Parsear muestras ---
+    char* sampleToken = strtok(sampleStart, "|");
+    while (sampleToken != nullptr) {
+        IMUData_t* sample = new IMUData_t();
+        if (sscanf(sampleToken, "%f,%f,%f,%f,%f,%f",
+            &sample->acceleration.ax,
+            &sample->acceleration.ay,
+            &sample->acceleration.az,
+            &sample->angles.yaw,
+            &sample->angles.roll,
+            &sample->angles.pitch) == 6) {
+            
+            IMUDataSamples.push_back(sample);
+
+            snprintf(log, sizeof(log), "Muestra IMU añadida: %.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n",
+                sample->acceleration.ax, sample->acceleration.ay, sample->acceleration.az,
+                sample->angles.yaw, sample->angles.roll, sample->angles.pitch);
+            uartUSB.write(log, strlen(log));
+        } else {
+            delete sample;
+        }
+        sampleToken = strtok(nullptr, "|");
+    }
+
+    snprintf(log, sizeof(log), "Total muestras IMU: %zu\r\n", IMUDataSamples.size());
+    uartUSB.write(log, strlen(log));
+
+    delete[] fullCopy;
+}
+
+
+/*
+void LoadingMessage::parseIMU(const char* message,
+    IMUData_t* imuData,
+    std::vector<IMUData_t*>& IMUDataSamples,
+    BatteryData* batteryStatus) {
+    char log [50];
+    // Limpiar IMU anteriores
+    for (auto sample : IMUDataSamples) {
+        delete sample;
+    }
+    IMUDataSamples.clear();
+
+    static bool init = false;
+    char* buffer;
+    size_t sizeOfBuffer = 2048;
+
+    if (!init) {
+        buffer = new char[sizeOfBuffer];
+        init = true;
+    }
+
+    strncpy(buffer, message, sizeOfBuffer);
+    buffer[sizeOfBuffer - 1] = '\0';
+
+    char* mainPart = strtok(buffer, "|");
+    if (!mainPart || strncmp(mainPart, "IMU,", 4) != 0) {
+        delete[] buffer;
+        buffer = nullptr;
+        init = false;
+        return;
+    }
+
+    // Parsear parte principal
+    char* token = strtok(mainPart, ",");
+    int index = 0;
+    while (token != nullptr) {
+        switch (index) {
+            case 1: strcpy(imuData->timestamp, token); break;
+            case 2: imuData->timeBetweenSamples = atoi(token); break;
+            case 3: batteryStatus->batteryChargeStatus = atoi(token); break;
+            case 4: batteryStatus->chargeLevel = atoi(token); break;
+            case 5: imuData->status = atoi(token); break;
+            case 6: imuData->acceleration.ax = atof(token); break;
+            case 7: imuData->acceleration.ay = atof(token); break;
+            case 8: imuData->acceleration.az = atof(token); break;
+            case 9: imuData->angles.yaw = atof(token); break;
+            case 10: imuData->angles.roll = atof(token); break;
+            case 11: imuData->angles.pitch = atof(token); break;
+        }
+        token = strtok(nullptr, ",");
+        index++;
+    }
+
+    // Parsear muestras IMU adicionales
+    char* imuSamplePart = strtok(nullptr, "|");
+    while (imuSamplePart != nullptr) {
+        IMUData_t* sample = new IMUData_t();
+        if (sscanf(imuSamplePart, "%f,%f,%f,%f,%f,%f",
+            &sample->acceleration.ax,
+            &sample->acceleration.ay,
+            &sample->acceleration.az,
+            &sample->angles.yaw,
+            &sample->angles.roll,
+            &sample->angles.pitch) == 6) {
+
+            uartUSB.write("Cell added to vector\r\n", strlen("Cell added to vector\r\n"));
+            snprintf(log, sizeof(log), "Vector size: %zu\r\n", IMUDataSamples.size());    
+
+            IMUDataSamples.push_back(sample);
+        } else {
+            snprintf(log, sizeof(log), "Error parsing sample %s\r\n", imuSamplePart);
+            uartUSB.write(log, strlen(log));
+            delete sample;
+        }
+
+        imuSamplePart = strtok(nullptr, "|");
+    }
+
+    delete[] buffer;
+    buffer = nullptr;
+    init = false;
+}
+*/
 
 

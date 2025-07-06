@@ -26,7 +26,7 @@ public:
     virtual ~LoadingMessage ();
     virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData,  BatteryData  * batteryStatuss);
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatuss);
 private:
 //=====[Declaration of privates atributes]=========================================
     Tracker * tracker;
@@ -38,6 +38,7 @@ private:
         GNSSData* GNSSInfo,
         std::vector<CellInformation*>& neighborsCellInformation,
         IMUData_t* imuData,
+        std::vector<IMUData_t*>& IMUDataSamples,
         BatteryData* batteryStatus);
     void parseMNMN(const char* message,
         CellInformation* aCellInfo,
@@ -52,6 +53,10 @@ private:
     void parseGNSS(const char* message,
         GNSSData* GNSSInfo,
         IMUData_t* imuData,
+        BatteryData* batteryStatus);
+    void parseIMU(const char* message,
+        IMUData_t* imuData,
+        std::vector<IMUData_t*>& IMUDataSamples,
         BatteryData* batteryStatus);
 };
 

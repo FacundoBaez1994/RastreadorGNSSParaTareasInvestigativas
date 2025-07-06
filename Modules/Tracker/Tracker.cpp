@@ -4,6 +4,7 @@
 #include "Debugger.h" // due to global usbUart
 #include "CalibratingInertialSensor.h"
 #include "SavingMessage.h"
+#include "LoadingMessage.h"
 
 
 //=====[Declaration of private defines]========================================
@@ -61,6 +62,7 @@ Tracker::Tracker () {
 
     this->currentState =  new CalibratingInertialSensor (this);
     //this->currentState =  new SavingMessage (this);
+    //this->currentState =  new LoadingMessage (this);
 
     this->jwt = new CustomJWT (this->JWTKey, 256);
     this->encrypter = new Encrypter ();
@@ -73,12 +75,13 @@ Tracker::Tracker () {
     this->decrypter = new Decrypter ();
     this->decrypterBase64 = new DecrypterBase64 ();
 
-
+/*
     while (! this->memory->clearAll()) {
         
     }
     snprintf(StringToSendUSB, sizeof(StringToSendUSB), "STRINGS LIMPIADAS\n\r");
     uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
+    */
 }
 
 
@@ -154,12 +157,12 @@ void Tracker::update () {
     this->neighborsCellInformation, numberOfNeighbors );
     this->currentState->obtainInertialMeasures(this->inertialSensor, this->imuData, this->IMUDataSamples);
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
-    this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->batteryStatus); 
+    this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
     this->currentState->saveMessage(this->memory, formattedMessage);
-    this->currentState->loadMessage(this->memory, this->currentCellInformation,
-    this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->batteryStatus);
+    this->currentState->loadMessage(this->memory, this->currentCellInformation, this->currentGNSSdata,
+     this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus);
     this->currentState->goToSleep (this->cellularTransceiver);
     watchdog.kick();
     

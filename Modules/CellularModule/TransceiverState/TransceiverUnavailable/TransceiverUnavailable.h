@@ -10,6 +10,7 @@
 #include "ATCommandHandler.h"
 #include "TransceiverState.h"
 #include "ActivatePDP.h"
+#include "ConfigurePDPForHTTP.h"
 #include "Non_Blocking_Delay.h"
 
 

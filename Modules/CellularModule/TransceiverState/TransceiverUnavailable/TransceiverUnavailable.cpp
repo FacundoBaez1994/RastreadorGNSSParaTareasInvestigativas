@@ -69,8 +69,9 @@ TransceiverUnavailable::~TransceiverUnavailable () {
 * @returns 
 */
 void TransceiverUnavailable::enableTransceiver () {
-    this->mobileNetworkModule->changeTransceiverState (new 
-        ActivatePDP (this->mobileNetworkModule));
+   // this->mobileNetworkModule->changeTransceiverState (new  ActivatePDP (this->mobileNetworkModule));
+   this->mobileNetworkModule->changeTransceiverState (new ConfigurePDPForHTTP (this->mobileNetworkModule));
+   
     return;
 }
 

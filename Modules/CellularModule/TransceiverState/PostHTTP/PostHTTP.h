@@ -1,40 +1,51 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _DEACTIVATE_PDP_H_
-#define _DEACTIVATE_PDP_H_
+#ifndef _POST_HTTP_H_
+#define _POST_HTTP_H_
 
 //==================[Libraries]===============================================
 
+#include "CellularModule.h"
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
 #include "TransceiverState.h"
 #include "Non_Blocking_Delay.h"
 #include "TransceiverUnavailable.h"
+#include "DeactivatePDP.h"
 
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
 struct TcpSocket;
 
+typedef enum {
+    SETTING_URL,
+    POSTING_DATA,
+    READING_DATA,
+} PostStatus_t;
+
 //=====[Declaration of public classes]=========================================
 /*
  *  class - State desing pattern
  * 
  */
-class DeactivatePDP : public TransceiverState {
+class PostHTTP : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
-    DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess);
-    virtual ~DeactivatePDP ();
+    PostHTTP();
+    PostHTTP (CellularModule * mobileModule);
+    virtual ~PostHTTP ();
+    virtual void enableTransceiver ();
     virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable);
-    virtual void enableTransceiver ();
 private:
     CellularModule * mobileNetworkModule;
     bool readyToSend;
-    bool transmissionWasASuccess;
+    int Attempts; 
+    int maxAttempts; 
+    PostStatus_t currentStatus;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================
@@ -45,4 +56,4 @@ private:
 
 //=====[#include guards - end]=================================================
 
-#endif //  _DEACTIVATE_PDP_H_S
+#endif // _POST_HTTP_H_

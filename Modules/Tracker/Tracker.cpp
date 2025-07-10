@@ -75,13 +75,11 @@ Tracker::Tracker () {
     this->decrypter = new Decrypter ();
     this->decrypterBase64 = new DecrypterBase64 ();
 
-/*
     while (! this->memory->clearAll()) {
         
     }
     snprintf(StringToSendUSB, sizeof(StringToSendUSB), "STRINGS LIMPIADAS\n\r");
     uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
-    */
 }
 
 

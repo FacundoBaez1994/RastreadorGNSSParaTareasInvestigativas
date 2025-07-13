@@ -1,7 +1,7 @@
 //=====[#include guards - begin]===============================================
 
-#ifndef _CONFIGURE_PDP_FOR_HTTP_H_
-#define _CONFIGURE_PDP_FOR_HTTP_H_
+#ifndef _CONFIGURE_SSL
+#define _CONFIGURE_SSL
 
 //==================[Libraries]===============================================
 
@@ -13,32 +13,29 @@
 #include "Non_Blocking_Delay.h"
 #include "TransceiverUnavailable.h"
 #include "PostHTTP.h"
-#include "ConfigureSSL.h"
 
 //=====[Declaration of public data types]======================================
 class CellularModule; //debido a declaracion adelantada
 struct TcpSocket;
 
 typedef enum {
-    ASSING_PDPCONTEXT_TO_HTTP_STACK,
-    CONFIGURING_PDP_PROFILE,
-    ACTIVATING_PDP_CONTEXT,
-    QUERING_PDP_CONTEXT,
-    CONFIGURING_SERVER_DNS,
-    PING_SERVER_DNS,
-} PDPConfigStatus_t;
+    SETTING_SSL_CONTEXT,
+    SETTING_SSL_VERSION,
+    SETTING_SSL_CIPHER_SUITE,
+    SETTING_SSL_LEVEL,
+} SSLConfigStatus_t;
 
 //=====[Declaration of public classes]=========================================
 /*
  *  class - State desing pattern
  * 
  */
-class ConfigurePDPForHTTP : public TransceiverState {
+class ConfigureSSL : public TransceiverState {
 public:
 //=====[Declaration of public methods]=========================================
-    ConfigurePDPForHTTP();
-    ConfigurePDPForHTTP (CellularModule * mobileModule);
-    virtual ~ConfigurePDPForHTTP ();
+    ConfigureSSL();
+    ConfigureSSL (CellularModule * mobileModule);
+    virtual ~ConfigureSSL ();
     virtual void enableTransceiver ();
     virtual CellularTransceiverStatus_t exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
@@ -48,7 +45,7 @@ private:
     bool readyToSend;
     int Attempts; 
     int maxAttempts; 
-    PDPConfigStatus_t currentStatus;
+    SSLConfigStatus_t currentStatus;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

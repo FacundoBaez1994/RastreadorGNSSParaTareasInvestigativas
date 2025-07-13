@@ -89,16 +89,15 @@ void PostHTTP::enableTransceiver () {
 CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    char StringToBeRead [200];
+    char StringToBeRead [2000];
     char StringToSendUSB [50] = "\r\nTRYING HTTP POST\r\n";
     char ExpectedResponse1 [3] = "OK";
     char ExpectedResponse2 [15] = "CONNECT";
     char PartialStringToSend1 [50] = "AT+QHTTPURL=";
     char StringToSend1 [50];
     //"http://intent-lion-loudly.ngrok-free.app/api/canal/envio"
-    //"https://webhook.site/be919720-d82f-440b-8803-6d9512db87b9"
-    // char url [100] = "http://intent-lion-loudly.ngrok-free.app/api/canal/envio";
-    char url [100] = "http://webhook.site/0152639a-021c-43b4-9a6f-fff0d2259af1";
+    char url [100] = "https://intent-lion-loudly.ngrok-free.app/api/canal/envio";
+    //char url [100] = "http://webhook.site/572d2d5b-404f-42c7-be4e-5a22592009f7";
     char confirmationToSend[] = "\x1a";
     
 
@@ -114,9 +113,9 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     int urlLength = strlen(url);
 
     // Tiempo máximo de ingreso del URL (en segundos)
-    int inputTimeout = 200;
+    int inputTimeout = 80;
 
-    int responseTimeout = 200;
+    int responseTimeout = 80;
 
     sprintf(StringToSend1, "AT+QHTTPURL=%d,%d", urlLength, inputTimeout);
 
@@ -138,7 +137,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 uartUSB.write (StringToSend1  , strlen (StringToSend1  ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////   
-                refreshTime->write(50000);
+                refreshTime->write(25000);
                 refreshTime->restart();
             }
                 

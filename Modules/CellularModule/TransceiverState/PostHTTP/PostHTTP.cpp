@@ -24,10 +24,7 @@
 //=====[Declarations (prototypes) of private functions]========================
 
 
-//=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
+
 
 
 //=====[Implementations of public methods]===================================
@@ -89,7 +86,7 @@ void PostHTTP::enableTransceiver () {
 CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    char StringToBeRead [2000];
+    char StringToBeRead [200];
     char StringToSendUSB [50] = "\r\nTRYING HTTP POST\r\n";
     char ExpectedResponse1 [3] = "OK";
     char ExpectedResponse2 [15] = "CONNECT";
@@ -137,7 +134,8 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 uartUSB.write (StringToSend1  , strlen (StringToSend1  ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////   
-                refreshTime->write(25000);
+                //refreshTime->write(25000);
+                refreshTime->write(10000);
                 refreshTime->restart();
             }
                 
@@ -188,19 +186,33 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     uartUSB.write ("POST Message\r\n"  , strlen ("POST Message\r\n"));  // debug only
                     uartUSB.write (message, strlen(message));
                     uartUSB.write ( "\r\n",  3 );  // debug only
-
+                    refreshTime->restart();
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
                 if (strcmp (StringToBeRead, ExpectedResponse1) == 0) { // OK
   
+                    refreshTime->restart();
+                    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
+                }
+                PostResult_t postResult = checkHTTPPostResult (StringToBeRead);
+                if (postResult == POST_OK) { // ACA HAY QUE VER SI +QHTTPPOST
+  
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     uartUSB.write ("POST Message success"  , strlen ("POST Message success"));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
-
+                    refreshTime->restart();
                     this->currentStatus = READING_DATA;
                     this->readyToSend  = true;      
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
+                /*
+                if (postResult == POST_FAILURE) {
+                    this->currentStatus = SETTING_URL;
+                    this->mobileNetworkModule->changeTransceiverState  (new DeactivatePDP (this->mobileNetworkModule, false) );
+                    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
+                }
+                */
+                
             }
             break;
         case READING_DATA:
@@ -267,3 +279,27 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
 
 
 //=====[Implementations of private functions]==================================
+
+
+//=====[Implementations of private methods]===================================
+/** 
+* @brief attachs the callback function to the ticker
+*/
+
+PostResult_t PostHTTP::checkHTTPPostResult(char * responseBuffer) {
+    // Esperamos algo como: +QHTTPPOST: 0,200,xxx
+    if (strncmp(responseBuffer, "+QHTTPPOST: ", 12) == 0) {
+        int result, httpStatus, dataLen;
+        dataLen = -1;
+        sscanf(responseBuffer, "+QHTTPPOST: %d,%d,%d", &result, &httpStatus, &dataLen);
+
+        uartUSB.write("Parsed POST result:\r\n", 23);
+        uartUSB.write(responseBuffer, strlen(responseBuffer));
+        uartUSB.write("\r\n", 2);
+        if (result == 0  && (dataLen > -1 && dataLen < 2048)) {
+            return POST_OK;
+        }
+        return POST_FAILURE;
+    }
+    return KEEP_TRYING_TO_POST;
+}

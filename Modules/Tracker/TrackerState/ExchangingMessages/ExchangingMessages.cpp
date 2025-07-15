@@ -65,6 +65,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
+    static char payloadRetrived [2048];
     char logMessage [50];
     
     // if conected to mobile network send the message throght LTE Modem
@@ -89,13 +90,30 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             snprintf(logMessage, sizeof(logMessage),"new Message received:");
             uartUSB.write (logMessage , strlen (logMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-
-            snprintf(logMessage, sizeof(logMessage), "%s",  receivedMessage);
-            uartUSB.write (logMessage , strlen (logMessage ));  // debug only
+            if (this->tracker->decodeJWT(receivedMessage, payloadRetrived) == false) {
+                // new state formatting Message in order to be saved in memory
+                snprintf(logMessage, sizeof(logMessage),"Error on decoding JWT:");
+                uartUSB.write (logMessage , strlen (logMessage));  // debug only
+                this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
+                return;
+            }
+            strcpy (receivedMessage, payloadRetrived);
+            uartUSB.write (receivedMessage , strlen (receivedMessage ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             newDataAvailable = false;
             enableTransceiver = false;
 
+            char success[10];
+            char codigoRespuesta[10];
+
+            extractField(receivedMessage, "\"success\"", success, sizeof(success));
+            extractField(receivedMessage, "\"codigoRespuesta\"", codigoRespuesta, sizeof(codigoRespuesta));
+
+            snprintf(logMessage, sizeof(logMessage), "Success: %s\r\n", success);
+            uartUSB.write(logMessage, strlen(logMessage));
+
+            snprintf(logMessage, sizeof(logMessage), "Código Respuesta: %s\r\n", codigoRespuesta);
+            uartUSB.write(logMessage, strlen(logMessage));
             // ADD MESSAGE INTERPRETATION
 
 
@@ -133,6 +151,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
         }
     } else if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA || 
     this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA) {
+        /// LORAS STUFF
         snprintf(logMessage, sizeof(logMessage),"LoRa Sending");
         uartUSB.write (logMessage , strlen (logMessage));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -157,3 +176,22 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
 }
  
 //=====[Implementations of private methods]==================================
+
+
+bool ExchangingMessages::extractField(const char* json, const char* key, char* output, size_t maxLen) {
+    const char* found = strstr(json, key);
+    if (!found) return false;
+
+    found = strchr(found, ':');
+    if (!found) return false;
+
+    found++; // avanzar al valor
+    while (*found == ' ' || *found == '\"') found++; // salteamos espacios o comillas
+
+    size_t i = 0;
+    while (*found && *found != '\"' && *found != ',' && i < maxLen - 1) {
+        output[i++] = *found++;
+    }
+    output[i] = '\0';
+    return true;
+}

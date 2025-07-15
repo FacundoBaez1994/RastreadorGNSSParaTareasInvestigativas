@@ -20,6 +20,12 @@ class CellularModule; //debido a declaracion adelantada
 struct TcpSocket;
 
 typedef enum {
+    POST_OK,
+    KEEP_TRYING_TO_POST,
+    POST_FAILURE,
+} PostResult_t;
+
+typedef enum {
     SETTING_URL,
     POSTING_DATA,
     READING_DATA,
@@ -47,6 +53,7 @@ private:
     int maxAttempts; 
     PostStatus_t currentStatus;
 //=====[Declaration of privates atributes]=========================================
+    PostResult_t checkHTTPPostResult(char * responseBuffer);
 
 //=====[Declaration of privates methods]=========================================
 };

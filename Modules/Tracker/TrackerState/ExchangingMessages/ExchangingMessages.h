@@ -29,6 +29,7 @@ public:
 private:
     Tracker * tracker;
     trackerStatus_t currentStatus;
+    bool extractField(const char* json, const char* key, char* output, size_t maxLen);
   
 
 //=====[Declaration of privates atributes]=========================================

@@ -34,7 +34,7 @@ private:
     BufferedSerial* serialComunicationUART;
     int bufferIndex; // debug
     char StringRead [100];
-    char buffer[100];
+    char buffer[1000];
     
 //=====[Declaration of privates methods]=========================================
 

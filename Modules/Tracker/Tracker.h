@@ -49,7 +49,7 @@ public:
     void update();
     void changeState  (TrackerState * newTrackerState);
     void encodeJWT(char * payloadToJWT, char * jwtEncoded);
-    void decodeJWT (char * jwtToDecode, char * payloadRetrived);
+    bool decodeJWT (char * jwtToDecode, char * payloadRetrived);
     bool encryptMessage (char * message, unsigned int messageSize);
     bool decryptMessage (char * message, unsigned int messageSize);
 

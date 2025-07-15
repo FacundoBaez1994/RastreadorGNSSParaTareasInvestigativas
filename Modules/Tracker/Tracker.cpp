@@ -250,7 +250,7 @@ void Tracker::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
 
 
 
-void Tracker::decodeJWT (char * jwtToDecode, char * payloadRetrived) {
+bool Tracker::decodeJWT (char * jwtToDecode, char * payloadRetrived) {
     char logMessage [150];
     this->jwt->allocateJWTMemory();
     //Decode the JWT
@@ -258,9 +258,15 @@ void Tracker::decodeJWT (char * jwtToDecode, char * payloadRetrived) {
     uartUSB.write(logMessage , strlen(logMessage ));
     snprintf(logMessage, sizeof(logMessage), "JWT Decode ended with result: \n\r");
     uartUSB.write(logMessage , strlen(logMessage ));
+    int responseCode;
+    responseCode = this->jwt->decodeJWT(jwtToDecode);
     //Code 0: Decode success \n Code 1: Memory not allocated \n Code 2: Invalid JWT \n Code 3: Signature Mismatch
-    snprintf(logMessage, sizeof(logMessage), "\n\rCode result = %i \n\r", this->jwt->decodeJWT(jwtToDecode)); 
+    snprintf(logMessage, sizeof(logMessage), "\n\rCode result = %i \n\r", responseCode); 
     uartUSB.write(logMessage , strlen(logMessage ));
+    if (responseCode != 0) {
+        return false;
+    }
+
 
     snprintf(logMessage, sizeof(logMessage), "Header Info"); 
     uartUSB.write(logMessage , strlen(logMessage ));
@@ -276,6 +282,7 @@ void Tracker::decodeJWT (char * jwtToDecode, char * payloadRetrived) {
     
     strcpy (payloadRetrived, this->jwt->payload);
     this->jwt->clear();
+    return true;
 }
 
 

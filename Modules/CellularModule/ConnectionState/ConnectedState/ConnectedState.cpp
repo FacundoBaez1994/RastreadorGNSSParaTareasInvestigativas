@@ -102,7 +102,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
     static int mnc;
     static int mcc;
     static int counterTimeOut = 0;
-    int maxTimeOut = 5;
+    int maxTimeOut = 6;
 
     int tech;
     int idCell;

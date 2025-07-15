@@ -131,6 +131,7 @@ trackerStatus_t LoadingMessage::parseDecryptedMessage(const char* decryptedStrin
     BatteryData* batteryStatus) {
 
     if (strncmp(decryptedString, "MNMN", 4) == 0) {
+        uartUSB.write("parseMNMN IN\n\r", strlen("parseMNMN IN\n\r")); // ELIMINIAR
         parseMNMN(decryptedString, aCellInfo, neighborsCellInformation, imuData, batteryStatus);
         return TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK;
     } else if (strncmp(decryptedString, "MNGNSS", 6) == 0) {
@@ -152,13 +153,14 @@ void LoadingMessage::parseMNGNSS(const char* message,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
     
-    static bool init = false;
     char * buffer;
     size_t sizeOfBuffer = 2048;
 
-    if (init == false) {
-        init = true;
-        buffer = new char [sizeOfBuffer];
+    buffer = new char [sizeOfBuffer];
+
+    if (!buffer) {
+        delete [] buffer;
+        return;
     }
 
     strncpy(buffer, message, sizeOfBuffer);
@@ -166,9 +168,7 @@ void LoadingMessage::parseMNGNSS(const char* message,
 
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "MNGNSS") != 0) {
-        init = false;
         delete [] buffer;
-        buffer = nullptr;
         return;
     }
      
@@ -232,7 +232,6 @@ void LoadingMessage::parseMNGNSS(const char* message,
     token = strtok(NULL, ",");
     imuData->angles.pitch = atof(token);
 
-    init = false;
     delete [] buffer;
     buffer = nullptr;
 }
@@ -243,7 +242,7 @@ void LoadingMessage::parseMNMN(const char* message,
     std::vector<CellInformation*>& neighborsCellInformation,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
-
+    
     // Limpiar celdas viejas
     for (auto cell : neighborsCellInformation) {
         delete cell;
@@ -252,37 +251,30 @@ void LoadingMessage::parseMNMN(const char* message,
 
     if (!message || strncmp(message, "MNMN,", 5) != 0) return;
 
-    // Hacer una copia del mensaje para procesar
-    static bool init = false;
-    char * buffer;
-    char * neighborsBuffer;
     size_t sizeOfBuffer = 2048;
+    char* buffer = new char[sizeOfBuffer];
+    char* neighborsBuffer = new char[sizeOfBuffer];
 
-    if (init == false) {
-        init = true;
-        buffer = new char [sizeOfBuffer];
-        neighborsBuffer = new char [sizeOfBuffer];
-        strncpy(buffer, message, sizeOfBuffer);
-        buffer[sizeOfBuffer-1] = '\0';
-
+    if (!buffer || !neighborsBuffer) {
+        // No hay memoria, salimos
+        delete[] buffer;
+        delete[] neighborsBuffer;
+        return;
     }
 
+    strncpy(buffer, message, sizeOfBuffer);
+    buffer[sizeOfBuffer - 1] = '\0';
 
     // Procesar parte principal
     char* mainPart = strtok(buffer, "|");
     if (!mainPart) {
-        delete [] buffer;
-        buffer = nullptr;
-        delete [] neighborsBuffer;
-        neighborsBuffer = nullptr;
-        init = false;
+        delete[] buffer;
+        delete[] neighborsBuffer;
         return;
-    } 
+    }
 
-    // Extraer campos principales
     char* token = strtok(mainPart, ",");
     int fieldIndex = 0;
-
     while (token != nullptr) {
         switch (fieldIndex) {
             case 1: aCellInfo->mcc = atoi(token); break;
@@ -293,16 +285,8 @@ void LoadingMessage::parseMNMN(const char* message,
             case 6: aCellInfo->accessTechnology = atoi(token); break;
             case 7: aCellInfo->registrationStatus = atoi(token); break;
             case 8: aCellInfo->channel = atoi(token); break;
-            case 9: 
-                strcpy (aCellInfo->band, token);
-                //strncpy(aCellInfo->band, token, sizeof(aCellInfo->band));
-                //aCellInfo->band[sizeof(aCellInfo->band) - 1] = '\0';
-                break;
-            case 10:
-            strcpy (aCellInfo->timestamp, token);
-                //strncpy(aCellInfo->timestamp, token, sizeof(aCellInfo->timestamp));
-                //aCellInfo->timestamp[sizeof(aCellInfo->timestamp) - 1] = '\0';
-                break;
+            case 9: strcpy(aCellInfo->band, token); break;
+            case 10: strcpy(aCellInfo->timestamp, token); break;
             case 11: batteryStatus->batteryChargeStatus = atoi(token); break;
             case 12: batteryStatus->chargeLevel = atoi(token); break;
             case 13: imuData->status = atoi(token); break;
@@ -318,20 +302,12 @@ void LoadingMessage::parseMNMN(const char* message,
     }
 
     // Procesar celdas vecinas
-    //  trabajar con una copia nueva - strtok modifica el buffer
-    //char neighborsBuffer[2048];
     strncpy(neighborsBuffer, message, sizeOfBuffer);
     neighborsBuffer[sizeOfBuffer - 1] = '\0';
-
-    // Avanzar hasta la primera parte de vecinos
-    strtok(neighborsBuffer, "|"); // Saltar la parte principal
+    strtok(neighborsBuffer, "|"); // Saltar parte principal
     char* neighborPart = strtok(nullptr, "|");
 
-    char log[50];
     while (neighborPart != nullptr) {
-        snprintf(log, sizeof(log), "Celda Vecina Recargada: %s\r\n", neighborPart);
-        uartUSB.write(log, strlen(log));
-
         CellInformation* neighbor = new CellInformation();
         int tech, mcc, mnc;
         unsigned int lac, cellId;
@@ -344,25 +320,16 @@ void LoadingMessage::parseMNMN(const char* message,
             neighbor->lac = lac;
             neighbor->cellId = cellId;
             neighbor->signalLevel = signal;
-
             neighborsCellInformation.push_back(neighbor);
-            uartUSB.write("Cell added to vector\r\n", strlen("Cell added to vector\r\n"));
-            snprintf(log, sizeof(log), "Vector size: %zu\r\n", neighborsCellInformation.size());
-            uartUSB.write(log, strlen(log));
         } else {
-            snprintf(log, sizeof(log), "Error parsing neighbor: %s\r\n", neighborPart);
-            uartUSB.write(log, strlen(log));
             delete neighbor;
-            neighbor = nullptr;
         }
 
         neighborPart = strtok(nullptr, "|");
     }
-    delete [] buffer;
-    buffer = nullptr;
-    delete [] neighborsBuffer;
-    neighborsBuffer = nullptr;
-    init = false;
+
+    delete[] buffer;
+    delete[] neighborsBuffer;
 }
 
 
@@ -371,13 +338,12 @@ void LoadingMessage::parseGNSS(const char* message,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
 
-    static bool init = false;
-    char* buffer;
     size_t sizeOfBuffer = 2048;
+    char* buffer = new char[sizeOfBuffer];
 
-    if (!init) {
-        buffer = new char[sizeOfBuffer];
-        init = true;
+    if (!buffer) {
+        delete[] buffer;
+        return;
     }
 
     strncpy(buffer, message, sizeOfBuffer);
@@ -386,8 +352,6 @@ void LoadingMessage::parseGNSS(const char* message,
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "GNSS") != 0) {
         delete[] buffer;
-        buffer = nullptr;
-        init = false;
         return;
     }
 
@@ -409,8 +373,6 @@ void LoadingMessage::parseGNSS(const char* message,
     token = strtok(NULL, ","); imuData->angles.pitch = atof(token);
 
     delete[] buffer;
-    buffer = nullptr;
-    init = false;
 }
 
 
@@ -493,90 +455,4 @@ void LoadingMessage::parseIMU(const char* message,
 
     delete[] fullCopy;
 }
-
-
-/*
-void LoadingMessage::parseIMU(const char* message,
-    IMUData_t* imuData,
-    std::vector<IMUData_t*>& IMUDataSamples,
-    BatteryData* batteryStatus) {
-    char log [50];
-    // Limpiar IMU anteriores
-    for (auto sample : IMUDataSamples) {
-        delete sample;
-    }
-    IMUDataSamples.clear();
-
-    static bool init = false;
-    char* buffer;
-    size_t sizeOfBuffer = 2048;
-
-    if (!init) {
-        buffer = new char[sizeOfBuffer];
-        init = true;
-    }
-
-    strncpy(buffer, message, sizeOfBuffer);
-    buffer[sizeOfBuffer - 1] = '\0';
-
-    char* mainPart = strtok(buffer, "|");
-    if (!mainPart || strncmp(mainPart, "IMU,", 4) != 0) {
-        delete[] buffer;
-        buffer = nullptr;
-        init = false;
-        return;
-    }
-
-    // Parsear parte principal
-    char* token = strtok(mainPart, ",");
-    int index = 0;
-    while (token != nullptr) {
-        switch (index) {
-            case 1: strcpy(imuData->timestamp, token); break;
-            case 2: imuData->timeBetweenSamples = atoi(token); break;
-            case 3: batteryStatus->batteryChargeStatus = atoi(token); break;
-            case 4: batteryStatus->chargeLevel = atoi(token); break;
-            case 5: imuData->status = atoi(token); break;
-            case 6: imuData->acceleration.ax = atof(token); break;
-            case 7: imuData->acceleration.ay = atof(token); break;
-            case 8: imuData->acceleration.az = atof(token); break;
-            case 9: imuData->angles.yaw = atof(token); break;
-            case 10: imuData->angles.roll = atof(token); break;
-            case 11: imuData->angles.pitch = atof(token); break;
-        }
-        token = strtok(nullptr, ",");
-        index++;
-    }
-
-    // Parsear muestras IMU adicionales
-    char* imuSamplePart = strtok(nullptr, "|");
-    while (imuSamplePart != nullptr) {
-        IMUData_t* sample = new IMUData_t();
-        if (sscanf(imuSamplePart, "%f,%f,%f,%f,%f,%f",
-            &sample->acceleration.ax,
-            &sample->acceleration.ay,
-            &sample->acceleration.az,
-            &sample->angles.yaw,
-            &sample->angles.roll,
-            &sample->angles.pitch) == 6) {
-
-            uartUSB.write("Cell added to vector\r\n", strlen("Cell added to vector\r\n"));
-            snprintf(log, sizeof(log), "Vector size: %zu\r\n", IMUDataSamples.size());    
-
-            IMUDataSamples.push_back(sample);
-        } else {
-            snprintf(log, sizeof(log), "Error parsing sample %s\r\n", imuSamplePart);
-            uartUSB.write(log, strlen(log));
-            delete sample;
-        }
-
-        imuSamplePart = strtok(nullptr, "|");
-    }
-
-    delete[] buffer;
-    buffer = nullptr;
-    init = false;
-}
-*/
-
 

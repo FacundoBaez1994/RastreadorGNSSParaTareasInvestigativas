@@ -66,7 +66,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
     static char payloadRetrived [2048];
-    char logMessage [50];
+    char logMessage [100];
     
     // if conected to mobile network send the message throght LTE Modem
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
@@ -87,6 +87,8 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
 
         if (newDataAvailable == true) {
 
+            //////////////////   MESSAGE INTERPRETATION ////////////////
+            ////////////////////////////////////////////////////////////////
             snprintf(logMessage, sizeof(logMessage),"new Message received:");
             uartUSB.write (logMessage , strlen (logMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
@@ -94,6 +96,17 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
                 // new state formatting Message in order to be saved in memory
                 snprintf(logMessage, sizeof(logMessage),"Error on decoding JWT:");
                 uartUSB.write (logMessage , strlen (logMessage));  // debug only
+                newDataAvailable = false;
+                enableTransceiver = false;
+                if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE;
+                }
                 this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
                 return;
             }
@@ -103,22 +116,89 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             newDataAvailable = false;
             enableTransceiver = false;
 
-            char success[10];
-            char codigoRespuesta[10];
+            char success[30];
+            char latency[30];
+            char mode[30];
 
-            extractField(receivedMessage, "\"success\"", success, sizeof(success));
-            extractField(receivedMessage, "\"codigoRespuesta\"", codigoRespuesta, sizeof(codigoRespuesta));
+            if (extractField(receivedMessage, "\"SUCCESS\"", success, sizeof(success)) == false) {
+                snprintf(logMessage, sizeof(logMessage), "Corrupted Server Message\r\n");
+                uartUSB.write(logMessage, strlen(logMessage));
 
-            snprintf(logMessage, sizeof(logMessage), "Success: %s\r\n", success);
+                newDataAvailable = false;
+                enableTransceiver = false;
+                if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE;
+                }
+                // new state formatting Message in order to be saved in memory
+                this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
+                return;
+            }
+            snprintf(logMessage, sizeof(logMessage), "SUCCESS: %s\r\n", success);
             uartUSB.write(logMessage, strlen(logMessage));
 
-            snprintf(logMessage, sizeof(logMessage), "Código Respuesta: %s\r\n", codigoRespuesta);
+            if (strcmp (success, "true") != 0) {
+                snprintf(logMessage, sizeof(logMessage), "Server returns error\r\n");
+                uartUSB.write(logMessage, strlen(logMessage));
+
+                newDataAvailable = false;
+                enableTransceiver = false;
+                if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE;
+                }
+                // new state formatting Message in order to be saved in memory
+                this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
+                return;
+            }
+
+            if (extractField(receivedMessage, "\"LATENCY\"", latency, sizeof(latency)) == false) {    
+                newDataAvailable = false;
+                enableTransceiver = false;
+                this->tracker->changeState (new LoadingMessage (this->tracker));
+                return;
+            }
+            snprintf(logMessage, sizeof(logMessage), "LATENCY: %s\r\n", latency);
             uartUSB.write(logMessage, strlen(logMessage));
-            // ADD MESSAGE INTERPRETATION
+            LatencyLevel_t newLatencyLevel;
+            if (this->parseLatencyLevel(latency, &newLatencyLevel)) {
+                this->tracker->setLatency(newLatencyLevel);
+            }
+            
+
+            if (extractField(receivedMessage, "\"MODE\"", mode, sizeof(mode)) == false) {
+                newDataAvailable = false;
+                enableTransceiver = false;
+                this->tracker->changeState (new LoadingMessage (this->tracker));
+                return;
+            }
+            OperationMode_t newOperationMode;
+            if (this->parseOperationMode(mode, &newOperationMode)) {
+                this->tracker->setOperationMode(newOperationMode);
+            }
 
 
+            snprintf(logMessage, sizeof(logMessage), "MODE: %s\r\n", mode);
+            uartUSB.write(logMessage, strlen(logMessage));
+            
+
+            newDataAvailable = false;
+            enableTransceiver = false;
             this->tracker->changeState (new LoadingMessage (this->tracker));
             return;
+            //////////////////   MESSAGE INTERPRETATION ////////////////
+            ////////////////////////////////////////////////////////////////
+            
             } else {
                 snprintf(logMessage, sizeof(logMessage),"No Messages received:");
                 uartUSB.write (logMessage , strlen (logMessage));  // debug only
@@ -194,4 +274,53 @@ bool ExchangingMessages::extractField(const char* json, const char* key, char* o
     }
     output[i] = '\0';
     return true;
+}
+
+bool ExchangingMessages::parseLatencyLevel(const char* latencyStr, LatencyLevel_t * newLatencyLevel) {
+    if (strcmp(latencyStr, "EXTREMELY_LOW_LATENCY") == 0) {
+        *newLatencyLevel = EXTREMELY_LOW_LATENCY;
+        return true;
+    } 
+    if (strcmp(latencyStr, "VERY_LOW_LATENCY") == 0) {
+        *newLatencyLevel = VERY_LOW_LATENCY;
+        return true;
+    } 
+    if (strcmp(latencyStr, "LOW_LATENCY") == 0) {
+        *newLatencyLevel = LOW_LATENCY;
+        return true;
+    } 
+    if (strcmp(latencyStr, "MEDIUM_LATENCY") == 0) {
+        *newLatencyLevel = MEDIUM_LATENCY;
+        return true;
+    } 
+    if (strcmp(latencyStr, "HIGH_LATENCY") == 0) {
+        *newLatencyLevel = HIGH_LATENCY;
+        return true;
+    } 
+    if (strcmp(latencyStr, "VERY_HIGH_LATENCY") == 0) {
+        *newLatencyLevel = VERY_HIGH_LATENCY;
+        return true;
+    } 
+    if (strcmp(latencyStr, "EXTREMELY_HIGH_LATENCY") == 0) {
+        *newLatencyLevel = EXTREMELY_HIGH_LATENCY;
+        return true;
+    } 
+    return false;
+}
+
+
+bool ExchangingMessages::parseOperationMode(const char* operationModeStr, OperationMode_t * newOperationMode) {
+    if (strcmp(operationModeStr, "NORMAL_OPERATION_MODE") == 0) {
+        *newOperationMode = NORMAL_OPERATION_MODE;
+        return true;
+    } 
+    if (strcmp(operationModeStr, "PERSUIT_OPERATION_MODE") == 0) {
+        *newOperationMode = PERSUIT_OPERATION_MODE;
+        return true;
+    } 
+    if (strcmp(operationModeStr, "SILENT_OPERATION_MODE") == 0) {
+        *newOperationMode = SILENT_OPERATION_MODE;
+        return true;
+    } 
+    return false;
 }

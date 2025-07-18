@@ -8,8 +8,16 @@
 
 
 //=====[Declaration of private defines]========================================
-#define LATENCY        5000
-#define TIMEOUT_MS     5000
+#define EXTREMELY_LOW_LATENCY_MS   20000          // 20 seconds
+#define VERY_LOW_LATENCY_MS        (1 * 60 * 1000)   // 1 minutes
+#define LOW_LATENCY_MS             (10 * 60 * 1000)  // 10 minutes
+#define MEDIUM_LATENCY_MS          (30 * 60 * 1000)  // 30 minutes
+#define HIGH_LATENCY_MS            (60 * 60 * 1000)  // 1 hour
+#define VERY_HIGH_LATENCY_MS       (6 * 60 * 60 * 1000)   // 6 hours
+#define EXTREMELY_HIGH_LATENCY_MS  (24 * 60 * 60 * 1000)  // 24 hours
+
+
+#define TIMEOUT_WATCHDOG_TIMER_MS     5000
 #define POWERCHANGEDURATION  700
 #define TIME_BETWEEN_IMU_SAMPLES 10
 
@@ -31,11 +39,12 @@
 */
 Tracker::Tracker () {
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
-    watchdog.start(TIMEOUT_MS);
+    watchdog.start(TIMEOUT_WATCHDOG_TIMER_MS);
     char StringToSendUSB [50] = "Tracker initialization";
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
 
-    this->latency = new NonBlockingDelay (LATENCY);
+    this->currentOperationMode = NORMAL_OPERATION_MODE;
+    this->latency = new NonBlockingDelay (EXTREMELY_LOW_LATENCY_MS);
     this->cellularTransceiver = new CellularModule ( );
     this->currentGNSSModule = new GNSSModule (this->cellularTransceiver->getPowerManager()
     , this->cellularTransceiver->getATHandler());
@@ -171,6 +180,52 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
     delete this->currentState;
     this->currentState = newTrackerState;
 }
+
+OperationMode_t Tracker::getOperationMode() {
+    return this->currentOperationMode;
+}
+
+void Tracker::setOperationMode(OperationMode_t newOperationMode) {
+    this->currentOperationMode = newOperationMode;
+}
+
+void Tracker::setLatency(LatencyLevel_t level) {
+    tick_t newLatency = EXTREMELY_LOW_LATENCY_MS;
+
+    switch (level) {
+        case EXTREMELY_LOW_LATENCY:
+            newLatency = EXTREMELY_LOW_LATENCY_MS;
+            break;
+        case VERY_LOW_LATENCY:
+            newLatency = VERY_LOW_LATENCY_MS;
+            break;
+        case LOW_LATENCY:
+            newLatency = LOW_LATENCY_MS;
+            break;
+        case MEDIUM_LATENCY:
+            newLatency = MEDIUM_LATENCY_MS;
+            break;
+        case HIGH_LATENCY:
+            newLatency = HIGH_LATENCY_MS;
+            break;
+        case VERY_HIGH_LATENCY:
+            newLatency = VERY_HIGH_LATENCY_MS;
+            break;
+        case EXTREMELY_HIGH_LATENCY:
+            newLatency = EXTREMELY_HIGH_LATENCY_MS;
+            break;
+        default:
+            break;
+    }
+
+    this->latency->write(newLatency);
+    this->latency->restart();
+
+    char buffer[100];
+    snprintf(buffer, sizeof(buffer), "\n\rNew latency set: %llu ms\n\r", newLatency);
+    uartUSB.write(buffer, strlen(buffer));
+}
+
 
 
 bool Tracker::encryptMessage (char * message, unsigned int messageSize) {

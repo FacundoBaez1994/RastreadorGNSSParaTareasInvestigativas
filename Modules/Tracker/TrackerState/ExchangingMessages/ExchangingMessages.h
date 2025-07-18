@@ -30,6 +30,8 @@ private:
     Tracker * tracker;
     trackerStatus_t currentStatus;
     bool extractField(const char* json, const char* key, char* output, size_t maxLen);
+    bool parseLatencyLevel(const char* latencyStr, LatencyLevel_t *  newLatencyLevel);
+    bool parseOperationMode(const char* operationModeStr, OperationMode_t * newOperationMode);
   
 
 //=====[Declaration of privates atributes]=========================================

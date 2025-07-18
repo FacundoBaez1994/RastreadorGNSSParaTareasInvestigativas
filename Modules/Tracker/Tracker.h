@@ -34,6 +34,22 @@
 
 //=====[Declaration of public defines]=========================================
 
+typedef enum {
+    EXTREMELY_LOW_LATENCY,
+    VERY_LOW_LATENCY,
+    LOW_LATENCY,
+    MEDIUM_LATENCY,
+    HIGH_LATENCY,
+    VERY_HIGH_LATENCY,
+    EXTREMELY_HIGH_LATENCY,
+} LatencyLevel_t;
+
+typedef enum {
+    NORMAL_OPERATION_MODE,
+    PERSUIT_OPERATION_MODE,
+    SILENT_OPERATION_MODE,
+} OperationMode_t;
+
 //=====[Declaration of public data types]======================================
 
 //=====[Declaration of public classes]=========================
@@ -48,10 +64,17 @@ public:
     virtual ~Tracker ();
     void update();
     void changeState  (TrackerState * newTrackerState);
+
+    void setLatency(LatencyLevel_t level);
+    OperationMode_t getOperationMode ();
+    void setOperationMode (OperationMode_t newOperationMode);
+    
+
     void encodeJWT(char * payloadToJWT, char * jwtEncoded);
     bool decodeJWT (char * jwtToDecode, char * payloadRetrived);
     bool encryptMessage (char * message, unsigned int messageSize);
     bool decryptMessage (char * message, unsigned int messageSize);
+    
 
     bool prepareLoRaMessage (char * message, unsigned int messageSize);
     bool processLoRaMessage (char * message, unsigned int messageSize);
@@ -61,26 +84,28 @@ private:
 
     TrackerState * currentState;
 
-  // IMU 
+    NonBlockingDelay * latency;
+    OperationMode_t currentOperationMode;
+
+    // IMU 
     IMUManager * inertialSensor;
     IMUData_t * imuData;
     std::vector<IMUData_t*> IMUDataSamples;
 
-
     EEPROMManager * memory;
     
+    // MN Module 
     CellularModule* cellularTransceiver;
     TcpSocket * socketTargetted;
     CellInformation * currentCellInformation; 
     std::vector<CellInformation*> neighborsCellInformation;
 
+    // GNSS Module 
     GNSSModule* currentGNSSModule;
     GNSSData * currentGNSSdata;
 
-    NonBlockingDelay * latency;
-
+    // Battery
     BatteryData  * batteryStatus;
-
 
    // Message Handlers
     MessageHandler * encrypter;

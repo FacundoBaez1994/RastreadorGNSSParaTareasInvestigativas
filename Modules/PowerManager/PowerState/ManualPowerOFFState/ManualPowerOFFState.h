@@ -42,6 +42,8 @@ private:
     bool ManualTurningPower;
     bool SignalTurningPowerUp;
     bool TurningUP;
+    int turnONCounter = 0;
+    bool buttonPushed = false;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

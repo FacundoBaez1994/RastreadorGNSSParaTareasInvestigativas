@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-
+#define TURN_ON_COUNTER 1000
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -78,15 +78,20 @@ ManualPowerOFFState::~ManualPowerOFFState () {
 powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
 
     // If powerStatus is in OFF status the power is ON (negate logic)
-    if (this->manager->readPowerStatus()  == OFF) {
-        //////////////////////////////////////////
-        char StringToSend [30] = "Turning ON";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-         //////////////////////////////////////////
-        this->manager->changePowerState (new PowerONState ( this->manager) );
-        this->status = POWER_ON;
-        return this->status;
+    if (this->manager->readPowerStatus()  == OFF && buttonPushed == true) {
+        if (this->turnONCounter > TURN_ON_COUNTER)  {
+            //////////////////////////////////////////
+            char StringToSend [30] = "Turning ON";
+            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            //////////////////////////////////////////
+            this->turnONCounter = 0;
+            this->status = POWER_ON;
+            this->buttonPushed = false;
+            this->manager->changePowerState (new PowerONState ( this->manager) );
+            return this->status;
+        }
+        this->turnONCounter ++;
     }
 
  
@@ -95,6 +100,7 @@ powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandle
     if (this->manager->readInputControlButton() == OFF) {
         this->ManualTurningPower = true;
         this->TurningUP = true;
+        this->buttonPushed = true;
     }
 
     // Start Stop Signal

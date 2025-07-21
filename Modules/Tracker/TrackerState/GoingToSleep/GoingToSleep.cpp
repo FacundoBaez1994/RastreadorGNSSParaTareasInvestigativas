@@ -4,6 +4,7 @@
 #include "Slepping.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
+#include "SensingBatteryStatus.h"
 
 //=====[Declaration of private defines]========================================
 
@@ -54,8 +55,12 @@ void GoingToSleep::updatePowerStatus (CellularModule * cellularTransceiver,
     cellularTransceiver->startStopUpdate();
  }
 
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
 void GoingToSleep::goToSleep (CellularModule * cellularTransceiver ) {
+    OperationMode_t operationMode = this->tracker->getOperationMode();
+    if (operationMode  == PERSUIT_OPERATION_MODE) {
+        this->tracker->changeState  (new SensingBatteryStatus (this->tracker));
+        return;
+    }
     if (cellularTransceiver->turnOff()) {
         this->tracker->changeState  (new Slepping (this->tracker));
         return;

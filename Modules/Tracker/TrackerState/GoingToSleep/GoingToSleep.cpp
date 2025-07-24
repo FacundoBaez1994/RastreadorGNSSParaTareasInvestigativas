@@ -57,7 +57,7 @@ void GoingToSleep::updatePowerStatus (CellularModule * cellularTransceiver,
 
 void GoingToSleep::goToSleep (CellularModule * cellularTransceiver ) {
     OperationMode_t operationMode = this->tracker->getOperationMode();
-    if (operationMode  == PERSUIT_OPERATION_MODE) {
+    if (operationMode  == PURSUIT_OPERATION_MODE) {
         this->tracker->changeState  (new SensingBatteryStatus (this->tracker));
         return;
     }

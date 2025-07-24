@@ -40,6 +40,7 @@ public:
      const IMUData_t * imuData, const std::vector<IMUData_t*> &IMUDataSample, const BatteryData  * batteryStatus); 
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
+    virtual void checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus);
     virtual void goToSleep (CellularModule * cellularTransceiver);
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
     virtual void saveMessage (EEPROMManager * memory, char * message);

@@ -314,8 +314,8 @@ bool ExchangingMessages::parseOperationMode(const char* operationModeStr, Operat
         *newOperationMode = NORMAL_OPERATION_MODE;
         return true;
     } 
-    if (strcmp(operationModeStr, "PERSUIT_OPERATION_MODE") == 0) {
-        *newOperationMode = PERSUIT_OPERATION_MODE;
+    if (strcmp(operationModeStr, "PURSUIT_OPERATION_MODE") == 0) {
+        *newOperationMode = PURSUIT_OPERATION_MODE;
         return true;
     } 
     if (strcmp(operationModeStr, "SILENT_OPERATION_MODE") == 0) {

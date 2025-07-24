@@ -46,9 +46,18 @@ typedef enum {
 
 typedef enum {
     NORMAL_OPERATION_MODE,
-    PERSUIT_OPERATION_MODE,
+    PURSUIT_OPERATION_MODE,
     SILENT_OPERATION_MODE,
 } OperationMode_t;
+
+typedef enum {
+    MOVING,
+    STOPPED,
+    PARKING,
+    MOVEMENT_RESTARTED,
+} MovementEvent_t;
+
+
 
 //=====[Declaration of public data types]======================================
 
@@ -65,6 +74,9 @@ public:
     void update();
     void changeState  (TrackerState * newTrackerState);
 
+    void updateMovementEvent ();
+    MovementEvent_t getMovementEvent ();
+    void getMovementEvent (char * movementEventString);
     void setLatency(LatencyLevel_t level);
     OperationMode_t getOperationMode ();
     void setOperationMode (OperationMode_t newOperationMode);
@@ -86,6 +98,10 @@ private:
 
     NonBlockingDelay * latency;
     OperationMode_t currentOperationMode;
+
+    deviceMotionStatus_t newMotionStatus = DEVICE_ON_MOTION;
+    deviceMotionStatus_t currentMotionStatus = DEVICE_ON_MOTION;
+    MovementEvent_t currentMovementEvent = MOVING;
 
     // IMU 
     IMUManager * inertialSensor;

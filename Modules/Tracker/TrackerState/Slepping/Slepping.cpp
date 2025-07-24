@@ -56,21 +56,51 @@ void Slepping::updatePowerStatus (CellularModule * cellularTransceiver,
 
 void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency ) {
     static bool timeToWakeUp = false;
-    static bool resetTimer = false;
+    static bool initialize = false;
+    MovementEvent_t movementEvent;
 
-    if ( resetTimer == false){
-        resetTimer = true;
+    this->tracker->updateMovementEvent();
+    movementEvent = this->tracker->getMovementEvent();
+    if ( initialize == false){
+        initialize = true;
         latency->restart();
     }
-    if (latency->read()) {
-        timeToWakeUp = true;
-    }
-    if (timeToWakeUp == true) {
+
+    if (this->tracker->getOperationMode() == PURSUIT_OPERATION_MODE ) {
         if (cellularTransceiver->turnOn () ) {
             timeToWakeUp = false;
-            resetTimer = false;
+            initialize = false;
             this->tracker->changeState  (new SensingBatteryStatus (this->tracker));
             return;
+        }
+         return;
+    }
+
+    if (movementEvent == PARKING || movementEvent == MOVEMENT_RESTARTED) {
+        if (cellularTransceiver->turnOn () ) {
+            timeToWakeUp = false;
+            initialize = false;
+            this->tracker->changeState  (new SensingBatteryStatus (this->tracker));
+            return;
+        }
+    }
+
+    if (movementEvent == STOPPED) {
+        return;
+    }
+
+
+    if (movementEvent == MOVING) {
+        if (latency->read()) {
+            timeToWakeUp = true;
+        }
+        if (timeToWakeUp == true) {
+            if (cellularTransceiver->turnOn () ) {
+                timeToWakeUp = false;
+                initialize = false;
+                this->tracker->changeState  (new SensingBatteryStatus (this->tracker));
+                return;
+            }
         }
     }
     return;

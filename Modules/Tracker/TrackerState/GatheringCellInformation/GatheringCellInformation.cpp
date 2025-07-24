@@ -69,6 +69,14 @@ void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* c
 
 
 
+void GatheringCellInformation::checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus) {
+   // inertialSensor->checkStability(newMotionStatus);
+    return;
+}
+
+
+
+
 
 
 

@@ -3,6 +3,7 @@
 #include "Tracker.h"
 #include "Debugger.h" // due to global usbUart
 #include "CalibratingInertialSensor.h"
+#include "IMUManager.h"
 #include "SavingMessage.h"
 #include "LoadingMessage.h"
 
@@ -44,6 +45,7 @@ Tracker::Tracker () {
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
 
     this->currentOperationMode = NORMAL_OPERATION_MODE;
+    //this->currentOperationMode = PERSUIT_OPERATION_MODE;
     this->latency = new NonBlockingDelay (EXTREMELY_LOW_LATENCY_MS);
     this->cellularTransceiver = new CellularModule ( );
     this->currentGNSSModule = new GNSSModule (this->cellularTransceiver->getPowerManager()
@@ -162,6 +164,7 @@ void Tracker::update () {
     this->currentCellInformation);
     this->currentState->obtainNeighborCellsInformation (this->cellularTransceiver, 
     this->neighborsCellInformation, numberOfNeighbors );
+    this->currentState->checkStabillity(this->inertialSensor, &this->newMotionStatus);
     this->currentState->obtainInertialMeasures(this->inertialSensor, this->imuData, this->IMUDataSamples);
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
     this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus); 
@@ -181,9 +184,116 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
     this->currentState = newTrackerState;
 }
 
-OperationMode_t Tracker::getOperationMode() {
+
+void Tracker::getMovementEvent (char * movementEventString) {
+    if (this->currentMovementEvent == MOVING) {
+        strcpy (movementEventString, "MOVING");
+    }
+    if (this->currentMovementEvent == PARKING) {
+        strcpy (movementEventString, "PARKING");
+    }
+    if (this->currentMovementEvent == STOPPED) {
+        strcpy (movementEventString, "STOPPED");
+    }
+    if (this->currentMovementEvent == MOVEMENT_RESTARTED) {
+        strcpy (movementEventString, "MOVEMENT_RESTARTED");
+    }
+}
+
+
+MovementEvent_t Tracker::getMovementEvent () {
+    return this->currentMovementEvent;
+}
+
+
+OperationMode_t  Tracker::getOperationMode () {
     return this->currentOperationMode;
 }
+
+void Tracker::updateMovementEvent () {
+    char buffer[100];
+    MovementEvent_t newMovementEvent;
+
+    if (this->newMotionStatus == DEVICE_ON_MOTION && this->currentMotionStatus == DEVICE_STATIONARY) {
+        newMovementEvent = MOVEMENT_RESTARTED;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: MOVEMENT_RESTARTED\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent = newMovementEvent;
+    }
+    else if (this->newMotionStatus == DEVICE_STATIONARY && this->currentMotionStatus == DEVICE_ON_MOTION) {
+        newMovementEvent = PARKING;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: PARKING\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent = newMovementEvent;
+    }
+    else if (this->newMotionStatus == DEVICE_ON_MOTION && this->currentMotionStatus == DEVICE_ON_MOTION) {
+        newMovementEvent = MOVING;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: MOVING\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent = newMovementEvent;
+    }
+    else if (this->newMotionStatus == DEVICE_STATIONARY && this->currentMotionStatus == DEVICE_STATIONARY) {
+        newMovementEvent = STOPPED;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: STOPPED\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent = newMovementEvent;
+    }
+
+    this->currentMotionStatus = this->newMotionStatus;
+}
+
+
+/*
+void Tracker::updateMovementEvent () {
+    char buffer[100];
+    MovementEvent_t newMovementEvent;
+
+    if (this->newMotionStatus == DEVICE_ON_MOTION &&  this->currentMotionStatus == DEVICE_ON_MOTION) {
+        newMovementEvent = MOVING;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: MOVING\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent = MOVING;
+        this->currentMotionStatus = this->newMotionStatus;
+    }
+    if (this->newMotionStatus == DEVICE_STATIONARY &&  this->currentMotionStatus == DEVICE_ON_MOTION) {
+        newMovementEvent = PARKING;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: PARKING\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent = PARKING;
+        this->currentMotionStatus = this->newMotionStatus;
+    }
+    if (this->newMotionStatus ==  DEVICE_STATIONARY &&  this->currentMotionStatus ==  DEVICE_STATIONARY) {
+        newMovementEvent = STOPPED;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: STOPPED\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent =  STOPPED;
+        this->currentMotionStatus = this->newMotionStatus;
+    }
+    if (this->newMotionStatus == DEVICE_ON_MOTION &&  this->currentMotionStatus == DEVICE_STATIONARY) {
+        newMovementEvent = MOVEMENT_RESTARTED;
+        if (newMovementEvent != this->currentMovementEvent) {
+            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: MOVEMENT_RESTARTED\n\r");
+            uartUSB.write(buffer, strlen(buffer));
+        }
+        this->currentMovementEvent = MOVEMENT_RESTARTED;
+        this->currentMotionStatus = this->newMotionStatus;
+    }
+}
+*/
 
 void Tracker::setOperationMode(OperationMode_t newOperationMode) {
     this->currentOperationMode = newOperationMode;

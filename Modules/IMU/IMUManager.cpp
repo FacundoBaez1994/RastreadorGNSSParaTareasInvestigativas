@@ -13,6 +13,9 @@
 
 #define BNO080_DEFAULT_ADDRESS 0x4A
 
+#define THRESHOLD_TO_BE_ON_MOTION 10
+#define THRESHOLD_TO_BE_STATIONARY 1000
+
 #define I2C_FREQUENCY_DEFAULT 400000
 #define REFRESH_TIME_DEFAULT 100
 
@@ -64,7 +67,7 @@ bool IMUManager::initialize (void) {
     uartUSB.write(log, strlen(log));
 
     this->reportType = SH2_ROTATION_VECTOR;
-    this->reportIntervalUs = 5000;
+    this->reportIntervalUs = 4000;
     if (setReports(this->reportType, this->reportIntervalUs) == false) {
         return false;
     }
@@ -80,12 +83,105 @@ bool IMUManager::initialize (void) {
         return false;
     }
 
+    
+    this->reportType = SH2_STABILITY_CLASSIFIER;
+    if (this->bno08x->enableReport(this->reportType, 100000) == false){
+        return false;
+    }
+    
+    
+
     snprintf(log, sizeof(log), "Reading events\n\r");
     uartUSB.write(log, strlen(log));
 
     this->clearAcumulatedMeasurement ();
     return true;
 }
+
+
+
+void IMUManager::checkStability(deviceMotionStatus_t * currentMotionStatus) {
+    char log[100];
+
+    // Si el sensor se reseteó, reinicializar los reportes
+    if (this->bno08x->wasReset()) {
+        snprintf(log, sizeof(log), "Sensor was reset\n\r");
+        uartUSB.write(log, strlen(log));
+        setReports(this->reportType, this->reportIntervalUs); // O podés usar initialize()
+    }
+
+    // Verifica si hay un nuevo evento de sensor
+    if (this->bno08x->getSensorEvent(&this->sensorValue)) {
+
+        // Mostrar el sensor ID para debugging
+        //snprintf(log, sizeof(log), "Sensor ID: %d\n\r", this->sensorValue.sensorId);
+        //uartUSB.write(log, strlen(log));
+
+        // Procesar únicamente si es Stability Classifier
+        if (this->sensorValue.sensorId == SH2_STABILITY_CLASSIFIER) {
+            sh2_StabilityClassifier_t stability = this->sensorValue.un.stabilityClassifier;
+
+            // Mostrar clasificación de estabilidad
+            switch (stability.classification) {
+                case STABILITY_CLASSIFIER_UNKNOWN:
+                    //uartUSB.write("Stability: Unknown\n\r", strlen("Stability: Unknown\n\r"));
+                    
+                    break;
+                case STABILITY_CLASSIFIER_ON_TABLE:
+                    //uartUSB.write("Stability: On Table\n\r", strlen("Stability: On Table\n\r"));
+                    if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                        this->stillnessCounter++;
+                    }
+                    break;
+                case STABILITY_CLASSIFIER_STATIONARY:
+                    if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                        this->stillnessCounter++;
+                    }
+                    //uartUSB.write("Stability: Stationary\n\r", strlen("Stability: Stationary\n\r"));
+                    break;
+                case STABILITY_CLASSIFIER_STABLE:
+                    if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                        this->stillnessCounter++;
+                    }
+                   // uartUSB.write("Stability: Stable\n\r", strlen("Stability: Stable\n\r"));
+                    break;
+                case STABILITY_CLASSIFIER_MOTION:
+                    if (this->currentMotionStatus == DEVICE_STATIONARY) {
+                       this->motionCounter++;
+                    }  else {
+                        this->stillnessCounter = 0;
+                    }
+                    //uartUSB.write("Stability: In Motion\n\r", strlen("Stability: In Motion\n\r"));
+                     break;
+                default:
+                    //uartUSB.write("Stability: Unrecognized\n\r", strlen("Stability: Unrecognized\n\r"));
+                     break;
+            }
+        } else {
+            // No es el sensor de estabilidad, lo ignoramos
+            return;
+        }
+    }
+    if (motionCounter >= THRESHOLD_TO_BE_ON_MOTION &&  this->currentMotionStatus == DEVICE_STATIONARY ) {
+        this->motionCounter = 0;
+        this->stillnessCounter = 0;
+        this->currentMotionStatus = DEVICE_ON_MOTION;
+        uartUSB.write("\n\rDEVICE_ON_MOTION\n\r", strlen("\n\rDEVICE_ON_MOTION\n\r"));
+    }
+
+    if (stillnessCounter >= THRESHOLD_TO_BE_STATIONARY &&  this->currentMotionStatus ==  DEVICE_ON_MOTION ) {
+        this->motionCounter = 0;
+        this->stillnessCounter = 0;
+        this->currentMotionStatus = DEVICE_STATIONARY;
+        uartUSB.write("\n\rDEVICE_STATIONARY\n\r", strlen("\n\rDEVICE_STATIONARY\n\r"));
+    }
+    *currentMotionStatus =  this->currentMotionStatus;
+
+
+    // No hubo evento
+    return;
+}
+
 
 
 bool IMUManager::obtainInertialMeasures(IMUData_t * inertialMeasures) {
@@ -181,6 +277,60 @@ bool IMUManager::obtainInertialMeasures(IMUData_t * inertialMeasures) {
 }
 
 //=====[Implementations of private methods]==================================
+/*
+void IMUManager::handleStabilityEvent(const sh2_StabilityClassifier_t& stability) {
+    switch (stability.classification) {
+        case STABILITY_CLASSIFIER_UNKNOWN:
+            //uartUSB.write("Stability: Unknown\n\r", strlen("Stability: Unknown\n\r"));
+            
+            break;
+        case STABILITY_CLASSIFIER_ON_TABLE:
+            //uartUSB.write("Stability: On Table\n\r", strlen("Stability: On Table\n\r"));
+            if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                this->stillnessCounter++;
+            }
+            break;
+        case STABILITY_CLASSIFIER_STATIONARY:
+            if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                this->stillnessCounter++;
+            }
+            //uartUSB.write("Stability: Stationary\n\r", strlen("Stability: Stationary\n\r"));
+            break;
+        case STABILITY_CLASSIFIER_STABLE:
+            if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                this->stillnessCounter++;
+            }
+            // uartUSB.write("Stability: Stable\n\r", strlen("Stability: Stable\n\r"));
+            break;
+        case STABILITY_CLASSIFIER_MOTION:
+            if (this->currentMotionStatus == DEVICE_STATIONARY) {
+                this->motionCounter++;
+            }
+            //uartUSB.write("Stability: In Motion\n\r", strlen("Stability: In Motion\n\r"));
+                break;
+        default:
+            //uartUSB.write("Stability: Unrecognized\n\r", strlen("Stability: Unrecognized\n\r"));
+                break;
+    }
+
+    if (motionCounter >= THRESHOLD_TO_BE_ON_MOTION &&
+        this->currentMotionStatus == DEVICE_STATIONARY) {
+        this->motionCounter = 0;
+        this->stillnessCounter = 0;
+        this->currentMotionStatus = DEVICE_ON_MOTION;
+        uartUSB.write("\n\rDEVICE_ON_MOTION\n\r", strlen("\n\rDEVICE_ON_MOTION\n\r"));
+    }
+
+    if (stillnessCounter >= THRESHOLD_TO_BE_STATIONARY &&
+        this->currentMotionStatus == DEVICE_ON_MOTION) {
+        this->motionCounter = 0;
+        this->stillnessCounter = 0;
+        this->currentMotionStatus = DEVICE_STATIONARY;
+        uartUSB.write("\n\rDEVICE_STATIONARY\n\r", strlen("\n\rDEVICE_STATIONARY\n\r"));
+    }
+}
+*/
+
 
 void IMUManager::promAccelMeasurement() {
     if (this->samplesCounterAccel < SAMPLES_PROM) {

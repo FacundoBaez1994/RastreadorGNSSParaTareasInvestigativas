@@ -13,6 +13,11 @@
 
 
 //=====[Declaration of public data types]======================================
+typedef enum {
+    DEVICE_ON_MOTION,
+    DEVICE_STATIONARY,
+} deviceMotionStatus_t;
+
 struct euler_t {
   float yaw;
   float pitch;
@@ -47,6 +52,7 @@ public:
     bool setReports(sh2_SensorId_t reportType, long report_interval);
 
     bool obtainInertialMeasures (IMUData_t * inertialMeasures);
+    void checkStability (deviceMotionStatus_t * currentMotionStatus);
     bool initialize (void);
 
 private:
@@ -59,6 +65,10 @@ private:
     void promEulerMeasurement(void);
     void promAccelMeasurement(void);
     void clearAcumulatedMeasurement (void);
+
+    deviceMotionStatus_t currentMotionStatus =  DEVICE_ON_MOTION;
+    int motionCounter = 0;
+    int stillnessCounter = 0;
 
     Adafruit_BNO08x  * bno08x;
     I2C * i2c;

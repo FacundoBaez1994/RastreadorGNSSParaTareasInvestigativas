@@ -26,8 +26,9 @@ public:
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
     virtual void obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
+    virtual void checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus);
+
 private:
-    //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;
 //=====[Declaration of privates atributes]=========================================
 

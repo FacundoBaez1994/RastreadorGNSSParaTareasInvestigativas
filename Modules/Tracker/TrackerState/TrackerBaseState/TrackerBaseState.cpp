@@ -90,4 +90,9 @@ void TrackerBaseState::loadMessage (EEPROMManager * memory, CellInformation* aCe
     return;
 }
 
+void TrackerBaseState::checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus) {
+    inertialSensor->checkStability(newMotionStatus);
+    return;
+}
+
 //=====[Implementations of private methods]==================================

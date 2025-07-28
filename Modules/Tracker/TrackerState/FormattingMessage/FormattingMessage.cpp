@@ -39,6 +39,7 @@
 FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
+    this->jwt = new JWTManager ();
 }
 
 /** 
@@ -48,6 +49,8 @@ FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t tracker
 */
 FormattingMessage::~FormattingMessage () {
     this->tracker = NULL;
+    delete this->jwt;
+    this->jwt = nullptr;
 }
 
 void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
@@ -301,7 +304,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     message[sizeof(message) - 1] = '\0';
 
     //strcpy(formattedMessage, message);
-    this->tracker->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (message, formattedMessage);
 
      strcat(formattedMessage, "\n");
 }
@@ -372,7 +375,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     message[sizeof(message) - 1] = '\0';
 
     //strcpy(formattedMessage, message);
-    this->tracker->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (message, formattedMessage);
 
     strcat(formattedMessage, "\n");
 
@@ -429,7 +432,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     message[sizeof(message) - 1] = '\0';
 
     //strcpy(formattedMessage, message);
-    this->tracker->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (message, formattedMessage);
 
     strcat(formattedMessage, "\n");
 
@@ -506,7 +509,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     message[sizeof(message) - 1] = '\0';
 
     //strcpy(formattedMessage, message);
-    this->tracker->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (message, formattedMessage);
 
     strcat(formattedMessage, "\n");
 

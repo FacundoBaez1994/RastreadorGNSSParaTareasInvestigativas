@@ -65,7 +65,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
-    static char payloadRetrived [2048];
+    static char payloadRetrived [500];
     char logMessage [100];
     
     // if conected to mobile network send the message throght LTE Modem
@@ -89,30 +89,8 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
 
             //////////////////   MESSAGE INTERPRETATION ////////////////
             ////////////////////////////////////////////////////////////////
-            snprintf(logMessage, sizeof(logMessage),"new Message received:");
-            uartUSB.write (logMessage , strlen (logMessage));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
-            if (this->tracker->decodeJWT(receivedMessage, payloadRetrived) == false) {
-                // new state formatting Message in order to be saved in memory
-                snprintf(logMessage, sizeof(logMessage),"Error on decoding JWT:");
-                uartUSB.write (logMessage , strlen (logMessage));  // debug only
-                newDataAvailable = false;
-                enableTransceiver = false;
-                if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
-                    this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
-                }
-                if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
-                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
-                }
-                if (this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
-                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE;
-                }
-                this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
-                return;
-            }
-            strcpy (receivedMessage, payloadRetrived);
-            uartUSB.write (receivedMessage , strlen (receivedMessage ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
+
+            
             newDataAvailable = false;
             enableTransceiver = false;
 

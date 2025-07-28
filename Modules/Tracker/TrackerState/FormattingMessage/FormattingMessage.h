@@ -9,6 +9,7 @@
 #include "arm_book_lib.h"
 #include "TrackerBaseState.h"
 #include "Tracker.h"
+#include "JWTManager.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada
@@ -65,6 +66,7 @@ private:
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;
     trackerStatus_t currentStatus;
+    JWTManager * jwt;
 
 
 //=====[Declaration of privates atributes]=========================================

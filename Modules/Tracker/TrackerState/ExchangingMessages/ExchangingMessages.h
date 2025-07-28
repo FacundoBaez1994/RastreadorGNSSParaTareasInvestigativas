@@ -9,6 +9,7 @@
 #include "arm_book_lib.h"
 #include "TrackerBaseState.h"
 #include "Tracker.h"
+#include "JWTManager.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada
@@ -27,16 +28,15 @@ public:
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
 private:
+//=====[Declaration of privates atributes]=========================================
     Tracker * tracker;
     trackerStatus_t currentStatus;
+//=====[Declaration of privates methods]=========================================
     bool extractField(const char* json, const char* key, char* output, size_t maxLen);
     bool parseLatencyLevel(const char* latencyStr, LatencyLevel_t *  newLatencyLevel);
     bool parseOperationMode(const char* operationModeStr, OperationMode_t * newOperationMode);
-  
+    
 
-//=====[Declaration of privates atributes]=========================================
-
-//=====[Declaration of privates methods]=========================================
 };
 
 

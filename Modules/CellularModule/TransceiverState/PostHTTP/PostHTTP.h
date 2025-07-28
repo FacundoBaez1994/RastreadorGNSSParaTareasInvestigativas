@@ -13,6 +13,7 @@
 #include "Non_Blocking_Delay.h"
 #include "TransceiverUnavailable.h"
 #include "DeactivatePDP.h"
+#include "JWTManager.h"
 
 
 //=====[Declaration of public data types]======================================
@@ -29,6 +30,7 @@ typedef enum {
     SETTING_URL,
     POSTING_DATA,
     READING_DATA,
+    DECODING_DATA,
 } PostStatus_t;
 
 //=====[Declaration of public classes]=========================================
@@ -47,15 +49,16 @@ public:
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable);
 private:
+//=====[Declaration of privates atributes]=========================================
     CellularModule * mobileNetworkModule;
     bool readyToSend;
     int Attempts; 
     int maxAttempts; 
     PostStatus_t currentStatus;
-//=====[Declaration of privates atributes]=========================================
-    PostResult_t checkHTTPPostResult(char * responseBuffer);
+    JWTManager * jwt;
 
 //=====[Declaration of privates methods]=========================================
+    PostResult_t checkHTTPPostResult(char * responseBuffer);
 };
 
 

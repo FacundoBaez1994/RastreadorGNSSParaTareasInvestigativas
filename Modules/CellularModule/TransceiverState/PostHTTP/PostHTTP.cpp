@@ -39,6 +39,7 @@ PostHTTP::PostHTTP () {
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
     this->currentStatus = SETTING_URL;
+    this->jwt = new JWTManager ();
 }
 
 
@@ -53,6 +54,7 @@ PostHTTP::PostHTTP (CellularModule * mobileModule) {
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
     this->currentStatus = SETTING_URL;
+    this->jwt = new JWTManager ();
 }
 
 
@@ -64,6 +66,8 @@ PostHTTP::PostHTTP (CellularModule * mobileModule) {
 */
 PostHTTP::~PostHTTP () {
     this->mobileNetworkModule = NULL;
+    delete this->jwt;
+    this->jwt = nullptr;
 }
 
 
@@ -105,6 +109,8 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     char StringToSend3 [50];  
     static bool watingForResponse = false;
     static bool urlSet = false;
+
+    char StringToSend4 [5] = "ATE0";  
     
 
     int urlLength = strlen(url);
@@ -205,20 +211,15 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     this->readyToSend  = true;      
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
-                /*
-                if (postResult == POST_FAILURE) {
-                    this->currentStatus = SETTING_URL;
-                    this->mobileNetworkModule->changeTransceiverState  (new DeactivatePDP (this->mobileNetworkModule, false) );
-                    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
-                }
-                */
                 
             }
             break;
         case READING_DATA:
             if (this->readyToSend == true) {
                 ATHandler->sendATCommand(StringToSend3); // POST READ
+                refreshTime->restart();
                 this->readyToSend  = false;
+                uartUSB.write ( "\r\n",  3 );
                 uartUSB.write (StringToSend3  , strlen (StringToSend3 ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////   
@@ -232,34 +233,56 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     if (strcmp (StringToBeRead, ExpectedResponse2) == 0) { // CONNECT
                         ////   ////   ////   ////   ////   ////  
                         watingForResponse = true;
+                        refreshTime->write(50000);
+                        refreshTime->restart();
+                        memset(receivedMessage, 0, 2048);
                         return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                     }
                 }
             } else {
                 if ( ATHandler->readATResponse ( receivedMessage ) == true) { //
                     ////   ////   ////   ////   ////   ////
+                    char* ptr = strstr(receivedMessage, "AT+QHTTPREAD=");
+                    if (ptr != NULL) {
+                        *ptr = '\0'; // Trunca el string ahí
+                    }
+                    refreshTime->restart();
                     uartUSB.write ("Read POST response\r\n"  , strlen ("Read POST response\r\n"));  // debug only
                     uartUSB.write (receivedMessage , strlen (receivedMessage));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     watingForResponse = false;
-                    this->currentStatus = SETTING_URL;
-                    ////   ////   ////   ////   ////   ////
-                    *newDataAvailable = true;
-                    this->mobileNetworkModule->changeTransceiverState  (new DeactivatePDP (this->mobileNetworkModule, true) );
+                    this->currentStatus = DECODING_DATA;
+
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
             }
 
             break;
+        case DECODING_DATA:
+            char  payloadRetrived [500];
+            if (this->jwt->decodeJWT(receivedMessage, payloadRetrived) == false) {
+                uartUSB.write ("Error on decoding JWT:" , strlen ("Error on decoding JWT:"));  // debug only
+                this->readyToSend  = true;
+                this->currentStatus = READING_DATA;
+                return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
+                break;
+            }
+            *newDataAvailable = true;
+            strcpy (receivedMessage, payloadRetrived);
+            uartUSB.write (receivedMessage , strlen (receivedMessage ));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            this->currentStatus = SETTING_URL;
+            this->mobileNetworkModule->changeTransceiverState  (new DeactivatePDP (this->mobileNetworkModule, true) );
+            return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
+            break;
+
         default:
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
-   }
-
-
-
+   } // switch end
 
     if (refreshTime->read()) {
         this->readyToSend = true;
+        refreshTime->write(10000);
         this->Attempts++;
         if (this->Attempts >= this->maxAttempts && watingForResponse == false) {
             this->currentStatus = SETTING_URL;

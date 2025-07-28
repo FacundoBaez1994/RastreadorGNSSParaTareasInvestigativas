@@ -154,7 +154,7 @@ void LoadingMessage::parseMNGNSS(const char* message,
     BatteryData* batteryStatus) {
     
     char * buffer;
-    size_t sizeOfBuffer = 2048;
+    size_t sizeOfBuffer = 1024;
 
     buffer = new char [sizeOfBuffer];
 
@@ -242,34 +242,56 @@ void LoadingMessage::parseMNMN(const char* message,
     std::vector<CellInformation*>& neighborsCellInformation,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
-    
+     char log[100];
     // Limpiar celdas viejas
+    snprintf(log, sizeof(log), "\r\nauto cell\r\n");
+    uartUSB.write(log, strlen(log));
+
     for (auto cell : neighborsCellInformation) {
         delete cell;
     }
     neighborsCellInformation.clear();
 
+    snprintf(log, sizeof(log), "\r\nstrncmp\r\n");
+    uartUSB.write(log, strlen(log));
+
     if (!message || strncmp(message, "MNMN,", 5) != 0) return;
 
-    size_t sizeOfBuffer = 2048;
+    size_t sizeOfBuffer = 1024;
+
+    
+    snprintf(log, sizeof(log), "\r\nnew char[sizeOfBuffer]\r\n");
+    uartUSB.write(log, strlen(log));
     char* buffer = new char[sizeOfBuffer];
     char* neighborsBuffer = new char[sizeOfBuffer];
 
+
     if (!buffer || !neighborsBuffer) {
-        // No hay memoria, salimos
         delete[] buffer;
+        buffer = nullptr;
         delete[] neighborsBuffer;
+        neighborsBuffer = nullptr;
         return;
     }
+
+
+    snprintf(log, sizeof(log), "\r\nstrncpy\r\n");
+    uartUSB.write(log, strlen(log));
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer - 1] = '\0';
 
+
+
+    snprintf(log, sizeof(log), "\r\n char* mainPart\r\n");
+    uartUSB.write(log, strlen(log));
     // Procesar parte principal
     char* mainPart = strtok(buffer, "|");
     if (!mainPart) {
         delete[] buffer;
+        buffer = nullptr;
         delete[] neighborsBuffer;
+        neighborsBuffer = nullptr;
         return;
     }
 
@@ -329,7 +351,9 @@ void LoadingMessage::parseMNMN(const char* message,
     }
 
     delete[] buffer;
+    buffer = nullptr;
     delete[] neighborsBuffer;
+    neighborsBuffer = nullptr;
 }
 
 
@@ -338,7 +362,7 @@ void LoadingMessage::parseGNSS(const char* message,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
 
-    size_t sizeOfBuffer = 2048;
+    size_t sizeOfBuffer = 1024;
     char* buffer = new char[sizeOfBuffer];
 
     if (!buffer) {

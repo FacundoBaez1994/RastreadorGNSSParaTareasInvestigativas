@@ -34,34 +34,39 @@ public:
 
 private:
     void formatMessage(char * formattedMessage, const CellInformation* aCellInfo,
-    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
+    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus, char * trackerEvent);
 
     void formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
-    const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData, const BatteryData  * batteryStatus);
+    const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
+     const BatteryData  * batteryStatus, char * trackerEvent);
 
     void formatMessage(char * formattedMessage, long long int IMEI,
-    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
+    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus, 
+    char * trackerEvent);
 
     void formatMessage(char * formattedMessage, long long int IMEI, const IMUData_t * inertialData, 
-    const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus);
+    const std::vector<IMUData_t*> &IMUDataSamples, 
+    const BatteryData  * batteryStatus, char * trackerEvent);
 
     void formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo,
-    const GNSSData* GNSSInfo, const IMUData_t * imuData, const BatteryData  * batteryStatus);
+    const GNSSData* GNSSInfo, const IMUData_t * imuData, 
+    const BatteryData  * batteryStatus, char * trackerEvent);
 
     void formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo, 
-    const IMUData_t * imuData, const BatteryData  * batteryStatus);
+    const IMUData_t * imuData, const BatteryData  * batteryStatus, char * trackerEvent);
 
     void formatGNSSMemoryMessage(char * formattedMessage, const GNSSData* GNSSInfo, 
-    const IMUData_t * inertialData, const BatteryData  * batteryStatus);
+    const IMUData_t * inertialData, const BatteryData  * batteryStatus, char * trackerEvent);
 
-    void formatMNMNMemoryMessage (char * formattedMessage, const CellInformation* aCellInfo, const std::vector<CellInformation*> &neighborsCellInformation, 
-    const IMUData_t * imuData, const BatteryData  * batteryStatus);
+    void formatMNMNMemoryMessage (char * formattedMessage, const CellInformation* aCellInfo, 
+    const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
+     const BatteryData  * batteryStatu, char * trackerEvents);
 
     void formatMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo, const GNSSData* GNSSInfo, 
-    const IMUData_t * inertialData, const BatteryData  * batteryStatus);
+    const IMUData_t * inertialData, const BatteryData  * batteryStatus, char * trackerEvent);
 
     void formatMemoryMessage(char * formattedMessage, const IMUData_t * inertialData, 
-    const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus);
+    const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus, char * trackerEvent);
 
     //bool checkResponse (char * response, char * retrivMessage);
     Tracker * tracker;

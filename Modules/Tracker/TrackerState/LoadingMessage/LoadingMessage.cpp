@@ -172,7 +172,10 @@ void LoadingMessage::parseMNGNSS(const char* message,
         return;
     }
      
-
+    token = strtok(NULL, ","); 
+    char event [25];
+    strcpy (event, token);
+    this->tracker->setMovementEvent (event);
     token = strtok(NULL, ",");
     GNSSInfo->latitude = atof(token);
     token = strtok(NULL, ",");
@@ -242,56 +245,34 @@ void LoadingMessage::parseMNMN(const char* message,
     std::vector<CellInformation*>& neighborsCellInformation,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
-     char log[100];
+    
     // Limpiar celdas viejas
-    snprintf(log, sizeof(log), "\r\nauto cell\r\n");
-    uartUSB.write(log, strlen(log));
-
     for (auto cell : neighborsCellInformation) {
         delete cell;
     }
     neighborsCellInformation.clear();
 
-    snprintf(log, sizeof(log), "\r\nstrncmp\r\n");
-    uartUSB.write(log, strlen(log));
-
     if (!message || strncmp(message, "MNMN,", 5) != 0) return;
 
     size_t sizeOfBuffer = 1024;
-
-    
-    snprintf(log, sizeof(log), "\r\nnew char[sizeOfBuffer]\r\n");
-    uartUSB.write(log, strlen(log));
     char* buffer = new char[sizeOfBuffer];
     char* neighborsBuffer = new char[sizeOfBuffer];
 
-
     if (!buffer || !neighborsBuffer) {
+        // No hay memoria, salimos
         delete[] buffer;
-        buffer = nullptr;
         delete[] neighborsBuffer;
-        neighborsBuffer = nullptr;
         return;
     }
-
-
-    snprintf(log, sizeof(log), "\r\nstrncpy\r\n");
-    uartUSB.write(log, strlen(log));
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer - 1] = '\0';
 
-
-
-    snprintf(log, sizeof(log), "\r\n char* mainPart\r\n");
-    uartUSB.write(log, strlen(log));
     // Procesar parte principal
     char* mainPart = strtok(buffer, "|");
     if (!mainPart) {
         delete[] buffer;
-        buffer = nullptr;
         delete[] neighborsBuffer;
-        neighborsBuffer = nullptr;
         return;
     }
 
@@ -299,25 +280,68 @@ void LoadingMessage::parseMNMN(const char* message,
     int fieldIndex = 0;
     while (token != nullptr) {
         switch (fieldIndex) {
-            case 1: aCellInfo->mcc = atoi(token); break;
-            case 2: aCellInfo->mnc = atoi(token); break;
-            case 3: aCellInfo->lac = strtol(token, nullptr, 16); break;
-            case 4: aCellInfo->cellId = strtol(token, nullptr, 16); break;
-            case 5: aCellInfo->signalLevel = atof(token); break;
-            case 6: aCellInfo->accessTechnology = atoi(token); break;
-            case 7: aCellInfo->registrationStatus = atoi(token); break;
-            case 8: aCellInfo->channel = atoi(token); break;
-            case 9: strcpy(aCellInfo->band, token); break;
-            case 10: strcpy(aCellInfo->timestamp, token); break;
-            case 11: batteryStatus->batteryChargeStatus = atoi(token); break;
-            case 12: batteryStatus->chargeLevel = atoi(token); break;
-            case 13: imuData->status = atoi(token); break;
-            case 14: imuData->acceleration.ax = atof(token); break;
-            case 15: imuData->acceleration.ay = atof(token); break;
-            case 16: imuData->acceleration.az = atof(token); break;
-            case 17: imuData->angles.yaw = atof(token); break;
-            case 18: imuData->angles.roll = atof(token); break;
-            case 19: imuData->angles.pitch = atof(token); break;
+            case 1:
+                char event [25];
+                strcpy (event, token);
+                this->tracker->setMovementEvent (event);
+                break;
+            case 2: 
+                aCellInfo->mcc = atoi(token); 
+                break;
+            case 3: 
+                aCellInfo->mnc = atoi(token); 
+                break;
+            case 4: 
+                aCellInfo->lac = strtol(token, nullptr, 16); 
+                break;
+            case 5: 
+                aCellInfo->cellId = strtol(token, nullptr, 16); 
+                break;
+            case 6: 
+                aCellInfo->signalLevel = atof(token); 
+                break;
+            case 7: 
+                aCellInfo->accessTechnology = atoi(token); 
+                break;
+            case 8: 
+                aCellInfo->registrationStatus = atoi(token); 
+                break;
+            case 9: 
+                aCellInfo->channel = atoi(token);
+                break;
+            case 10: 
+                strcpy(aCellInfo->band, token); 
+                break;
+            case 11: 
+                strcpy(aCellInfo->timestamp, token); 
+                break;
+            case 12: 
+                batteryStatus->batteryChargeStatus = atoi(token); 
+                break;
+            case 13: 
+                batteryStatus->chargeLevel = atoi(token); 
+                break;
+            case 14: 
+                imuData->status = atoi(token); 
+                break;
+            case 15: 
+                imuData->acceleration.ax = atof(token); 
+                break;
+            case 16: 
+                imuData->acceleration.ay = atof(token); 
+                break;
+            case 17: 
+                imuData->acceleration.az = atof(token); 
+                break;
+            case 18: 
+                imuData->angles.yaw = atof(token); 
+                break;
+            case 19: 
+                imuData->angles.roll = atof(token); 
+                break;
+            case 20: 
+                imuData->angles.pitch = atof(token); 
+                break;
         }
         token = strtok(nullptr, ",");
         fieldIndex++;
@@ -351,9 +375,7 @@ void LoadingMessage::parseMNMN(const char* message,
     }
 
     delete[] buffer;
-    buffer = nullptr;
     delete[] neighborsBuffer;
-    neighborsBuffer = nullptr;
 }
 
 
@@ -379,22 +401,42 @@ void LoadingMessage::parseGNSS(const char* message,
         return;
     }
 
-    token = strtok(NULL, ","); GNSSInfo->latitude = atof(token);
-    token = strtok(NULL, ","); GNSSInfo->longitude = atof(token);
-    token = strtok(NULL, ","); GNSSInfo->hdop = atof(token);
-    token = strtok(NULL, ","); GNSSInfo->altitude = atof(token);
-    token = strtok(NULL, ","); GNSSInfo->cog = atof(token);
-    token = strtok(NULL, ","); GNSSInfo->spkm = atof(token);
-    token = strtok(NULL, ","); strcpy(GNSSInfo->timestamp, token);
-    token = strtok(NULL, ","); batteryStatus->batteryChargeStatus = atoi(token);
-    token = strtok(NULL, ","); batteryStatus->chargeLevel = atoi(token);
-    token = strtok(NULL, ","); imuData->status = atoi(token);
-    token = strtok(NULL, ","); imuData->acceleration.ax = atof(token);
-    token = strtok(NULL, ","); imuData->acceleration.ay = atof(token);
-    token = strtok(NULL, ","); imuData->acceleration.az = atof(token);
-    token = strtok(NULL, ","); imuData->angles.yaw = atof(token);
-    token = strtok(NULL, ","); imuData->angles.roll = atof(token);
-    token = strtok(NULL, ","); imuData->angles.pitch = atof(token);
+    token = strtok(NULL, ","); 
+    char event [25];
+    strcpy (event, token);
+    this->tracker->setMovementEvent (event);
+    token = strtok(NULL, ","); 
+    GNSSInfo->latitude = atof(token);
+    token = strtok(NULL, ","); 
+    GNSSInfo->longitude = atof(token);
+    token = strtok(NULL, ","); 
+    GNSSInfo->hdop = atof(token);
+    token = strtok(NULL, ","); 
+    GNSSInfo->altitude = atof(token);
+    token = strtok(NULL, ","); 
+    GNSSInfo->cog = atof(token);
+    token = strtok(NULL, ","); 
+    GNSSInfo->spkm = atof(token);
+    token = strtok(NULL, ","); 
+    strcpy(GNSSInfo->timestamp, token);
+    token = strtok(NULL, ","); 
+    batteryStatus->batteryChargeStatus = atoi(token);
+    token = strtok(NULL, ","); 
+    batteryStatus->chargeLevel = atoi(token);
+    token = strtok(NULL, ","); 
+    imuData->status = atoi(token);
+    token = strtok(NULL, ","); 
+    imuData->acceleration.ax = atof(token);
+    token = strtok(NULL, ","); 
+    imuData->acceleration.ay = atof(token);
+    token = strtok(NULL, ","); 
+    imuData->acceleration.az = atof(token);
+    token = strtok(NULL, ","); 
+    imuData->angles.yaw = atof(token);
+    token = strtok(NULL, ","); 
+    imuData->angles.roll = atof(token);
+    token = strtok(NULL, ","); 
+    imuData->angles.pitch = atof(token);
 
     delete[] buffer;
 }
@@ -413,9 +455,9 @@ void LoadingMessage::parseIMU(const char* message,
     IMUDataSamples.clear();
 
     // Copia del mensaje original
-    char* fullCopy = new char[2048];
-    strncpy(fullCopy, message, 2048);
-    fullCopy[2047] = '\0';
+    char* fullCopy = new char[1024];
+    strncpy(fullCopy, message, 1024);
+    fullCopy[1023] = '\0';
 
     // Separar la parte principal del resto usando strchr
     char* separator = strchr(fullCopy, '|');
@@ -434,17 +476,44 @@ void LoadingMessage::parseIMU(const char* message,
     int index = 0;
     while (token != nullptr) {
         switch (index) {
-            case 1: strcpy(imuData->timestamp, token); break;
-            case 2: imuData->timeBetweenSamples = atoi(token); break;
-            case 3: batteryStatus->batteryChargeStatus = atoi(token); break;
-            case 4: batteryStatus->chargeLevel = atoi(token); break;
-            case 5: imuData->status = atoi(token); break;
-            case 6: imuData->acceleration.ax = atof(token); break;
-            case 7: imuData->acceleration.ay = atof(token); break;
-            case 8: imuData->acceleration.az = atof(token); break;
-            case 9: imuData->angles.yaw = atof(token); break;
-            case 10: imuData->angles.roll = atof(token); break;
-            case 11: imuData->angles.pitch = atof(token); break;
+            case 1: 
+                char event [25];
+                strcpy (event, token);
+                this->tracker->setMovementEvent (event);
+                break;
+            case 2: 
+                strcpy(imuData->timestamp, token); 
+                break;
+            case 3: 
+                imuData->timeBetweenSamples = atoi(token); 
+                break;
+            case 4: 
+                batteryStatus->batteryChargeStatus = atoi(token);
+                break;
+            case 5: 
+                batteryStatus->chargeLevel = atoi(token); 
+                break;
+            case 6: 
+                imuData->status = atoi(token);
+                 break;
+            case 7: 
+                imuData->acceleration.ax = atof(token); 
+                break;
+            case 8: 
+                imuData->acceleration.ay = atof(token); 
+                break;
+            case 9: 
+                imuData->acceleration.az = atof(token); 
+                break;
+            case 10: 
+                imuData->angles.yaw = atof(token); 
+                break;
+            case 11: 
+                imuData->angles.roll = atof(token); 
+                break;
+            case 12: 
+                imuData->angles.pitch = atof(token); 
+                break;
         }
         token = strtok(nullptr, ",");
         index++;

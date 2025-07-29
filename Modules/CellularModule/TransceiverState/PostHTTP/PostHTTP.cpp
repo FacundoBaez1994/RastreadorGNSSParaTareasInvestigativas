@@ -90,7 +90,8 @@ void PostHTTP::enableTransceiver () {
 CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    char StringToBeRead [200];
+    static char StringToBeRead [500];
+    static int dataLen;
     char StringToSendUSB [50] = "\r\nTRYING HTTP POST\r\n";
     char ExpectedResponse1 [3] = "OK";
     char ExpectedResponse2 [15] = "CONNECT";
@@ -110,7 +111,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     static bool watingForResponse = false;
     static bool urlSet = false;
 
-    char StringToSend4 [5] = "ATE0";  
+    //char StringToSend4 [5] = "ATE0";  
     
 
     int urlLength = strlen(url);
@@ -200,7 +201,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     refreshTime->restart();
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
-                PostResult_t postResult = checkHTTPPostResult (StringToBeRead);
+                PostResult_t postResult = checkHTTPPostResult (StringToBeRead, &dataLen);
                 if (postResult == POST_OK) { // ACA HAY QUE VER SI +QHTTPPOST
   
                     uartUSB.write ( "\r\n",  3 );  // debug only
@@ -233,25 +234,29 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     if (strcmp (StringToBeRead, ExpectedResponse2) == 0) { // CONNECT
                         ////   ////   ////   ////   ////   ////  
                         watingForResponse = true;
-                        refreshTime->write(50000);
+                        refreshTime->write(5000);
                         refreshTime->restart();
                         memset(receivedMessage, 0, 2048);
                         return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                     }
                 }
             } else {
-                if ( ATHandler->readATResponse ( receivedMessage ) == true) { //
+                if ( ATHandler->readATResponse ( StringToBeRead ) == true) { //
                     ////   ////   ////   ////   ////   ////
+                    /*
                     char* ptr = strstr(receivedMessage, "AT+QHTTPREAD=");
                     if (ptr != NULL) {
                         *ptr = '\0'; // Trunca el string ahí
-                    }
+                    }*/
+                    StringToBeRead [dataLen] = '\0';
                     refreshTime->restart();
                     uartUSB.write ("Read POST response\r\n"  , strlen ("Read POST response\r\n"));  // debug only
-                    uartUSB.write (receivedMessage , strlen (receivedMessage));  // debug only
+                    uartUSB.write (StringToBeRead  , strlen (StringToBeRead ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     watingForResponse = false;
                     this->currentStatus = DECODING_DATA;
+                    this->readyToSend = false;
+                    
 
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
@@ -260,7 +265,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
             break;
         case DECODING_DATA:
             char  payloadRetrived [500];
-            if (this->jwt->decodeJWT(receivedMessage, payloadRetrived) == false) {
+            if (this->jwt->decodeJWT(StringToBeRead , payloadRetrived) == false) {
                 uartUSB.write ("Error on decoding JWT:" , strlen ("Error on decoding JWT:"));  // debug only
                 this->readyToSend  = true;
                 this->currentStatus = READING_DATA;
@@ -309,17 +314,17 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
 * @brief attachs the callback function to the ticker
 */
 
-PostResult_t PostHTTP::checkHTTPPostResult(char * responseBuffer) {
+PostResult_t PostHTTP::checkHTTPPostResult(char * responseBuffer, int * dataLen) {
     // Esperamos algo como: +QHTTPPOST: 0,200,xxx
     if (strncmp(responseBuffer, "+QHTTPPOST: ", 12) == 0) {
-        int result, httpStatus, dataLen;
-        dataLen = -1;
-        sscanf(responseBuffer, "+QHTTPPOST: %d,%d,%d", &result, &httpStatus, &dataLen);
+        int result, httpStatus;
+        *dataLen = -1;
+        sscanf(responseBuffer, "+QHTTPPOST: %d,%d,%d", &result, &httpStatus, dataLen);
 
         uartUSB.write("Parsed POST result:\r\n", 23);
         uartUSB.write(responseBuffer, strlen(responseBuffer));
         uartUSB.write("\r\n", 2);
-        if (result == 0  && (dataLen > -1 && dataLen < 2048)) {
+        if (result == 0  && (*dataLen > -1 && *dataLen < 2048)) {
             return POST_OK;
         }
         return POST_FAILURE;

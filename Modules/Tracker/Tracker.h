@@ -74,6 +74,7 @@ public:
     void changeState  (TrackerState * newTrackerState);
 
     void updateMovementEvent ();
+    void setMovementEvent (char * event);
     MovementEvent_t getMovementEvent ();
     void getMovementEvent (char * movementEventString);
     void setLatency(LatencyLevel_t level);

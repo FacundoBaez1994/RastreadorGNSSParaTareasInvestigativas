@@ -199,6 +199,25 @@ void Tracker::getMovementEvent (char * movementEventString) {
     }
 }
 
+void Tracker::setMovementEvent (char * movementEventString) {
+    if (strcmp (movementEventString,"MOVING") == 0) {
+        this->currentMovementEvent = MOVING;
+        return;
+    }
+    if (strcmp (movementEventString,"PARKING") == 0) {
+        this->currentMovementEvent = PARKING;
+        return;
+    }
+    if (strcmp (movementEventString,"STOPPED") == 0) {
+        this->currentMovementEvent = STOPPED;
+        return;
+    }
+    if (strcmp (movementEventString,"MOVEMENT_RESTARTED") == 0) {
+        this->currentMovementEvent = MOVEMENT_RESTARTED;
+        return;
+    }
+}
+
 
 MovementEvent_t Tracker::getMovementEvent () {
     return this->currentMovementEvent;

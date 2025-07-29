@@ -58,7 +58,7 @@ private:
     JWTManager * jwt;
 
 //=====[Declaration of privates methods]=========================================
-    PostResult_t checkHTTPPostResult(char * responseBuffer);
+    PostResult_t checkHTTPPostResult(char * responseBuffer, int * dataLen);
 };
 
 

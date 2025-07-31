@@ -1,12 +1,47 @@
-![](./resources/official_armmbed_example_badge.png)
-# Blinky Mbed OS example
+![](./resources/fiubaLogo.png)
 
-The example project is part of the [Arm Mbed OS Official Examples](https://os.mbed.com/code/) and is the [getting started example for Mbed OS](https://os.mbed.com/docs/mbed-os/latest/quick-start/index.html). It contains an application that repeatedly blinks an LED on supported [Mbed boards](https://os.mbed.com/platforms/).
+# Proyect "Rastreador GNSS para Tareas Investigativas" (GNSS Tracker for investigation Tasks)
+
+# Brief
+
+The Firmware contain in this reposity form part of the proyect GNSS Tracker for investigation Tasks which
+is the final work of the degree Electronic Engenieering from the
+[Faculty of Engenieering of the University of Buenos Aires](https://www.fi.uba.ar/).
+This code consist in the code upload into the tracker it self, while the others main parts of the proyect are
+a [LoRa Gateway](https://github.com/FacundoBaez1994/GatewayLoRa) and the [Remote Control Server](https://github.com/joaquinelordi/Torcaza)
+named Torcaza after a Argentinean dove.
+
+The GNNS tracker system for investigative tasks, consists of an autonomous device built with the objective of getting the localization 
+of himself in real time, and sending it to a remote base, in order to keep the track of a vehicle terrestrial or naval.
+The device was initialy conceived for his use in the Argentinian Coast Guard, but is extrapolable to almost any LEA, 
+(Law Enforcement Agent) and it was devised after a real problem. 
+
+# Firmware
+
+The device was developed in the C++ programming languages and using the NUCLEO develop board from ARM, and it makes use of various IOT devices.
+  This work is carried out within the framework of the Embedded Systems subject of the Faculty of Engineering of the University of Buenos Aires and in it the topics learned in the subject and in general in the Electronic Engineering career are applied; Such as OOP, general electronics, data communication, among others. 
+  In these memories the work is presented, its planning and motivation, and the technical information about the hardware and firmware, as well as the explanation of its design and organization
+
+# Hardware
+
+# Members
+
+## authors
+
+1. Baez Facundo
+2. Elordi Joaquin
+
+## tutor
+
+1. Ing. Graña Jorge
+
+# Credits (Libraries used)
+
+
 
 You can build the project with all supported [Mbed OS build tools](https://os.mbed.com/docs/mbed-os/latest/tools/index.html). However, this example project specifically refers to the command-line interface tool [Arm Mbed CLI](https://github.com/ARMmbed/mbed-cli#installing-mbed-cli).
 (Note: To see a rendered example you can import into the Arm Online Compiler, please see our [import quick start](https://os.mbed.com/docs/mbed-os/latest/quick-start/online-with-the-online-compiler.html#importing-the-code).)
 
-## Mbed OS build tools
 
 ### Mbed CLI 2
 Starting with version 6.5, Mbed OS uses Mbed CLI 2. It uses Ninja as a build system, and CMake to generate the build environment and manage the build process in a compiler-independent manner. If you are working with Mbed OS version prior to 6.5 then check the section [Mbed CLI 1](#mbed-cli-1).

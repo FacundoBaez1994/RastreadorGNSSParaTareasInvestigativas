@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "ConsultingSIMCardStatus.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h"
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
@@ -30,11 +30,7 @@
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 ConsultingSIMCardStatus::ConsultingSIMCardStatus (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->ATFirstResponseRead  = false;
@@ -44,24 +40,10 @@ ConsultingSIMCardStatus::ConsultingSIMCardStatus (CellularModule * mobileModule)
     this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConsultingSIMCardStatus::~ConsultingSIMCardStatus () {
     this->mobileNetworkModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
@@ -135,12 +117,6 @@ CellInformation * currentCellInformation) {
     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ConsultingSIMCardStatus::retrivNeighborCellsInformation (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
     int numberOfNeighbors) {

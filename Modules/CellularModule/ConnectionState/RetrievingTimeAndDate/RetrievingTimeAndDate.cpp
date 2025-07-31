@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "RetrievingTimeAndDate.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h" 
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
@@ -24,17 +24,9 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 RetrievingTimeAndDate::RetrievingTimeAndDate (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->timeAndDateRetrived = false;
@@ -43,33 +35,14 @@ RetrievingTimeAndDate::RetrievingTimeAndDate (CellularModule * mobileModule) {
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 RetrievingTimeAndDate::~RetrievingTimeAndDate () {
     this->mobileNetworkModule = NULL;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void RetrievingTimeAndDate::enableConnection () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * ATHandler,
  NonBlockingDelay * refreshTime, CellInformation * currentCellInformation) {
 

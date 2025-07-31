@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "ConnectedState.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h"
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
@@ -10,7 +10,6 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
@@ -18,57 +17,27 @@
 //=====[Declaration and initialization of private global variables]============
 
 
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 ConnectedState::ConnectedState () {
     this->mobileNetworkModule = NULL;
     this->enableTransceiver = false;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ConnectedState::ConnectedState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->enableTransceiver = false;
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConnectedState::~ConnectedState () {
     this->mobileNetworkModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void ConnectedState::enableConnection () {
     return;
 }
@@ -78,12 +47,6 @@ CellularConnectionStatus_t ConnectedState::connect (ATCommandHandler * handler,
         return CELLULAR_CONNECTION_STATUS_CONNECTED_TO_NETWORK;
     }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
     int numberOfNeighbors) {
@@ -191,7 +154,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
 }
 
 
-//=====[Implementations of private functions]==================================
+//=====[Implementations of private methods]==================================
 bool ConnectedState::retrivOperatorsCodes(const char *response, int *mcc, int *mnc) {
     char StringToCompare[7] = "+QOPS:";
 

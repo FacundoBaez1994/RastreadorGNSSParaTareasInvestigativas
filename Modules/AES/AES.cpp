@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
+//=====[Libraries]=============================================================
 #include "AES.h"
+
+//=====[Declaration of private defines]========================================
+#define MAXATTEMPTS 20
+//=====[Declaration of private data types]=====================================
+
 
 const char AES::m_Sbox[256] = {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5,
@@ -91,6 +97,21 @@ const unsigned int AES::m_Rcon[10] = {
     0x10000000, 0x20000000, 0x40000000, 0x80000000,
     0x1B000000, 0x36000000
 };
+
+
+//=====[Declaration and initialization of public global objects]===============
+
+//=====[Declaration of external public global variables]=======================
+
+//=====[Declaration and initialization of public global variables]=============
+
+//=====[Declaration and initialization of private global variables]============
+
+//=====[Declarations (prototypes) of private functions]========================
+
+//=====[Implementations of private methods]===================================
+
+//=====[Implementations of public methods]===================================
 
 AES::AES()
 {

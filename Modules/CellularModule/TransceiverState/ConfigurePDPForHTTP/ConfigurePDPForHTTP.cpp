@@ -10,31 +10,17 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 ConfigurePDPForHTTP::ConfigurePDPForHTTP () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -43,12 +29,6 @@ ConfigurePDPForHTTP::ConfigurePDPForHTTP () {
     this->currentStatus = ASSING_PDPCONTEXT_TO_HTTP_STACK;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ConfigurePDPForHTTP::ConfigurePDPForHTTP (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -57,34 +37,14 @@ ConfigurePDPForHTTP::ConfigurePDPForHTTP (CellularModule * mobileModule) {
     this->currentStatus = ASSING_PDPCONTEXT_TO_HTTP_STACK;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConfigurePDPForHTTP::~ConfigurePDPForHTTP () {
     this->mobileNetworkModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void ConfigurePDPForHTTP::enableTransceiver () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {

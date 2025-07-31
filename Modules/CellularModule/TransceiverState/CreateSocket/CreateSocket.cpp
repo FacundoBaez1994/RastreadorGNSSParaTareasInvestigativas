@@ -24,17 +24,8 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 CreateSocket::CreateSocket () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -42,12 +33,6 @@ CreateSocket::CreateSocket () {
     this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 CreateSocket::CreateSocket (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -55,13 +40,6 @@ CreateSocket::CreateSocket (CellularModule * mobileModule) {
     this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CreateSocket::~CreateSocket () {
     this->mobileNetworkModule = NULL;
 }
@@ -71,13 +49,6 @@ void CreateSocket::enableTransceiver () {
     return;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
  CellularTransceiverStatus_t  CreateSocket::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
@@ -89,11 +60,10 @@ void CreateSocket::enableTransceiver () {
     char ATcommand[] = "AT+QIOPEN=";
     char protocol[] = "\"TCP\"";
     int noErrorCode = 0;
-    int contextID = 1; // Usualmente 1
-    int connectID = 0; // Puede ser entre 0 y 11
-    int access_mode = 0; // Modo de acceso al buffer
+    int contextID = 1; // Usualy 1
+    int connectID = 0; // could be a value beetween 0 y 11
+    int access_mode = 0; // buffer access mode
 
-    // Formatear la cadena final
     int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d,%s,\"%s\",%d,%d", ATcommand, contextID,
      connectID, protocol, socketTargetted->IpDirection , socketTargetted->TcpPort , access_mode);
     snprintf(ExpectedResponse, sizeof(ExpectedResponse), "+QIOPEN: %d,%d", connectID, noErrorCode);

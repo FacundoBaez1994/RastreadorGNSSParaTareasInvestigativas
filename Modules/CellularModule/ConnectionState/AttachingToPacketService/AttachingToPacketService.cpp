@@ -19,7 +19,6 @@
 
 
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
 
@@ -27,11 +26,7 @@
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 AttachingToPacketService::AttachingToPacketService () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -39,12 +34,6 @@ AttachingToPacketService::AttachingToPacketService () {
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 AttachingToPacketService::AttachingToPacketService (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -52,32 +41,17 @@ AttachingToPacketService::AttachingToPacketService (CellularModule * mobileModul
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
+
 AttachingToPacketService::~AttachingToPacketService () {
     this->mobileNetworkModule = NULL;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
+
 void AttachingToPacketService::enableConnection () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
+
 CellularConnectionStatus_t AttachingToPacketService::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
  CellInformation * currentCellInformation) {

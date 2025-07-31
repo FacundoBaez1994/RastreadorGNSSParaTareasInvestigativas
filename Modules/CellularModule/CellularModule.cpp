@@ -28,17 +28,11 @@
 //=====[Declarations (prototypes) of private functions]========================
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief r
-*/
+
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* 
-* 
-* 
-*/
+
 CellularModule::CellularModule () {
     this->refreshTime = new NonBlockingDelay (REFRESHTIME);
     this->ATHandler = new ATCommandHandler (new BufferedSerial  (CELLULAR_MODULE_TX_UART, 
@@ -51,12 +45,6 @@ CellularModule::CellularModule () {
     this->currentPowerStatus = POWER_OFF;
 }
 
-
-/** 
-* 
-* 
-* 
-*/
 CellularModule::~CellularModule () {
     delete this->refreshTime;
     this->refreshTime = nullptr;
@@ -72,12 +60,6 @@ CellularModule::~CellularModule () {
     this->simCardSwitchOutput = nullptr;
 }
 
-
-/** 
-* 
-* 
-* 
-*/
 void CellularModule::startStopUpdate () {
     powerStatus_t newPowerStatus;
     newPowerStatus = this->modulePowerManager->startStopUpdate();
@@ -90,69 +72,31 @@ void CellularModule::startStopUpdate () {
     }
 }
 
-/** 
-* 
-* 
-* 
-*/
 bool CellularModule::turnOn () { 
     return this->modulePowerManager->turnOn();
 }
 
-/** 
-* 
-* 
-* 
-*/
 bool CellularModule::turnOff () { 
     return this->modulePowerManager->turnOff();
 }
 
-
-
-/** 
-* 
-* 
-* 
-*/
 void CellularModule::awake () { 
     this->modulePowerManager->awake();
 }
 
-/** 
-* 
-* 
-* 
-*/
 bool CellularModule::goToSleep () {
     return this->modulePowerManager->goToSleep();
 }
 
-/** 
-* 
-* 
-*
-*/
 bool CellularModule::reboot () {
     return this->modulePowerManager->reboot ();
 }
 
-/** 
-* 
-* 
-* 
-*/
 CellularConnectionStatus_t CellularModule::connectToMobileNetwork 
 (CellInformation * currentCellInformation) {
     return this->currentConnectionState->connect(this->ATHandler, this->refreshTime, currentCellInformation);
 }
 
-
-/** 
-* @brief 
-* 
-* @returns 
-*/
 CellularTransceiverStatus_t CellularModule::exchangeMessages (char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     CellularTransceiverStatus_t currentStatus = this->currentTransceiverState->exchangeMessages (this->ATHandler,
@@ -165,69 +109,32 @@ CellularTransceiverStatus_t CellularModule::exchangeMessages (char * message, Tc
     return currentStatus;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool CellularModule::measureBattery (BatteryData * currentBatteryData) {
     return this->modulePowerManager->measureBattery(currentBatteryData);
 }
 
-/** 
-* @brief 
-* 
-* @returns 
-*/
 void CellularModule::changeConnectionState  (ConnectionState * newConnectionState) {
     delete this->currentConnectionState;
     this->currentConnectionState = newConnectionState;
 }
-/** 
-* @brief 
-* 
-* @returns 
-*/
+
 void CellularModule::changeTransceiverState  (TransceiverState * newTransceiverState) {
     delete this->currentTransceiverState;
     this->currentTransceiverState = newTransceiverState;
 }
 
-/** 
-* @brief 
-* 
-* @returns 
-*/
 void CellularModule:: enableTransceiver () {
     this->currentTransceiverState->enableTransceiver();  
 }
 
-/** 
-* @brief 
-* 
-* @returns 
-*/
 void CellularModule:: enableConnection () {
     this->currentConnectionState->enableConnection();
 }
 
-
-
-/** 
-* @brief 
-* 
-* @returns 
-*/
  BufferedSerial* CellularModule::getUART () {
      return this->ATHandler->getUART();
 }
 
-/** 
-* @brief
-* @note 
-*/
 void CellularModule::switchSIMCARD () {
     *this->simCardSwitchOutput = ! *this->simCardSwitchOutput;
 }

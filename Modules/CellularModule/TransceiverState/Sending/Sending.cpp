@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "Sending.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h" 
 #include "Debugger.h" // due to global usbUart
 #include "Receiving.h"
 
@@ -11,31 +11,18 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 Sending::Sending () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -45,12 +32,6 @@ Sending::Sending () {
     this->maxAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 Sending::Sending (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -60,46 +41,28 @@ Sending::Sending (CellularModule * mobileModule) {
     this->maxAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 Sending::~Sending () {
     this->mobileNetworkModule = NULL;
 }
 
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void Sending::enableTransceiver () {
     return;
 }
-
-
 
 CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     char buffer[100];
 
-    static size_t currentMessagePosition = 0;  // Posición actual del mensaje
-    size_t messageLength = strlen(message);    // Longitud total del mensaje
-    size_t chunkSize = 256;                    // Tamaño del fragmento a enviar
-    static bool debugFlag = false;             // Flag para evitar múltiples logs de depuración
+    static size_t currentMessagePosition = 0; 
+    size_t messageLength = strlen(message);  
+    size_t chunkSize = 256;        
+    static bool debugFlag = false; 
 
-    // Asegurarse de que no se pase del final del mensaje
     size_t remainingLength = messageLength - currentMessagePosition;
     size_t sizeToSend = (remainingLength < chunkSize) ? remainingLength : chunkSize;
 
-    // Mostrar depuración solo una vez
     if (!debugFlag) {
         snprintf(buffer, sizeof(buffer), "currentMessagePosition = %zu, messageLength = %zu", currentMessagePosition, messageLength);
         uartUSB.write(buffer, strlen(buffer));  // Debug only
@@ -107,16 +70,13 @@ CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHand
         debugFlag = true;
     }
 
-    // Crear un fragmento del mensaje para enviar
     char messageChunk[chunkSize + 1];
     strncpy(messageChunk, message + currentMessagePosition, sizeToSend);
-    messageChunk[sizeToSend] = '\0';  // Asegurarse de que termine en NULL
+    messageChunk[sizeToSend] = '\0'; 
 
-    // Enviar el fragmento actual
     if (this->sendChunck(ATHandler, refreshTime, messageChunk, socketTargetted)) {
-        currentMessagePosition += sizeToSend;  // Avanzar en la posición del mensaje
+        currentMessagePosition += sizeToSend; 
 
-        // Depuración después de enviar cada fragmento
         
         snprintf(buffer, sizeof(buffer), "Sent chunk, new currentMessagePosition = %zu", currentMessagePosition);
         uartUSB.write(buffer, strlen(buffer));  // Debug only
@@ -124,18 +84,17 @@ CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHand
 
     }
 
-        // Si ya hemos enviado todo el mensaje
     if (currentMessagePosition >= messageLength) {
         snprintf(buffer, sizeof(buffer), "all the chunks were sent");
         uartUSB.write(buffer, strlen(buffer));  // Debug only
         uartUSB.write("\r\n", 3);       
-        currentMessagePosition = 0;  // Reiniciar para el próximo mensaje
-        debugFlag = false;           // Reiniciar flag de depuración para el próximo mensaje
+        currentMessagePosition = 0;  
+        debugFlag = false;           
         this->mobileNetworkModule->changeTransceiverState(new Receiving(this->mobileNetworkModule));
-        return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;  // Mensaje completamente enviado
+        return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND; 
     }
 
-    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;  // Aún quedan fragmentos por enviar
+    return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND; 
 }
 
 
@@ -152,15 +111,13 @@ bool Sending::sendChunck(ATCommandHandler *ATHandler,
     char StringToBeSendUSB[] = "SENDING DATA"; 
     char ATcommand[] = "AT+QISEND=";
     char ExpectedResponse [] = "SEND OK";
-    int connectID = 0; // Puede ser entre 0 y 11
+    int connectID = 0;
     char confirmationToSend[] = "\x1a";
     char confirmationChar = '>';
     char recievedChar;
     static int counter = 0;
 
-    // Formatear la cadena final
     int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d", ATcommand, connectID, strlen(message));
-
 
     if ( this->transmissionEnable == true) {
         if (ATHandler->readChar(&recievedChar) ==  true) {

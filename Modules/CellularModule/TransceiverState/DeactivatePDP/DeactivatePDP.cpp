@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "DeactivatePDP.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h" 
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
@@ -10,66 +10,31 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
 
-/** 
-* @brief
-* 
-* @param 
-*/
 DeactivatePDP::DeactivatePDP (CellularModule * mobileModule, bool transmissionWasASuccess ) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
     this->transmissionWasASuccess = transmissionWasASuccess;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 DeactivatePDP::~DeactivatePDP () {
     this->mobileNetworkModule = NULL;
 }
-
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void DeactivatePDP::enableTransceiver () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularTransceiverStatus_t DeactivatePDP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
@@ -123,8 +88,6 @@ CellularTransceiverStatus_t DeactivatePDP::exchangeMessages (ATCommandHandler * 
     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
 }
 
-//    CELLULAR_TRANSCEIVER_STATUS_FAIL_TO_ACTIVATE_PDP,
-    //CELLULAR_TRANSCEIVER_STATUS_SEND_OK,
 
 
 //=====[Implementations of private functions]==================================

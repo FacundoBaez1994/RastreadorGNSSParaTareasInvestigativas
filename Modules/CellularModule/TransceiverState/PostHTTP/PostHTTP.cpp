@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "PostHTTP.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h" 
 #include "Debugger.h" // due to global usbUart
 
 
@@ -11,28 +11,16 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
 
-
-
-
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 PostHTTP::PostHTTP () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -43,11 +31,6 @@ PostHTTP::PostHTTP () {
 }
 
 
-/** 
-* @brief
-* 
-* @param 
-*/
 PostHTTP::PostHTTP (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -57,36 +40,16 @@ PostHTTP::PostHTTP (CellularModule * mobileModule) {
     this->jwt = new JWTManager ();
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 PostHTTP::~PostHTTP () {
     this->mobileNetworkModule = NULL;
     delete this->jwt;
     this->jwt = nullptr;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void PostHTTP::enableTransceiver () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
@@ -97,12 +60,9 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     char ExpectedResponse2 [15] = "CONNECT";
     char PartialStringToSend1 [50] = "AT+QHTTPURL=";
     char StringToSend1 [50];
-    //"http://intent-lion-loudly.ngrok-free.app/api/canal/envio"
     char url [100] = "https://intent-lion-loudly.ngrok-free.app/api/canal/envio";
-    //char url [100] = "http://webhook.site/572d2d5b-404f-42c7-be4e-5a22592009f7";
     char confirmationToSend[] = "\x1a";
     
-
     char PartialStringToSend2 [50] = "AT+QHTTPPOST=";
     char StringToSend2 [50]; 
 
@@ -111,12 +71,8 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     static bool watingForResponse = false;
     static bool urlSet = false;
 
-    //char StringToSend4 [5] = "ATE0";  
-    
-
     int urlLength = strlen(url);
 
-    // Tiempo máximo de ingreso del URL (en segundos)
     int inputTimeout = 80;
 
     int responseTimeout = 80;
@@ -126,9 +82,6 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     sprintf(StringToSend2, "AT+QHTTPPOST=%d,%d,%d", strlen(message), inputTimeout, responseTimeout);
 
     sprintf(StringToSend3, "AT+QHTTPREAD=%d", responseTimeout);
-
-
-
    
    switch (this->currentStatus) {
        case SETTING_URL:
@@ -202,7 +155,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
                 PostResult_t postResult = checkHTTPPostResult (StringToBeRead, &dataLen);
-                if (postResult == POST_OK) { // ACA HAY QUE VER SI +QHTTPPOST
+                if (postResult == POST_OK) { 
   
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     uartUSB.write ("POST Message success"  , strlen ("POST Message success"));  // debug only
@@ -243,11 +196,6 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
             } else {
                 if ( ATHandler->readATResponse ( StringToBeRead ) == true) { //
                     ////   ////   ////   ////   ////   ////
-                    /*
-                    char* ptr = strstr(receivedMessage, "AT+QHTTPREAD=");
-                    if (ptr != NULL) {
-                        *ptr = '\0'; // Trunca el string ahí
-                    }*/
                     StringToBeRead [dataLen] = '\0';
                     refreshTime->restart();
                     uartUSB.write ("Read POST response\r\n"  , strlen ("Read POST response\r\n"));  // debug only
@@ -304,18 +252,11 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
 }
 
-
-
 //=====[Implementations of private functions]==================================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 PostResult_t PostHTTP::checkHTTPPostResult(char * responseBuffer, int * dataLen) {
-    // Esperamos algo como: +QHTTPPOST: 0,200,xxx
     if (strncmp(responseBuffer, "+QHTTPPOST: ", 12) == 0) {
         int result, httpStatus;
         *dataLen = -1;

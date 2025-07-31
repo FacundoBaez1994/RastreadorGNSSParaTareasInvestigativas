@@ -7,11 +7,9 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXRETRIES  2
-
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
-
 
 //=====[Declaration of external public global variables]=======================
 
@@ -19,24 +17,11 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 ObtainingPositionInformation::ObtainingPositionInformation () {
     this->currentGNSSModule = NULL;
     this->readyToSend = true;
@@ -46,12 +31,6 @@ ObtainingPositionInformation::ObtainingPositionInformation () {
     
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ObtainingPositionInformation::ObtainingPositionInformation  (GNSSModule * aGNSSModule) {
     this->currentGNSSModule = aGNSSModule;
     this->readyToSend = true;
@@ -60,24 +39,10 @@ ObtainingPositionInformation::ObtainingPositionInformation  (GNSSModule * aGNSSM
     this->maxTries = MAXRETRIES;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ObtainingPositionInformation::~ObtainingPositionInformation  () {
     this->currentGNSSModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
  
@@ -279,7 +244,5 @@ bool ObtainingPositionInformation::retrivPositionInfo(char *response) {
     
     return false;
 }
-
-
 
 //=====[Implementations of private functions]==================================

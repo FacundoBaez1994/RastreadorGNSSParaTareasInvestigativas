@@ -12,31 +12,18 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 CheckingSignalStrength::CheckingSignalStrength (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->ATFirstResponseRead  = false;
@@ -48,35 +35,14 @@ CheckingSignalStrength::CheckingSignalStrength (CellularModule * mobileModule) {
     this->maxConnectionAttemptsSignal =  MAX_ATTEMPTS_TO_GET_SIGNAL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CheckingSignalStrength::~CheckingSignalStrength () {
     this->mobileNetworkModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void CheckingSignalStrength::enableConnection () {
     return;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t  CheckingSignalStrength::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
@@ -125,19 +91,18 @@ CellInformation * currentCellInformation) {
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////        
                 if (this->signalLevel > LOWER_LIMIT_SIGNAL_LEVEL) {
-
-                currentCellInformation->signalLevel = this->signalLevel;
-                this->mobileNetworkModule->changeConnectionState(new ConsultingIMEI(this->mobileNetworkModule));
-                return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
-            } else {
-                char StringToSendUSB [15] = "Poor signal";
-                uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
-                connectionAttemptsSignal++;
-                if (this->connectionAttemptsSignal >= this->maxConnectionAttemptsSignal) {
-                    return CELLULAR_CONNECTION_STATUS_MODULE_DISCONNECTED;
+                    currentCellInformation->signalLevel = this->signalLevel;
+                    this->mobileNetworkModule->changeConnectionState(new ConsultingIMEI(this->mobileNetworkModule));
+                    return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
+                } else {
+                    char StringToSendUSB [15] = "Poor signal";
+                    uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+                    uartUSB.write ( "\r\n",  3 );  // debug only
+                    connectionAttemptsSignal++;
+                    if (this->connectionAttemptsSignal >= this->maxConnectionAttemptsSignal) {
+                        return CELLULAR_CONNECTION_STATUS_MODULE_DISCONNECTED;
+                    }
                 }
-            }
             }
         }
     }

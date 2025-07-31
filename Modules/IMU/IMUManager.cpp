@@ -36,9 +36,7 @@
 
 //=====[Implementations of public methods]===================================
 
-/**
- * @brief Contructor method creates a new trackerGPS instance ready to be used
- */
+
 IMUManager::IMUManager() {
     this->bno08x = new Adafruit_BNO08x(I2C_RST_DEFAULT);
     this->i2c = new I2C(I2C_SDA_DEFAULT, I2C_SCL_DEFAULT);
@@ -89,7 +87,6 @@ bool IMUManager::initialize (void) {
         return false;
     }
     
-    
 
     snprintf(log, sizeof(log), "Reading events\n\r");
     uartUSB.write(log, strlen(log));
@@ -100,28 +97,23 @@ bool IMUManager::initialize (void) {
 
 
 
-void IMUManager::checkStability(deviceMotionStatus_t * currentMotionStatus) {
+void IMUManager::checkStability(deviceMotionStatus_t* currentMotionStatus) {
     char log[100];
 
-    // Si el sensor se reseteó, reinicializar los reportes
     if (this->bno08x->wasReset()) {
         snprintf(log, sizeof(log), "Sensor was reset\n\r");
         uartUSB.write(log, strlen(log));
-        setReports(this->reportType, this->reportIntervalUs); // O podés usar initialize()
+        setReports(this->reportType, this->reportIntervalUs); 
     }
 
-    // Verifica si hay un nuevo evento de sensor
     if (this->bno08x->getSensorEvent(&this->sensorValue)) {
 
-        // Mostrar el sensor ID para debugging
         //snprintf(log, sizeof(log), "Sensor ID: %d\n\r", this->sensorValue.sensorId);
         //uartUSB.write(log, strlen(log));
 
-        // Procesar únicamente si es Stability Classifier
         if (this->sensorValue.sensorId == SH2_STABILITY_CLASSIFIER) {
             sh2_StabilityClassifier_t stability = this->sensorValue.un.stabilityClassifier;
 
-            // Mostrar clasificación de estabilidad
             switch (stability.classification) {
                 case STABILITY_CLASSIFIER_UNKNOWN:
                     //uartUSB.write("Stability: Unknown\n\r", strlen("Stability: Unknown\n\r"));
@@ -158,7 +150,6 @@ void IMUManager::checkStability(deviceMotionStatus_t * currentMotionStatus) {
                      break;
             }
         } else {
-            // No es el sensor de estabilidad, lo ignoramos
             return;
         }
     }
@@ -177,14 +168,12 @@ void IMUManager::checkStability(deviceMotionStatus_t * currentMotionStatus) {
     }
     *currentMotionStatus =  this->currentMotionStatus;
 
-
-    // No hubo evento
     return;
 }
 
 
 
-bool IMUManager::obtainInertialMeasures(IMUData_t * inertialMeasures) {
+bool IMUManager::obtainInertialMeasures(IMUData_t* inertialMeasures) {
   char log[100];
 
   if (this->bno08x->wasReset()) {
@@ -195,8 +184,6 @@ bool IMUManager::obtainInertialMeasures(IMUData_t * inertialMeasures) {
   }
 
   if (this->bno08x->getSensorEvent(&this->sensorValue)) {
-    // in this demo only one report type will be received depending on FAST_MODE
-    // define (above)
     switch (this->sensorValue.sensorId) {
         case SH2_ROTATION_VECTOR:
             quaternionToEuler(this->sensorValue.un.rotationVector.real,
@@ -277,61 +264,6 @@ bool IMUManager::obtainInertialMeasures(IMUData_t * inertialMeasures) {
 }
 
 //=====[Implementations of private methods]==================================
-/*
-void IMUManager::handleStabilityEvent(const sh2_StabilityClassifier_t& stability) {
-    switch (stability.classification) {
-        case STABILITY_CLASSIFIER_UNKNOWN:
-            //uartUSB.write("Stability: Unknown\n\r", strlen("Stability: Unknown\n\r"));
-            
-            break;
-        case STABILITY_CLASSIFIER_ON_TABLE:
-            //uartUSB.write("Stability: On Table\n\r", strlen("Stability: On Table\n\r"));
-            if (this->currentMotionStatus == DEVICE_ON_MOTION) {
-                this->stillnessCounter++;
-            }
-            break;
-        case STABILITY_CLASSIFIER_STATIONARY:
-            if (this->currentMotionStatus == DEVICE_ON_MOTION) {
-                this->stillnessCounter++;
-            }
-            //uartUSB.write("Stability: Stationary\n\r", strlen("Stability: Stationary\n\r"));
-            break;
-        case STABILITY_CLASSIFIER_STABLE:
-            if (this->currentMotionStatus == DEVICE_ON_MOTION) {
-                this->stillnessCounter++;
-            }
-            // uartUSB.write("Stability: Stable\n\r", strlen("Stability: Stable\n\r"));
-            break;
-        case STABILITY_CLASSIFIER_MOTION:
-            if (this->currentMotionStatus == DEVICE_STATIONARY) {
-                this->motionCounter++;
-            }
-            //uartUSB.write("Stability: In Motion\n\r", strlen("Stability: In Motion\n\r"));
-                break;
-        default:
-            //uartUSB.write("Stability: Unrecognized\n\r", strlen("Stability: Unrecognized\n\r"));
-                break;
-    }
-
-    if (motionCounter >= THRESHOLD_TO_BE_ON_MOTION &&
-        this->currentMotionStatus == DEVICE_STATIONARY) {
-        this->motionCounter = 0;
-        this->stillnessCounter = 0;
-        this->currentMotionStatus = DEVICE_ON_MOTION;
-        uartUSB.write("\n\rDEVICE_ON_MOTION\n\r", strlen("\n\rDEVICE_ON_MOTION\n\r"));
-    }
-
-    if (stillnessCounter >= THRESHOLD_TO_BE_STATIONARY &&
-        this->currentMotionStatus == DEVICE_ON_MOTION) {
-        this->motionCounter = 0;
-        this->stillnessCounter = 0;
-        this->currentMotionStatus = DEVICE_STATIONARY;
-        uartUSB.write("\n\rDEVICE_STATIONARY\n\r", strlen("\n\rDEVICE_STATIONARY\n\r"));
-    }
-}
-*/
-
-
 void IMUManager::promAccelMeasurement() {
     if (this->samplesCounterAccel < SAMPLES_PROM) {
         this->samplesCounterAccel++;
@@ -351,7 +283,7 @@ void IMUManager::promEulerMeasurement() {
     if (this->samplesCounterAngles < SAMPLES_PROM) {
         this->samplesCounterAngles++;
 
-        // Promediar ángulos correctamente usando seno y coseno
+        // angle prom
         static float rollSinAccum = 0, rollCosAccum = 0;
         static float pitchSinAccum = 0, pitchCosAccum = 0;
         static float yawSinAccum = 0, yawCosAccum = 0;

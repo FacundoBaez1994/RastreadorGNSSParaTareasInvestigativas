@@ -241,9 +241,7 @@ static void i2chal_close(sh2_Hal_t *self) {
 
 static int i2chal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len,
                        uint32_t *t_us) {
-  // Serial.println("I2C HAL read");
 
-  // uint8_t *pBufferOrig = pBuffer;
 
   uint8_t header[4];
   if (!i2c_dev->read(header, 4)) {
@@ -254,14 +252,6 @@ static int i2chal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len,
   uint16_t packet_size = (uint16_t)header[0] | (uint16_t)header[1] << 8;
   // Unset the "continue" bit
   packet_size &= ~0x8000;
-
-  /*
-  Serial.print("Read SHTP header. ");
-  Serial.print("Packet size: ");
-  Serial.print(packet_size);
-  Serial.print(" & buffer size: ");
-  Serial.println(len);
-  */
 
   size_t i2c_buffer_max = i2c_dev->maxBufferSize();
 
@@ -283,8 +273,6 @@ static int i2chal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len,
       read_size = min(i2c_buffer_max, (size_t)cargo_remaining + 4);
     }
 
-    // Serial.print("Reading from I2C: "); Serial.println(read_size);
-    // Serial.print("Remaining to read: "); Serial.println(cargo_remaining);
 
     if (!i2c_dev->read(i2c_buffer, read_size)) {
       return 0;
@@ -309,27 +297,12 @@ static int i2chal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len,
     cargo_remaining -= cargo_read_amount;
   }
 
-  /*
-  for (int i=0; i<packet_size; i++) {
-    Serial.print(pBufferOrig[i], HEX);
-    Serial.print(", ");
-    if (i % 16 == 15) Serial.println();
-  }
-  Serial.println();
-  */
 
   return packet_size;
 }
 
 static int i2chal_write(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len) {
   size_t i2c_buffer_max = i2c_dev->maxBufferSize();
-
-  /*
-  Serial.print("I2C HAL write packet size: ");
-  Serial.print(len);
-  Serial.print(" & max buffer size: ");
-  Serial.println(i2c_buffer_max);
-  */
 
   uint16_t write_size = min(i2c_buffer_max, len);
   if (!i2c_dev->write(pBuffer, write_size)) {
@@ -360,7 +333,6 @@ static uint32_t hal_getTimeUs(sh2_Hal_t *self) {
 static void hal_callback(void *cookie, sh2_AsyncEvent_t *pEvent) {
   // If we see a reset, set a flag so that sensors will be reconfigured.
   if (pEvent->eventId == SH2_RESET) {
-    // Serial.println("Reset!");
     _reset_occurred = true;
   }
 }
@@ -370,7 +342,6 @@ static void sensorHandler(void *cookie, sh2_SensorEvent_t *event) {
   int rc;
   char log [100];
 
-  // Serial.println("Got an event!");
 
   rc = sh2_decodeSensorEvent(_sensor_value, event);
   if (rc != SH2_OK) {

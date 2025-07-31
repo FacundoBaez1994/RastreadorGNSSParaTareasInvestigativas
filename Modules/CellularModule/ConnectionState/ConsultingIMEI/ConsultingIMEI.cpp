@@ -24,17 +24,10 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 ConsultingIMEI::ConsultingIMEI (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->ATFirstResponseRead  = false;
@@ -44,33 +37,14 @@ ConsultingIMEI::ConsultingIMEI (CellularModule * mobileModule) {
     this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConsultingIMEI::~ConsultingIMEI () {
     this->mobileNetworkModule = NULL;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void ConsultingIMEI::enableConnection () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t ConsultingIMEI::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
 
@@ -141,13 +115,6 @@ CellInformation * currentCellInformation) {
 
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ConsultingIMEI::retrivNeighborCellsInformation (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
     int numberOfNeighbors) {
@@ -155,7 +122,7 @@ bool ConsultingIMEI::retrivNeighborCellsInformation (ATCommandHandler * handler,
 }
 
 
-//=====[Implementations of private functions]==================================
+//=====[Implementations of private methods]==================================
 bool ConsultingIMEI::RetrivIMEI(char *response, long long int &value) {
     // Verificar si los primeros tres caracteres son dígitos
     for (int i = 0; i < 3; ++i) {

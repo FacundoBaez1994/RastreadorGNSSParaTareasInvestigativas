@@ -1,7 +1,6 @@
 //=====[Libraries]=============================================================
-
 #include "ConfigurateConstellation.h" 
-#include "GNSSModule.h" //debido a declaracion adelantada
+#include "GNSSModule.h"
 #include "Debugger.h" // due to global usbUart
 #include "TurningOffGNSS.h"
 
@@ -12,46 +11,25 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
  ConfigurateConstellation::ConfigurateConstellation () {
     this->currentGNSSModule = NULL;
     this->readyToSend = true;
 
     this->numberOfTries = 0;
     this->maxTries = MAXRETRIES;
-    
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ConfigurateConstellation::ConfigurateConstellation  (GNSSModule * aGNSSModule) {
     this->currentGNSSModule = aGNSSModule;
     this->readyToSend = true;
@@ -60,28 +38,14 @@ ConfigurateConstellation::ConfigurateConstellation  (GNSSModule * aGNSSModule) {
     this->maxTries = MAXRETRIES;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConfigurateConstellation::~ConfigurateConstellation  () {
     this->currentGNSSModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 GNSSState_t  ConfigurateConstellation::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
  
-    char StringToSend [28] = "AT+QGPSCFG=\"gnssconfig\",4";
+    char StringToSend [28] = "AT+QGPSCFG=\"gnssconfig\",4"; // 4 == Beidou and GPS
     char StringToBeRead [50];
     char ExpectedResponse [3] = "OK";
     char StringToSendUSB [40] = "CONFIGURE GNSS CONSTELLATION";
@@ -130,11 +94,8 @@ GNSSState_t  ConfigurateConstellation::retrivGeopositioning (GNSSData * Geodata,
     return GNSS_STATE_TRYING_TO_CONNECT;
 }
 
-
 void ConfigurateConstellation::enableGNSS ()  {
     return;
 }
-
-
 
 //=====[Implementations of private functions]==================================

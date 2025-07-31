@@ -24,17 +24,10 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->operatorsInformationRetrived = false;
@@ -43,34 +36,16 @@ ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mob
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConsultingAvailableOperators::~ConsultingAvailableOperators () {
     this->mobileNetworkModule = NULL;
     this->currentOperator = NULL;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
+
 void ConsultingAvailableOperators::enableConnection () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t  ConsultingAvailableOperators::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
 
@@ -136,12 +111,6 @@ CellInformation * currentCellInformation) {
     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ConsultingAvailableOperators::retrivNeighborCellsInformation (ATCommandHandler * handler,
     NonBlockingDelay * refreshTime, std::vector<CellInformation*> &neighborsCellInformation, 
     int numberOfNeighbors) {
@@ -149,7 +118,7 @@ bool ConsultingAvailableOperators::retrivNeighborCellsInformation (ATCommandHand
 }
 
 
-//=====[Implementations of private functions]==================================
+//=====[Implementations of private methods]==================================
 bool ConsultingAvailableOperators::retrivOperatorsInformation(char *response) {
     char StringToCompare[10] = "+QNWINFO:";
 

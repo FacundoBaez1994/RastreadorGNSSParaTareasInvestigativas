@@ -17,24 +17,12 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 IdleState::IdleState () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -42,12 +30,6 @@ IdleState::IdleState () {
     this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 IdleState::IdleState (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -55,24 +37,10 @@ IdleState::IdleState (CellularModule * mobileModule) {
     this->maxConnectionAttempts = MAXATTEMPTS; 
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 IdleState::~IdleState () {
     this->mobileNetworkModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t  IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
     char StringToSend [15] = "ATI";

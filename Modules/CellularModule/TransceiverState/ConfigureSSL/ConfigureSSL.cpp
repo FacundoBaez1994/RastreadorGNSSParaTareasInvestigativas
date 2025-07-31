@@ -10,31 +10,17 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 ConfigureSSL::ConfigureSSL () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -43,12 +29,6 @@ ConfigureSSL::ConfigureSSL () {
     this->currentStatus = SETTING_SSL_CONTEXT;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ConfigureSSL::ConfigureSSL (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -58,33 +38,14 @@ ConfigureSSL::ConfigureSSL (CellularModule * mobileModule) {
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConfigureSSL::~ConfigureSSL () {
     this->mobileNetworkModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void ConfigureSSL::enableTransceiver () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
@@ -210,9 +171,6 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
         default:
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
    }
-
-
-
 
     if (refreshTime->read()) {
         this->readyToSend = true;

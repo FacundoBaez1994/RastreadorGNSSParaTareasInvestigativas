@@ -17,53 +17,26 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
-
 
 //=====[Implementations of private methods]===================================
 
-
 //=====[Implementations of public methods]===================================
 
-/** 
-* @brief
-* 
-* @param 
-*/
 CloseSocket::CloseSocket (CellularModule * mobileModule, bool transmissionWasASuccess) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
     this->transmissionWasASuccess = transmissionWasASuccess;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CloseSocket::~CloseSocket () {
     this->mobileNetworkModule = NULL;
 }
-
-
-
 
 void CloseSocket::enableTransceiver () {
     return;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
  CellularTransceiverStatus_t CloseSocket::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {

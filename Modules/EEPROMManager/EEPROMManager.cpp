@@ -35,9 +35,6 @@ const int PAGE_SIZE = 64;
 
 
 //=====[Implementations of public methods]===================================
-/**
- * @brief
- */
 EEPROMManager::EEPROMManager ()  {
     this->address = EEPROM_ADDRESS;
     this->pageSize = PAGE_SIZE;
@@ -54,10 +51,10 @@ EEPROMManager::~EEPROMManager() {
 }
 
 bool EEPROMManager::isEEPROMConnected() {
-    char addr[2] = {0x00, 0x00};  // Dirección 0x0000
-    // Intentamos escribir 2 bytes de dirección sin datos
+    char addr[2] = {0x00, 0x00};  // Dir 0x0000
+
     int ack = this->i2c->write(this->address, addr, 2, true);  // true = no stop condition
-    return (ack == 0);  // ack == 0 significa que respondió
+    return (ack == 0);  // ack == 0 means response
 }
 
 void EEPROMManager::printAllStringsFromEEPROM() {
@@ -69,7 +66,7 @@ void EEPROMManager::printAllStringsFromEEPROM() {
         std::string currentString = this->readCStringFromEEPROM(currentAddress);
 
         if (currentString.empty()) {
-            // Llegamos al final (EEPROM vacía o no hay más strings)
+            // reach the end (empty or no more Strings in EEPROM)
             break;
         }
         uartUSB.write("\n\r", strlen("\n\r"));
@@ -78,7 +75,7 @@ void EEPROMManager::printAllStringsFromEEPROM() {
         uartUSB.write(currentString.c_str(), currentString.length() );
         uartUSB.write("\n\r", strlen("\n\r"));
 
-        currentAddress += currentString.length() + 1; // avanzar al próximo string
+        currentAddress += currentString.length() + 1; // Advancing to the next String
         stringIndex++;
     }
 }
@@ -93,7 +90,6 @@ bool EEPROMManager::clearAll() {
     char buffer[2 + PAGE_SIZE];
 
     if (!this->delay->read()) {
-        // Aún esperando que termine el retardo anterior
         return false;
     }
 
@@ -106,14 +102,13 @@ bool EEPROMManager::clearAll() {
     if (readingString) {
         currentString = this->readCStringFromEEPROM(currentAddress);
         if (currentString.empty()) {
-            clearingInProgress = false; // Terminó el borrado
+            clearingInProgress = false; 
             return true;
         }
         lenToClear = currentString.length() + 1;
         readingString = false;
     }
 
-    // Borrar bytes del string actual
     int pageOffset = currentAddress % PAGE_SIZE;
     int spaceInPage = PAGE_SIZE - pageOffset;
     int bytesToWrite = std::min(spaceInPage, lenToClear);
@@ -128,10 +123,10 @@ bool EEPROMManager::clearAll() {
     lenToClear -= bytesToWrite;
 
     if (lenToClear <= 0) {
-        readingString = true; // Pasamos al siguiente string
+        readingString = true; 
     }
 
-    return false; // Aún no terminó
+    return false;
 }
 
 EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t bufferSize) {
@@ -142,7 +137,7 @@ EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t buffe
     static int lenToClear = 0;
     static bool readingPhase = true;
     static bool clearingPhase = false;
-    static bool copiedToBuffer = false;  // NUEVO
+    static bool copiedToBuffer = false; 
 
     if (!this->delay->read()) {
         return EEPROMStatus::PROCESSING;
@@ -162,7 +157,7 @@ EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t buffe
                 lenToClear = 0;
                 readingPhase = true;
                 clearingPhase = false;
-                copiedToBuffer = false;  // NUEVO
+                copiedToBuffer = false; 
                 return EEPROMStatus::EMPTY;
             }
 
@@ -207,7 +202,7 @@ EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t buffe
             lenToClear = 0;
             readingPhase = true;
             clearingPhase = false;
-            copiedToBuffer = false;  // NUEVO
+            copiedToBuffer = false;
             return EEPROMStatus::POPPEDSTRINGOK;
         }
 
@@ -216,8 +211,6 @@ EEPROMStatus EEPROMManager::popStringFromEEPROM(char* outputBuffer, size_t buffe
 
     return EEPROMStatus::PROCESSING;
 }
-
-
 
 EEPROMStatus EEPROMManager::pushStringToEEPROM(const char* newString) {
     static uint16_t memoryAddress = 0;
@@ -235,16 +228,15 @@ EEPROMStatus EEPROMManager::pushStringToEEPROM(const char* newString) {
         locatingAddress = false;
     }
 
-    // Chequeo de memoria disponible
     if ((memoryAddress + strlen(newString) + 1) > EEPROM_SIZE) {
-        locatingAddress = true; // Reset para permitir siguiente push desde cero
+        locatingAddress = true;
         return EEPROMStatus::NOMEMORY;
     }
 
     bool writeCompleted = this->writeStringToEEPROM(memoryAddress, newString);
 
     if (writeCompleted) {
-        locatingAddress = true; // Para permitir un nuevo push la próxima vez
+        locatingAddress = true;
         return EEPROMStatus::PUSHOK;
     }
 
@@ -271,12 +263,11 @@ bool EEPROMManager::writeStringToEEPROM (int memoryAddress, const char* data) {
     }
 
     if (!this->delay->read()) {
-        // Aún esperando que termine el retardo anterior
         return false;
     }
 
     if (written >= totalLen) {
-        writingInProgress = false; // Finalizó la escritura
+        writingInProgress = false;
         return true;
     }
 
@@ -295,7 +286,7 @@ bool EEPROMManager::writeStringToEEPROM (int memoryAddress, const char* data) {
     written += bytesToWrite;
     currentAddress += bytesToWrite;
 
-    return false; // Aún no terminó
+    return false;
 }
 
 

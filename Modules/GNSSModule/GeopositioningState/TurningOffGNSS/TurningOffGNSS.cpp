@@ -1,7 +1,6 @@
 //=====[Libraries]=============================================================
-
 #include "TurningOffGNSS.h" 
-#include "GNSSModule.h" //debido a declaracion adelantada
+#include "GNSSModule.h" 
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
@@ -10,65 +9,32 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 TurningOffGNSS::TurningOffGNSS () {
     this->currentGNSSModule = NULL;
     this->readyToSend = true;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 TurningOffGNSS::TurningOffGNSS   (GNSSModule * aGNSSModule) {
     this->currentGNSSModule = aGNSSModule;
     this->readyToSend = true;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 TurningOffGNSS::~TurningOffGNSS  () {
     this->currentGNSSModule = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 GNSSState_t TurningOffGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
  
@@ -110,16 +76,10 @@ GNSSState_t TurningOffGNSS::retrivGeopositioning (GNSSData * Geodata, ATCommandH
     if (refreshTime->read()) {
         this->readyToSend = true;
     }
-    //
-    //
-    //
     return GNSS_STATE_DISCONNECTED;
 }
 
 void TurningOffGNSS::enableGNSS ()  {
     return;
 }
-
-
-
 //=====[Implementations of private functions]==================================

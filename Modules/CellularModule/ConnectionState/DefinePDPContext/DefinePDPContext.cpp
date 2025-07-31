@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "DefinePDPContext.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h"
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
@@ -31,11 +31,7 @@
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 DefinePDPContext::DefinePDPContext () {
     this->mobileNetworkModule = NULL;
     this->readyToSend = true;
@@ -43,12 +39,6 @@ DefinePDPContext::DefinePDPContext () {
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -57,23 +47,11 @@ DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 DefinePDPContext::~DefinePDPContext () {
     this->mobileNetworkModule = NULL;
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t DefinePDPContext::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {

@@ -1,7 +1,7 @@
 //=====[Libraries]=============================================================
 
 #include "ConsultingNetworkStatus.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h"
 #include "Debugger.h" // due to global usbUart 
 
 //=====[Declaration of private defines]========================================
@@ -24,19 +24,8 @@
 
 //=====[Declarations (prototypes) of private functions]========================
 
-
-//=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
-
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->ATFirstResponseRead  = false;
@@ -46,33 +35,15 @@ ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule)
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ConsultingNetworkStatus::~ConsultingNetworkStatus () {
     this->mobileNetworkModule = NULL;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void ConsultingNetworkStatus::enableConnection () {
     return;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
+
 CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * ATHandler,
  NonBlockingDelay * refreshTime,
  CellInformation * currentCellInformation) {
@@ -161,29 +132,24 @@ bool ConsultingNetworkStatus::retrivNeighborCellsInformation (ATCommandHandler *
         return false;
 }
 
-
-
 //=====[Implementations of private functions]==================================
+
+//=====[Implementations of private methods]===================================
 bool ConsultingNetworkStatus::retrivIdCellData(char *response) {
     char StringToCompare[8] = "+CREG: ";
 
-    // Verificar si la respuesta comienza con "+CREG: "
     if (strncmp(response, StringToCompare, strlen(StringToCompare)) == 0) {
-        // Variables para almacenar los campos parseados
         int stat, act;
         char tac[10];
         char ci[20];
-        
-        // Parsear la respuesta
+
         int n = sscanf(response, "+CREG: %*d,%d,\"%9[^\"]\",\"%19[^\"]\",%d", &stat, tac, ci, &act);
         
-        // Verificar que se hayan parseado correctamente los 4 valores
         if (n == 4) {
             this->registrationStatus = stat;
 
-            // Convertir LAC y Cell ID de hexadecimal a entero
-            this->lac = strtol(tac, nullptr, 16);  // LAC como entero
-            this->cellId = strtol(ci, nullptr, 16);  // Cell ID como entero
+            this->lac = strtol(tac, nullptr, 16); 
+            this->cellId = strtol(ci, nullptr, 16); 
             this->accessTechnology = act;
 
             // Debugging

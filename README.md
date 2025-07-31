@@ -9,20 +9,51 @@ is the final work of the degree Electronic Engenieering from the
 [Faculty of Engenieering of the University of Buenos Aires](https://www.fi.uba.ar/).
 This code consist in the code upload into the tracker it self, while the others main parts of the proyect are
 a [LoRa Gateway](https://github.com/FacundoBaez1994/GatewayLoRa) and the [Remote Control Server](https://github.com/joaquinelordi/Torcaza)
-named Torcaza after a Argentinean dove.
+named Torcaza after an Argentinean dove.
 
 The GNNS tracker system for investigative tasks, consists of an autonomous device built with the objective of getting the localization 
 of himself in real time, and sending it to a remote base, in order to keep the track of a vehicle terrestrial or naval.
 The device was initialy conceived for his use in the Argentinian Coast Guard, but is extrapolable to almost any LEA, 
-(Law Enforcement Agent) and it was devised after a real problem. 
+(Law Enforcement Agent) and it was devised after a real problem.
+
+In this proyect the Students have applied knowledge adquired in the various subjects of the carreer such as Embbebed Systems,
+Algoritms, programming, PCB design, general electronics, informatic security, data communication, beetween others.
+
+# Hardware
+
+The hardware of the tracker consist in various OEM Modules listed:
+
+1. Nucleo-L432KC Board from STMicroelectronics
+2. BNO085 Inertial Sensor. This module consist in a Gyroscope, Accelerometer, magnetometer.
+3. EC21-Aux from Quectel. GNSS-LTE Module.
+4. RFM95 LoRa - which has incorporated a Semtech SX1276.
+5. AT24C256 EEPROM Memory.
+6. IP2312 Battery Charger
+
+The sistem is powered by 18650 Ion-Lithium Batteries in parallel, therefore the device works with a voltage beetween
+3.0V and 4.2V. Some modules works 3.3V far less than the 4.2V maximum provided by the batteries, therefore
+that a few KF33BD-TR LDO Regulator have been incorporated into the circuit.
 
 # Firmware
 
-The device was developed in the C++ programming languages and using the NUCLEO develop board from ARM, and it makes use of various IOT devices.
-  This work is carried out within the framework of the Embedded Systems subject of the Faculty of Engineering of the University of Buenos Aires and in it the topics learned in the subject and in general in the Electronic Engineering career are applied; Such as OOP, general electronics, data communication, among others. 
-  In these memories the work is presented, its planning and motivation, and the technical information about the hardware and firmware, as well as the explanation of its design and organization
+The firware was developed in the C++ programming languages and using the NUCLEO family develop board from ARM, making use of [mbed-os]
+(https://github.com/ARMmbed/mbed-os) which provides many usefull tools and libraries. 
 
-# Hardware
+C++ provides the posibility of using the paradigm of Object Oriented Programing (OOP) despite also been capable of woking at low-level bit by bit
+basis requiried by any embebbed system in order to read/write registers. Sticking with the OOP paradigm and respecting all his fundamental pillars,
+alow to generate easy to read/understand, easy to mantenain and reusable for future proyects code. Desing Pattern has been used such has Chain of Responsability,
+Singleton, State Pattern and Decorator.
+
+The main ruting of the firmware it can be described has a big non blocking Polling rutine based on nested State Patterns following a Class 
+Hierarchy based on the level of programming or how close to the OEM Modules the Classes operates beeing Tracker the Class that sits on top
+of this Hierarchy, because is the only call by main (). Despite been a polling rutine it also some interruption to handle diferents timmers.
+This Polling rutine makes the Nucleo board ask to one at time modules for the information needed and accions to do in order to perform 
+the tracker rutine, for example throght sending AT command at the LTE/GNNS Module make it connect to the mobile newtwoks. 
+
+The archives are organized mostly by the standard were the ones with .h extention are class declaration (with there attributes and methods)
+ and the archives with .cpp contains the implementation of the methods.
+
+The firware is self documented using doxygen type of comentaries in almost class, function, method, enumerative type, e.g.
 
 # Members
 
@@ -37,68 +68,16 @@ The device was developed in the C++ programming languages and using the NUCLEO d
 
 # Credits (Libraries used)
 
+Outside the ones written by mbed Microcontroller Library this Firmware make uses of many libraries of
+various authores customized to fit into the proyect and work properly with mbed-os. 
+The following list shows all the libraries used:
 
-
-You can build the project with all supported [Mbed OS build tools](https://os.mbed.com/docs/mbed-os/latest/tools/index.html). However, this example project specifically refers to the command-line interface tool [Arm Mbed CLI](https://github.com/ARMmbed/mbed-cli#installing-mbed-cli).
-(Note: To see a rendered example you can import into the Arm Online Compiler, please see our [import quick start](https://os.mbed.com/docs/mbed-os/latest/quick-start/online-with-the-online-compiler.html#importing-the-code).)
-
-
-### Mbed CLI 2
-Starting with version 6.5, Mbed OS uses Mbed CLI 2. It uses Ninja as a build system, and CMake to generate the build environment and manage the build process in a compiler-independent manner. If you are working with Mbed OS version prior to 6.5 then check the section [Mbed CLI 1](#mbed-cli-1).
-1. [Install Mbed CLI 2](https://os.mbed.com/docs/mbed-os/latest/build-tools/install-or-upgrade.html).
-1. From the command-line, import the example: `mbed-tools import mbed-os-example-blinky`
-1. Change the current directory to where the project was imported.
-
-### Mbed CLI 1
-1. [Install Mbed CLI 1](https://os.mbed.com/docs/mbed-os/latest/quick-start/offline-with-mbed-cli.html).
-1. From the command-line, import the example: `mbed import mbed-os-example-blinky`
-1. Change the current directory to where the project was imported.
-
-## Application functionality
-
-The `main()` function is the single thread in the application. It toggles the state of a digital output connected to an LED on the board.
-
-**Note**: This example requires a target with RTOS support, i.e. one with `rtos` declared in `supported_application_profiles` in `targets/targets.json` in [mbed-os](https://github.com/ARMmbed/mbed-os). For non-RTOS targets (usually with small memory sizes), please use [mbed-os-example-blinky-baremetal](https://github.com/ARMmbed/mbed-os-example-blinky-baremetal) instead.
-
-## Building and running
-
-1. Connect a USB cable between the USB port on the board and the host computer.
-1. Run the following command to build the example project and program the microcontroller flash memory:
-
-    * Mbed CLI 2
-
-    ```bash
-    $ mbed-tools compile -m <TARGET> -t <TOOLCHAIN> --flash
-    ```
-
-    * Mbed CLI 1
-
-    ```bash
-    $ mbed compile -m <TARGET> -t <TOOLCHAIN> --flash
-    ```
-
-Your PC may take a few minutes to compile your code.
-
-The binary is located at:
-* **Mbed CLI 2** - `./cmake_build/mbed-os-example-blinky.bin`</br>
-* **Mbed CLI 1** - `./BUILD/<TARGET>/<TOOLCHAIN>/mbed-os-example-blinky.bin`
-
-Alternatively, you can manually copy the binary to the board, which you mount on the host computer over USB.
-
-## Expected output
-The LED on your target turns on and off every 500 milliseconds.
-
-
-## Troubleshooting
-If you have problems, you can review the [documentation](https://os.mbed.com/docs/latest/tutorials/debugging.html) for suggestions on what could be wrong and how to fix it.
-
-## Related Links
-
-* [Mbed OS Stats API](https://os.mbed.com/docs/latest/apis/mbed-statistics.html).
-* [Mbed OS Configuration](https://os.mbed.com/docs/latest/reference/configuration.html).
-* [Mbed OS Serial Communication](https://os.mbed.com/docs/latest/tutorials/serial-communication.html).
-* [Mbed OS bare metal](https://os.mbed.com/docs/mbed-os/latest/reference/mbed-os-bare-metal.html).
-* [Mbed boards](https://os.mbed.com/platforms/).
+- [LoRa] () by
+- [CustomJWT] () by ,
+- [Cypher AES] (https://os.mbed.com/users/neilt6/code/AES/) by Neil Thiessen,
+- [Adafruit_BNO08x] (https://github.com/adafruit/Adafruit_BNO08x) Adafruit library, which in turn is based on the
+ CEVA [library SH2](https://github.com/ceva-dsp/sh2)
+- NonBlocking Delay and Miscellaneous codes from Arm Book  [A Beginner's-Guide-to-Designing-Embedded-System-Applications-on-Arm-Cortex-M-Microcontrollers](https://github.com/arm-university/A-Beginners-Guide-to-Designing-Embedded-System-Applications-on-Arm-Cortex-M-Microcontrollers) by Doc Ing. Ariel Lutenberg
 
 ### License and contributions
 

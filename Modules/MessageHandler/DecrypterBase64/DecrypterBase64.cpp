@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "DecrypterBase64.h"
 #include "Debugger.h" // due to global usbUart
 
@@ -9,43 +8,22 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 DecrypterBase64::DecrypterBase64 () {
     this->aes = new AES ();
     this->nextHandler = nullptr;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 DecrypterBase64::~DecrypterBase64 () {
     delete this->aes;
     this->aes = nullptr;
@@ -83,18 +61,16 @@ MessageHandlerStatus_t  DecrypterBase64::handleMessage (char * message, unsigned
     this->aes->decrypt(this->base64_decoded , sizeOfMessage);
     this->aes->clear();
 
-    // 3. Eliminar el padding de AES (últimos bytes añadidos)
-    int padding = this->base64_decoded[decoded_len - 1]; // Último byte = cantidad de padding
+    int padding = this->base64_decoded[decoded_len - 1]; // last byte = padding quantity
     if (padding > 0 && padding <= 16) {
-        decoded_len -= padding; // Ajustar tamaño real
+        decoded_len -= padding; 
     }
 
-    // 4. Asegurar terminación nula y no exceder el buffer de salida
     decoded_len = (decoded_len < sizeOfMessage) ? decoded_len : sizeOfMessage - 1;
     memcpy(message, this->base64_decoded, decoded_len);
-    message[decoded_len] = '\0'; // Forzar terminaci
+    message[decoded_len] = '\0'; 
 
-    uartUSB.write ( "\r\n",  3 );  // debug only
+    uartUSB.write ( "\r\n",  3 );
     uartUSB.write ("\r\ndecrypted message:\r\n", strlen ("decrypted message:\r\n"));  // debug only
     uartUSB.write ( message, strlen (  message));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only

@@ -10,31 +10,17 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 SleepState::SleepState () {
     this->manager = NULL;
     this->status = SLEEP;
@@ -43,12 +29,6 @@ SleepState::SleepState () {
     this->TurningDown = false;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 SleepState::SleepState (PowerManager * newManager) {
     this->manager = newManager;
     this->status = SLEEP;
@@ -57,54 +37,22 @@ SleepState::SleepState (PowerManager * newManager) {
     this->TurningDown = false;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 SleepState::~SleepState () {
     this->manager = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 powerStatus_t SleepState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return SLEEP;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool SleepState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool SleepState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
   return true;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void SleepState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     char StringToSendUSB [40] = "Awakening";
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
@@ -113,35 +61,16 @@ void SleepState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerC
     this->manager->changePowerState (new PowerONState ( this->manager) );
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool SleepState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
     ,  BatteryData * currentBatteryData) {
    return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool SleepState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     this->awake(AThandler, powerChangeDurationTimer);
     return true;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool SleepState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool readyToSend = true;
     static bool hardPowerOffUnderProcess = false;

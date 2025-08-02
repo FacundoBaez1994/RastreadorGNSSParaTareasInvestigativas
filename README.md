@@ -44,7 +44,7 @@ The firmware was developed in the C++ programming languages and using the NUCLEO
 C++ provides the possibility of using the paradigm of Object-Oriented Programing (OOP) while still enabling low-level capabilities like bit by bit
 register manipulation which is essential for embedded system develop. Sticking with the OOP paradigm and respecting all his fundamental pillars,
 allow to generate easy to read/understand, easy to maintain and reusable for future projects code. Desing Pattern has been used such has Chain of Responsibility,
-Singleton, State Pattern and Decorator.
+Singleton, State Pattern and Facade.
 
 The main ruting of the firmware it can be described has a big non blocking Polling routine based on nested State Patterns following a Class 
 Hierarchy based on abstration levels of programming or how close to the OEM Modules the Classes operates beeing Tracker the Class that sits on top

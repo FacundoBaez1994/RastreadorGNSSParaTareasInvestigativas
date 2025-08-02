@@ -1,8 +1,6 @@
 //=====[Libraries]=============================================================
-
 #include "Encrypter.h"
 #include "Debugger.h" // due to global usbUart
-
 
 //=====[Declaration of private defines]========================================
 
@@ -10,43 +8,22 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 Encrypter::Encrypter () {
     this->aes = new AES ();
     this->nextHandler = nullptr;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 Encrypter::~Encrypter () {
     delete this->aes;
     this->aes = nullptr;
@@ -67,7 +44,7 @@ MessageHandlerStatus_t Encrypter::handleMessage(char* message,  unsigned int siz
     uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
     uartUSB.write("\r\n", 2);
 
-    // Llamada al siguiente handler
+    // call to the next handler
     if (this->nextHandler != nullptr) {
         return this->nextHandler->handleMessage(message, sizeOfMessage);
     } else {

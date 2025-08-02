@@ -33,56 +33,88 @@
  *     v1.0 - First release
  */
 
+#include "mbed.h"
 #include "Adafruit_BNO08x.h"
 #include "Debugger.h"
 
+static Adafruit_I2CDevice *i2c_dev = NULL;  //!< Pointer to the I2C device interface
 
-static Adafruit_I2CDevice *i2c_dev = NULL; ///< Pointer to I2C bus interface
+static sh2_SensorValue_t *_sensor_value = NULL; //!< Pointer to current sensor event (populated by interrupt handler)
 
-static sh2_SensorValue_t *_sensor_value = NULL;
-static bool _reset_occurred = false;
+static bool _reset_occurred = false; //!< Flag indicating if a reset has occurred
 
+/**
+ * @brief Writes data to the sensor over I2C
+ * @param self Pointer to HAL structure (unused)
+ * @param pBuffer Pointer to buffer to send
+ * @param len Length of buffer
+ * @return Number of bytes written
+ */
 static int i2chal_write(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len);
+
+/**
+ * @brief Reads data from the sensor over I2C
+ * @param self Pointer to HAL structure (unused)
+ * @param pBuffer Pointer to destination buffer
+ * @param len Length of the buffer
+ * @param t_us Pointer to timestamp (optional, unused)
+ * @return Number of bytes read
+ */
 static int i2chal_read(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len,
                        uint32_t *t_us);
+
+/**
+ * @brief Closes the I2C HAL connection
+ * @param self Pointer to HAL structure (unused)
+ */
 static void i2chal_close(sh2_Hal_t *self);
+
+/**
+ * @brief Opens the I2C HAL layer and sends a soft reset command
+ * @param self Pointer to HAL structure (unused)
+ * @return 0 on success, -1 on failure
+ */
 static int i2chal_open(sh2_Hal_t *self);
 //////////////////////////////////////////////////
+/**
+ * @brief Returns system uptime in microseconds
+ * @param self Pointer to HAL structure
+ * @return Uptime in microseconds
+ */
 static uint32_t hal_getTimeUs(sh2_Hal_t *self);
-static void hal_callback(void *cookie, sh2_AsyncEvent_t *pEvent);
-static void sensorHandler(void *cookie, sh2_SensorEvent_t *pEvent);
-static void hal_hardwareReset(void);
 
 
 /**
- * @brief Construct a new Adafruit_BNO08x::Adafruit_BNO08x object
- *
- * @param reset_pin The arduino pin # connected to the BNO Reset pin
+ * @brief Handles asynchronous system-level events from the sensor
+ * @param cookie User data pointer (unused)
+ * @param pEvent Pointer to event struct
  */
+static void hal_callback(void *cookie, sh2_AsyncEvent_t *pEvent);
+
+
+
+/**
+ * @brief Callback that processes incoming sensor data
+ * @param cookie User data pointer (unused)
+ * @param event Pointer to raw sensor event
+ */
+static void sensorHandler(void *cookie, sh2_SensorEvent_t *pEvent);
+
+
+/**
+ * @brief Performs a hardware reset using the reset pin
+ */
+static void hal_hardwareReset(void);
+
+
 Adafruit_BNO08x::Adafruit_BNO08x (PinName reset_pin) { 
     reset = new DigitalOut (reset_pin); 
 }
 
-/**
- * @brief Destroy the Adafruit_BNO08x::Adafruit_BNO08x object
- *
- */
+
 Adafruit_BNO08x::~Adafruit_BNO08x(void) {
     delete reset;
-  // if (temp_sensor)
-  //   delete temp_sensor;
 }
-
-/*!
- *    @brief  Sets up the hardware and initializes I2C
- *    @param  i2c_address
- *            The I2C address to be used.
- *    @param  wire
- *            The Wire object to be used for I2C connections.
- *    @param  sensor_id
- *            The unique ID to differentiate the sensors from others
- *    @return True if initialization was successful, otherwise false.
- */
 
  bool Adafruit_BNO08x::begin_I2C(uint8_t i2c_address, I2C *i2c_bus, int32_t sensor_id) {
     char log [100];
@@ -109,10 +141,7 @@ Adafruit_BNO08x::~Adafruit_BNO08x(void) {
 }
 
 
-/*!  @brief Initializer for post i2c/spi init
- *   @param sensor_id Optional unique ID for the sensor set
- *   @returns True if chip identified and initialized
- */
+
 bool Adafruit_BNO08x::_init(int32_t sensor_id) {
   int status;
 
@@ -137,17 +166,9 @@ bool Adafruit_BNO08x::_init(int32_t sensor_id) {
   return true;
 }
 
-/**
- * @brief Reset the device using the Reset pin
- *
- */
+
 void Adafruit_BNO08x::hardwareReset(void) { hal_hardwareReset(); }
 
-/**
- * @brief Check if a reset has occured
- *
- * @return true: a reset has occured false: no reset has occoured
- */
 bool Adafruit_BNO08x::wasReset(void) {
   bool x = _reset_occurred;
   _reset_occurred = false;
@@ -155,13 +176,6 @@ bool Adafruit_BNO08x::wasReset(void) {
   return x;
 }
 
-/**
- * @brief Fill the given sensor value object with a new report
- *
- * @param value Pointer to an sh2_SensorValue_t struct to fil
- * @return true: The report object was filled with a new report
- * @return false: No new report available to fill
- */
 bool Adafruit_BNO08x::getSensorEvent(sh2_SensorValue_t *value) {
   _sensor_value = value;
 
@@ -177,14 +191,7 @@ bool Adafruit_BNO08x::getSensorEvent(sh2_SensorValue_t *value) {
   return true;
 }
 
-/**
- * @brief Enable the given report type
- *
- * @param sensorId The report ID to enable
- * @param interval_us The update interval for reports to be generated, in
- * microseconds
- * @return true: success false: failure
- */
+
 bool Adafruit_BNO08x::enableReport(sh2_SensorId_t sensorId,
                                    uint32_t interval_us) {
   static sh2_SensorConfig_t config;
@@ -324,7 +331,6 @@ void  Adafruit_BNO08x::hal_hardwareReset(void) {
     this->reset->write (HIGH);
 }
 
-#include "mbed.h"
 
 static uint32_t hal_getTimeUs(sh2_Hal_t *self) {
   return Kernel::get_ms_count() * 1000;

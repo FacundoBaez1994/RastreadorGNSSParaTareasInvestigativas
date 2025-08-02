@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "PowerOFFState.h"
 #include "PowerManager.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
@@ -10,64 +9,31 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 PowerOFFState::PowerOFFState () {
     this->manager = NULL;
     this->status = POWER_OFF;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 PowerOFFState::PowerOFFState (PowerManager * newManager) {
     this->manager = newManager;
     this->status = POWER_OFF;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 PowerOFFState::~PowerOFFState () {
     this->manager = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 powerStatus_t PowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool turningPower = false;
 
@@ -97,44 +63,18 @@ powerStatus_t PowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, Non
     return this->status;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerOFFState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerOFFState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void PowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return;
 }
 
-
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     powerStatus_t currentPowerStatus;
     currentPowerStatus = this->startStopUpdate (AThandler, powerChangeDurationTimer);
@@ -144,25 +84,11 @@ bool PowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * po
     return false;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerOFFState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     this->manager->changePowerState (new ManualPowerOFFState ( this->manager) );
     return true;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerOFFState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
     ,  BatteryData * currentBatteryData) {
     return false;

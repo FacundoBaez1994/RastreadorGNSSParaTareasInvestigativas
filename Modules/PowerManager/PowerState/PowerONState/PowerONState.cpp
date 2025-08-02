@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "PowerONState.h"
 #include "PowerManager.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
@@ -10,31 +9,17 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 PowerONState::PowerONState () {
     this->manager = NULL;
     this->status = POWER_ON;
@@ -43,12 +28,6 @@ PowerONState::PowerONState () {
     this->TurningDown = false;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 PowerONState::PowerONState (PowerManager * newManager) {
     this->manager = newManager;
     this->status = POWER_ON;
@@ -57,24 +36,10 @@ PowerONState::PowerONState (PowerManager * newManager) {
     this->TurningDown = false;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 PowerONState::~PowerONState () {
     this->manager = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     int static turnOffCounter = 0;
     // PowerStatus ON equals 
@@ -148,12 +113,6 @@ powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonB
     return this->status;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool readyToSend = true;
     char StringToSend [15] = "AT+QPOWD";
@@ -196,12 +155,6 @@ bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
    static bool readyToSend = true;
     char StringToSend [15] = "AT+QSCLK=1";
@@ -245,35 +198,14 @@ bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * 
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void PowerONState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return;
 }
 
-
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerONState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return true;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool readyToSend = true;
     static bool hardPowerOffUnderProcess = false;
@@ -338,12 +270,6 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
     ,  BatteryData * currentBatteryData) {
     static bool readyToSend = true;
@@ -383,7 +309,7 @@ bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDel
 bool PowerONState::retrivBatteryData(char* stringToAnalyse, BatteryData* currentBatteryData) {
     const char* prefix = "+CBC:";
     if (strncmp(stringToAnalyse, prefix, strlen(prefix)) != 0) {
-        return false;  // No comienza con "+CBC:"
+        return false;
     }
 
     char* dataStart = stringToAnalyse + strlen(prefix);
@@ -416,5 +342,5 @@ bool PowerONState::retrivBatteryData(char* stringToAnalyse, BatteryData* current
         return true; 
     }
 
-    return false;  // No se pudieron extraer los datos correctamente
+    return false;
 }

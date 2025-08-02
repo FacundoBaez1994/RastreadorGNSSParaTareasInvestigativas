@@ -100,6 +100,7 @@ public:
     bool initialize (void);
 
 private:
+//=====[Declaration of private methods]=========================================
     /**
      * @brief Returns the square of a floating-point number.
      * @param x Input value.
@@ -149,7 +150,7 @@ private:
      */
     void clearAcumulatedMeasurement(void);
 
-    //=====[Private Attributes]================================================
+//=====[Private Attributes]================================================
 
     deviceMotionStatus_t currentMotionStatus = DEVICE_ON_MOTION; //!< Current motion classification.
     int motionCounter = 0;     //!< Internal counter for motion detection.

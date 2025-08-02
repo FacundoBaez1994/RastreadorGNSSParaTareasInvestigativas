@@ -1,8 +1,6 @@
 //=====[Libraries]=============================================================
-
 #include "EncrypterBase64.h"
 #include "Debugger.h" // due to global usbUart
-
 
 //=====[Declaration of private defines]========================================
 
@@ -10,43 +8,22 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 EncrypterBase64::EncrypterBase64  () {
     this->aes = new AES ();
     this->nextHandler = nullptr;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 EncrypterBase64::~EncrypterBase64 () {
     delete this->aes;
     this->aes = nullptr;

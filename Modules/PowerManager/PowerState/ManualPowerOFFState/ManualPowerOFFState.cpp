@@ -10,31 +10,18 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 ManualPowerOFFState::ManualPowerOFFState () {
     this->manager = NULL;
     this->status = MANUAL_POWER_OFF;
@@ -43,12 +30,6 @@ ManualPowerOFFState::ManualPowerOFFState () {
     this->TurningUP = false;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ManualPowerOFFState::ManualPowerOFFState (PowerManager * newManager) {
     this->manager = newManager;
     this->status = MANUAL_POWER_OFF;
@@ -57,24 +38,10 @@ ManualPowerOFFState::ManualPowerOFFState (PowerManager * newManager) {
     this->TurningUP = false;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 ManualPowerOFFState::~ManualPowerOFFState () {
     this->manager = NULL;
 }
 
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
 
     // If powerStatus is in OFF status the power is ON (negate logic)
@@ -131,44 +98,18 @@ powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandle
     return this->status;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ManualPowerOFFState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ManualPowerOFFState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return false;
 }
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 void ManualPowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return;
 }
 
-
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool SignalTurningOn = false;
     // If powerStatus is in OFF status the power is ON (negate logic)
@@ -213,24 +154,10 @@ bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDela
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ManualPowerOFFState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     return true;
 }
 
-
-
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool ManualPowerOFFState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
     ,  BatteryData * currentBatteryData) {
     return false;

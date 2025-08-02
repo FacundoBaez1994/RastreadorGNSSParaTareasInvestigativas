@@ -58,6 +58,10 @@ void GettingGNSSPosition::obtainGNSSPosition (GNSSModule * currentGNSSModule, GN
    static GNSSState_t GnssCurrentStatus;
    char logMessage [40]; 
 
+    // SIN GNSS
+    //this->tracker->changeState  (new ConnectingToMobileNetwork (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE));
+    //  return;
+
     currentGNSSModule->enableGNSS();
     GnssCurrentStatus = currentGNSSModule->retrivGeopositioning(currentGNSSdata);
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {

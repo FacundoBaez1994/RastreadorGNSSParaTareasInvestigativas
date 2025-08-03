@@ -21,19 +21,25 @@
 
 //=====[Implementations of public methods]===================================
 PowerONState::PowerONState () {
+    uartUSB.write ("\r\nPowerONState\r\n", strlen ("\r\nPowerONState\r\n"));
+
     this->manager = NULL;
     this->status = POWER_ON;
     this->ManualTurningPower = false;
     this->SignalTurningPowerUp = false;
     this->TurningDown = false;
+    this->turnOfWasCall = false;
 }
 
 PowerONState::PowerONState (PowerManager * newManager) {
+    uartUSB.write ("\r\nPowerONState\r\n", strlen ("\r\nPowerONState\r\n"));
+    
     this->manager = newManager;
     this->status = POWER_ON;
     this->ManualTurningPower = false;
     this->SignalTurningPowerUp = false;
     this->TurningDown = false;
+     this->turnOfWasCall  = false;
 }
 
 PowerONState::~PowerONState () {
@@ -43,6 +49,10 @@ PowerONState::~PowerONState () {
 powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     int static turnOffCounter = 0;
     // PowerStatus ON equals 
+
+    if ( this->turnOfWasCall == true) {
+        return this->status;
+    }
 
     if (this->manager->readPowerStatus()  == OFF) {
         turnOffCounter = 0;
@@ -121,7 +131,7 @@ bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
     char StringToSendUSB [40] = "Rebooting";
 
     if (readyToSend == true) {
-        AThandler->sendATCommand(StringToSend);
+        AThandler->sendATCommand (StringToSend);
         readyToSend = false;
         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
@@ -217,6 +227,7 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
 
     if (readyToSend == true) {
         AThandler->sendATCommand(StringToSend);
+        this->turnOfWasCall  = true;
         readyToSend = false;
         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only

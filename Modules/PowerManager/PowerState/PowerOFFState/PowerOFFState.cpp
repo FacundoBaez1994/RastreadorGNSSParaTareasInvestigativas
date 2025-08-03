@@ -21,11 +21,14 @@
 
 //=====[Implementations of public methods]===================================
 PowerOFFState::PowerOFFState () {
+    uartUSB.write ("\r\nPowerOFFState\r\n", strlen ("\r\nPowerOFFState\r\n"));
+
     this->manager = NULL;
     this->status = POWER_OFF;
 }
 
 PowerOFFState::PowerOFFState (PowerManager * newManager) {
+    uartUSB.write ("\r\nPowerOFFState\r\n", strlen ("\r\nPowerOFFState\r\n"));
     this->manager = newManager;
     this->status = POWER_OFF;
 }

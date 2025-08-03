@@ -110,6 +110,7 @@ private:
     bool ManualTurningPower; ///< Indicates manual power toggle is in progress.
     bool SignalTurningPowerUp; ///< Indicates signal transition is active.
     bool TurningDown; ///< Indicates shutdown sequence is active.
+    bool turnOfWasCall; ///< Indicates if the method turnOf() was call 
 
 //=====[Declaration of privates methods]=========================================
     /**

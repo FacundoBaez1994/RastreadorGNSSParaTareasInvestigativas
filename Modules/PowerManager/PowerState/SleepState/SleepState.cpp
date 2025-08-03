@@ -22,6 +22,8 @@
 
 //=====[Implementations of public methods]===================================
 SleepState::SleepState () {
+    uartUSB.write ("\r\nSleepState\r\n", strlen ("\r\nSleepState\r\n"));
+
     this->manager = NULL;
     this->status = SLEEP;
     this->ManualTurningPower = false;
@@ -30,6 +32,8 @@ SleepState::SleepState () {
 }
 
 SleepState::SleepState (PowerManager * newManager) {
+    uartUSB.write ("\r\nSleepState\r\n", strlen ("\r\nSleepState\r\n"));
+    
     this->manager = newManager;
     this->status = SLEEP;
     this->ManualTurningPower = false;

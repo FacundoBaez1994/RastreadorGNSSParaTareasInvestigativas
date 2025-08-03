@@ -23,19 +23,27 @@
 
 //=====[Implementations of public methods]===================================
 ManualPowerOFFState::ManualPowerOFFState () {
+    uartUSB.write ("\r\nManualPowerOFFState\r\n", strlen ("\r\nManualPowerOFFState\r\n"));  // debug only
+
     this->manager = NULL;
     this->status = MANUAL_POWER_OFF;
     this->ManualTurningPower = false;
     this->SignalTurningPowerUp = false;
     this->TurningUP = false;
+    
+    this->manager->changePowerDownSignal (OFF);
 }
 
 ManualPowerOFFState::ManualPowerOFFState (PowerManager * newManager) {
+     uartUSB.write ("\r\nManualPowerOFFState\r\n", strlen ("\r\nManualPowerOFFState\r\n"));  // debug only
+
     this->manager = newManager;
     this->status = MANUAL_POWER_OFF;
     this->ManualTurningPower = false;
     this->SignalTurningPowerUp = false;
     this->TurningUP = false;
+
+    this->manager->changePowerDownSignal (OFF);
 }
 
 ManualPowerOFFState::~ManualPowerOFFState () {
@@ -112,6 +120,7 @@ void ManualPowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay
 
 bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool SignalTurningOn = false;
+    this->manager->changePowerDownSignal (ON);
     // If powerStatus is in OFF status the power is ON (negate logic)
     if (this->manager->readPowerStatus()  == OFF) {
         //////////////////////////////////////////
@@ -155,6 +164,7 @@ bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDela
 
 
 bool ManualPowerOFFState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
+    this->manager->changePowerDownSignal (OFF);
     return true;
 }
 

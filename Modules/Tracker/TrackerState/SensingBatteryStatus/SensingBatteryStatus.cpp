@@ -48,7 +48,7 @@ SensingBatteryStatus::SensingBatteryStatus (Tracker * tracker) {
 * @param 
 */
 SensingBatteryStatus::~SensingBatteryStatus ( ) {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void SensingBatteryStatus::updatePowerStatus (CellularModule * cellularTransceiver,

@@ -28,7 +28,7 @@
 //=====[Implementations of public methods]===================================
 
 TransceiverUnavailable::TransceiverUnavailable () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
 }
 
@@ -39,7 +39,7 @@ TransceiverUnavailable::TransceiverUnavailable (CellularModule * mobileModule) {
 
 
 TransceiverUnavailable::~TransceiverUnavailable () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void TransceiverUnavailable::enableTransceiver () {

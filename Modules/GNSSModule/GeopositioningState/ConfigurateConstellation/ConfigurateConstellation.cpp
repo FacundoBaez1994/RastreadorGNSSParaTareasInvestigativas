@@ -23,7 +23,7 @@
 
 //=====[Implementations of public methods]===================================
  ConfigurateConstellation::ConfigurateConstellation () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
     this->readyToSend = true;
 
     this->numberOfTries = 0;
@@ -39,7 +39,7 @@ ConfigurateConstellation::ConfigurateConstellation  (GNSSModule * aGNSSModule) {
 }
 
 ConfigurateConstellation::~ConfigurateConstellation  () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
 }
 
 GNSSState_t  ConfigurateConstellation::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,

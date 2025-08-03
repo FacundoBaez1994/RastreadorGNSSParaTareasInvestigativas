@@ -27,7 +27,7 @@
 
 //=====[Implementations of public methods]===================================
 CreateSocket::CreateSocket () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->connectionAttempts = 0; 
     this->maxConnectionAttempts = MAXATTEMPTS; 
@@ -41,7 +41,7 @@ CreateSocket::CreateSocket (CellularModule * mobileModule) {
 }
 
 CreateSocket::~CreateSocket () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 
@@ -86,7 +86,7 @@ void CreateSocket::enableTransceiver () {
         uartUSB.write ( "\r\n",  3 );  // debug only
          ////   ////   ////   ////   ////   ////
 
-        if ((strstr(StringToBeRead, ExpectedResponse) != NULL) ) {
+        if ((strstr(StringToBeRead, ExpectedResponse) != nullptr) ) {
             ////   ////   ////   ////   ////   ////
             char StringToSendUSB [40] = "Cambiando de estado 2";
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only

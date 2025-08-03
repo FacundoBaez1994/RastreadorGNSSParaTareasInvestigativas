@@ -33,7 +33,7 @@
 //=====[Implementations of public methods]===================================
 
 DefinePDPContext::DefinePDPContext () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->connectionAttempts = 0; 
     this->maxConnectionAttempts = MAXATTEMPTS;
@@ -48,7 +48,7 @@ DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
 
 
 DefinePDPContext::~DefinePDPContext () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 

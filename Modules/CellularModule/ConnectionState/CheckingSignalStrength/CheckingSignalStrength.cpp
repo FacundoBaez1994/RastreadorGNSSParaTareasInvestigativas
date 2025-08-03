@@ -36,7 +36,7 @@ CheckingSignalStrength::CheckingSignalStrength (CellularModule * mobileModule) {
 }
 
 CheckingSignalStrength::~CheckingSignalStrength () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void CheckingSignalStrength::enableConnection () {

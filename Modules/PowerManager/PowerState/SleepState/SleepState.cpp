@@ -24,7 +24,7 @@
 SleepState::SleepState () {
     uartUSB.write ("\r\nSleepState\r\n", strlen ("\r\nSleepState\r\n"));
 
-    this->manager = NULL;
+    this->manager = nullptr;
     this->status = SLEEP;
     this->ManualTurningPower = false;
     this->SignalTurningPowerUp = false;
@@ -42,7 +42,7 @@ SleepState::SleepState (PowerManager * newManager) {
 }
 
 SleepState::~SleepState () {
-    this->manager = NULL;
+    this->manager = nullptr;
 }
 
 powerStatus_t SleepState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {

@@ -23,7 +23,7 @@
 
 //=====[Implementations of public methods]===================================
 GNSSUnavailable::GNSSUnavailable () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
     this->readyToSend = true;
 }
 
@@ -33,7 +33,7 @@ GNSSUnavailable::GNSSUnavailable  (GNSSModule* aGNSSModule) {
 }
 
 GNSSUnavailable::~GNSSUnavailable  () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
 }
 
 GNSSState_t GNSSUnavailable::retrivGeopositioning (GNSSData* Geodata, ATCommandHandler* ATHandler,

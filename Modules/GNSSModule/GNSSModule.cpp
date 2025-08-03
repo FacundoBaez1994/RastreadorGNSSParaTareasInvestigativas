@@ -41,10 +41,10 @@ GNSSModule::GNSSModule (PowerManager* aPowerManager, ATCommandHandler * ATHandle
 
 GNSSModule::~GNSSModule () {
     delete this->refreshTime;
-    this->refreshTime = NULL;
+    this->refreshTime = nullptr;
     delete  this->ATHandler;
-    this->ATHandler = NULL;
-    this->modulePowerManager = NULL;
+    this->ATHandler = nullptr;
+    this->modulePowerManager = nullptr;
 }    
 
 

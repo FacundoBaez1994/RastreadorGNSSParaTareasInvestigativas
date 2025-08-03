@@ -28,7 +28,7 @@
 //=====[Implementations of public methods]===================================
 
 AttachingToPacketService::AttachingToPacketService () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->connectionAttempts = 0; 
     this->maxConnectionAttempts = MAXATTEMPTS;
@@ -43,7 +43,7 @@ AttachingToPacketService::AttachingToPacketService (CellularModule * mobileModul
 
 
 AttachingToPacketService::~AttachingToPacketService () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 

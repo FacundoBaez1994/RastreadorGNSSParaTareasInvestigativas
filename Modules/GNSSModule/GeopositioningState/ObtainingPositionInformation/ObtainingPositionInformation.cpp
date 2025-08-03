@@ -23,7 +23,7 @@
 
 //=====[Implementations of public methods]===================================
 ObtainingPositionInformation::ObtainingPositionInformation () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
     this->readyToSend = true;
 
     this->numberOfTries = 0;
@@ -40,7 +40,7 @@ ObtainingPositionInformation::ObtainingPositionInformation  (GNSSModule * aGNSSM
 }
 
 ObtainingPositionInformation::~ObtainingPositionInformation  () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
 }
 
 GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,

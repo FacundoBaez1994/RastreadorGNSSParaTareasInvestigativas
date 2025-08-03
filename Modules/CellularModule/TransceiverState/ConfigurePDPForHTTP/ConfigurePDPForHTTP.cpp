@@ -22,7 +22,7 @@
 
 //=====[Implementations of public methods]===================================
 ConfigurePDPForHTTP::ConfigurePDPForHTTP () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
@@ -38,7 +38,7 @@ ConfigurePDPForHTTP::ConfigurePDPForHTTP (CellularModule * mobileModule) {
 }
 
 ConfigurePDPForHTTP::~ConfigurePDPForHTTP () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void ConfigurePDPForHTTP::enableTransceiver () {

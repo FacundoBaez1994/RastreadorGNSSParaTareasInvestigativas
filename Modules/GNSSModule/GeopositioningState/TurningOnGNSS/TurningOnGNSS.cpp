@@ -21,7 +21,7 @@
 
 //=====[Implementations of public methods]===================================
 TurningOnGNSS::TurningOnGNSS () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
     this->readyToSend = true;
 }
 
@@ -31,7 +31,7 @@ TurningOnGNSS::TurningOnGNSS   (GNSSModule* aGNSSModule) {
 }
 
 TurningOnGNSS::~TurningOnGNSS  () {
-    this->currentGNSSModule = NULL;
+    this->currentGNSSModule = nullptr;
 }
 
 GNSSState_t TurningOnGNSS::retrivGeopositioning (GNSSData* Geodata, ATCommandHandler* ATHandler,

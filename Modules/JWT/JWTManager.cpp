@@ -3,13 +3,10 @@
 #include "JWTManager.h"
 #include "Debugger.h" // due to global usbUart
 
-
-
 //=====[Declaration of private defines]========================================
 JWTManager::JWTManager () {
     this->jwt = new CustomJWT (this->JWTKey, 256);
 }
-
 
 
 JWTManager::~JWTManager() {

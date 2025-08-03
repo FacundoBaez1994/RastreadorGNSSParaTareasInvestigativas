@@ -30,7 +30,7 @@ CloseSocket::CloseSocket (CellularModule * mobileModule, bool transmissionWasASu
 }
 
 CloseSocket::~CloseSocket () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void CloseSocket::enableTransceiver () {

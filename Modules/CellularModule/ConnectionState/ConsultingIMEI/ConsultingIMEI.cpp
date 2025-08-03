@@ -38,7 +38,7 @@ ConsultingIMEI::ConsultingIMEI (CellularModule * mobileModule) {
 }
 
 ConsultingIMEI::~ConsultingIMEI () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void ConsultingIMEI::enableConnection () {

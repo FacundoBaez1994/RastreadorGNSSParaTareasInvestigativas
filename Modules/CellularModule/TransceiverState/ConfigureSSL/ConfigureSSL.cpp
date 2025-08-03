@@ -22,7 +22,7 @@
 
 //=====[Implementations of public methods]===================================
 ConfigureSSL::ConfigureSSL () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
@@ -39,7 +39,7 @@ ConfigureSSL::ConfigureSSL (CellularModule * mobileModule) {
 
 
 ConfigureSSL::~ConfigureSSL () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void ConfigureSSL::enableTransceiver () {

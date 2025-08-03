@@ -37,8 +37,8 @@ ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mob
 }
 
 ConsultingAvailableOperators::~ConsultingAvailableOperators () {
-    this->mobileNetworkModule = NULL;
-    this->currentOperator = NULL;
+    this->mobileNetworkModule = nullptr;
+    this->currentOperator = nullptr;
 }
 
 

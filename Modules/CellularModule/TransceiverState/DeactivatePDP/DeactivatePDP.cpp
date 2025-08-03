@@ -29,7 +29,7 @@ DeactivatePDP::DeactivatePDP (CellularModule * mobileModule, bool transmissionWa
 }
 
 DeactivatePDP::~DeactivatePDP () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 void DeactivatePDP::enableTransceiver () {
     return;

@@ -24,7 +24,7 @@
 //=====[Implementations of public methods]===================================
 
 Receiving::Receiving () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 Receiving::Receiving (CellularModule * mobileModule) {
@@ -32,7 +32,7 @@ Receiving::Receiving (CellularModule * mobileModule) {
 }
 
 Receiving::~Receiving () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void Receiving::enableTransceiver () {

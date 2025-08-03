@@ -23,7 +23,7 @@
 PowerONState::PowerONState () {
     uartUSB.write ("\r\nPowerONState\r\n", strlen ("\r\nPowerONState\r\n"));
 
-    this->manager = NULL;
+    this->manager = nullptr;
     this->status = POWER_ON;
     this->ManualTurningPower = false;
     this->SignalTurningPowerUp = false;
@@ -43,7 +43,7 @@ PowerONState::PowerONState (PowerManager * newManager) {
 }
 
 PowerONState::~PowerONState () {
-    this->manager = NULL;
+    this->manager = nullptr;
 }
 
 powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {

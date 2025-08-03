@@ -43,7 +43,7 @@ I2CInterfaceHandler::I2CInterfaceHandler ( ) {
 */
 I2CInterfaceHandler::~I2CInterfaceHandler ( ) {
     delete this->i2cInterface; 
-    this->i2cInterface = NULL;
+    this->i2cInterface = nullptr;
 }
 
 

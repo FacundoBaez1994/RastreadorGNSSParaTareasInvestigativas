@@ -37,9 +37,9 @@
 #include "Adafruit_BNO08x.h"
 #include "Debugger.h"
 
-static Adafruit_I2CDevice *i2c_dev = NULL;  //!< Pointer to the I2C device interface
+static Adafruit_I2CDevice *i2c_dev = nullptr;  //!< Pointer to the I2C device interface
 
-static sh2_SensorValue_t *_sensor_value = NULL; //!< Pointer to current sensor event (populated by interrupt handler)
+static sh2_SensorValue_t *_sensor_value = nullptr; //!< Pointer to current sensor event (populated by interrupt handler)
 
 static bool _reset_occurred = false; //!< Flag indicating if a reset has occurred
 

@@ -66,7 +66,7 @@ public:
      * @param mode The cipher mode as a CipherMode enum (MODE_ECB by default).
      * @param iv Pointer to the 16B initialization vector (NULL by default).
      */
-    AES(const char* key, KeySize keySize, CipherMode mode = MODE_ECB, const char* iv = NULL);
+    AES(const char* key, KeySize keySize, CipherMode mode = MODE_ECB, const char* iv = nullptr);
 
     /**
      * @brief Destructor. Clears sensitive data.
@@ -80,7 +80,7 @@ public:
      * @param mode The cipher mode as a CipherMode enum (MODE_ECB by default).
      * @param iv Pointer to the 16B initialization vector (NULL by default).
      */
-    void setup(const char* key, KeySize keySize, CipherMode mode = MODE_ECB, const char* iv = NULL);
+    void setup(const char* key, KeySize keySize, CipherMode mode = MODE_ECB, const char* iv = nullptr);
 
     /** Encrypt the specified data in-place, using CTS or zero-padding if necessary
      *

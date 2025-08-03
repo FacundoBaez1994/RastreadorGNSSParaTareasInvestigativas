@@ -55,7 +55,7 @@ GatheringInertialData::GatheringInertialData (Tracker * tracker, trackerStatus_t
 * @param 
 */
 GatheringInertialData::~GatheringInertialData() {
-    this->tracker = NULL;
+    this->tracker = nullptr;
     delete this->timeBeetwenSamples;
     this->timeBeetwenSamples  = nullptr;
     delete  this->auxiliarIMUData;

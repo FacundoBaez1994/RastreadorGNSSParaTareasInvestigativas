@@ -48,7 +48,7 @@ FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t tracker
 * @param 
 */
 FormattingMessage::~FormattingMessage () {
-    this->tracker = NULL;
+    this->tracker = nullptr;
     delete this->jwt;
     this->jwt = nullptr;
 }
@@ -298,7 +298,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
             }
 
             //delete neighborsCellInformation[i];
-            //neighborsCellInformation[i] = NULL;
+            //neighborsCellInformation[i] = nullptr;
         }
         //neighborsCellInformation.clear();
         strncat(message, "]", sizeof(message) - strlen(message) - 1);

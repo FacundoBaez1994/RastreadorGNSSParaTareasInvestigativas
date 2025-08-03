@@ -24,7 +24,7 @@
 //=====[Implementations of public methods]===================================
 
 IdleState::IdleState () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->connectionAttempts = 0; 
     this->maxConnectionAttempts = MAXATTEMPTS; 
@@ -38,7 +38,7 @@ IdleState::IdleState (CellularModule * mobileModule) {
 }
 
 IdleState::~IdleState () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 CellularConnectionStatus_t  IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,

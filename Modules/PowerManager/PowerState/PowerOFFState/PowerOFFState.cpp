@@ -23,7 +23,7 @@
 PowerOFFState::PowerOFFState () {
     uartUSB.write ("\r\nPowerOFFState\r\n", strlen ("\r\nPowerOFFState\r\n"));
 
-    this->manager = NULL;
+    this->manager = nullptr;
     this->status = POWER_OFF;
 }
 
@@ -34,7 +34,7 @@ PowerOFFState::PowerOFFState (PowerManager * newManager) {
 }
 
 PowerOFFState::~PowerOFFState () {
-    this->manager = NULL;
+    this->manager = nullptr;
 }
 
 powerStatus_t PowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {

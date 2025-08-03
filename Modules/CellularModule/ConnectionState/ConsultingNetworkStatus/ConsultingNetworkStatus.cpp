@@ -36,7 +36,7 @@ ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule)
 }
 
 ConsultingNetworkStatus::~ConsultingNetworkStatus () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void ConsultingNetworkStatus::enableConnection () {

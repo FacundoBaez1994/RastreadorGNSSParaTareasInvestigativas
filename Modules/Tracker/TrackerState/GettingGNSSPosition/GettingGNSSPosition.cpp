@@ -46,7 +46,7 @@ GettingGNSSPosition::GettingGNSSPosition (Tracker * tracker) {
 * @param 
 */
 GettingGNSSPosition::~GettingGNSSPosition () {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void GettingGNSSPosition::updatePowerStatus (CellularModule * cellularTransceiver,

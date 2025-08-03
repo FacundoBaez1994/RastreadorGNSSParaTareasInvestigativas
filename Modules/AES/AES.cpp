@@ -142,7 +142,7 @@ void AES::setup(const char* key, KeySize keySize, CipherMode mode, const char* i
     m_Rounds = (int)keySize + 6;
 
     //Check if the key pointer is NULL
-    if (key == NULL) {
+    if (key == nullptr) {
         //Set a blank key
         memset(m_Key, 0, sizeof(m_Key));
     } else {
@@ -151,7 +151,7 @@ void AES::setup(const char* key, KeySize keySize, CipherMode mode, const char* i
     }
 
     //Check if the initialization vector pointer is NULL
-    if (iv == NULL) {
+    if (iv == nullptr) {
         //Set a blank initialization vector
         memset(m_CarryVector, 0, 16);
     } else {

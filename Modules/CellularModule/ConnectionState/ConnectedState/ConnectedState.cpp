@@ -24,7 +24,7 @@
 //=====[Implementations of public methods]===================================
 
 ConnectedState::ConnectedState () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->enableTransceiver = false;
 }
 
@@ -35,7 +35,7 @@ ConnectedState::ConnectedState (CellularModule * mobileModule) {
 
 
 ConnectedState::~ConnectedState () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void ConnectedState::enableConnection () {

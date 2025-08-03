@@ -47,7 +47,7 @@ GoingToSleep::GoingToSleep (Tracker * tracker) {
 * @param 
 */
 GoingToSleep::~GoingToSleep () {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void GoingToSleep::updatePowerStatus (CellularModule * cellularTransceiver,

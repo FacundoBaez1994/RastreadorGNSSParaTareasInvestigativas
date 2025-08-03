@@ -50,7 +50,7 @@ ConnectingToMobileNetwork::ConnectingToMobileNetwork (Tracker * tracker, tracker
 * @param 
 */
 ConnectingToMobileNetwork::~ConnectingToMobileNetwork ( ) {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTransceiver,

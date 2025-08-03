@@ -25,7 +25,7 @@
 ManualPowerOFFState::ManualPowerOFFState () {
     uartUSB.write ("\r\nManualPowerOFFState\r\n", strlen ("\r\nManualPowerOFFState\r\n"));  // debug only
 
-    this->manager = NULL;
+    this->manager = nullptr;
     this->status = MANUAL_POWER_OFF;
     this->ManualTurningPower = false;
     this->SignalTurningPowerUp = false;
@@ -47,7 +47,7 @@ ManualPowerOFFState::ManualPowerOFFState (PowerManager * newManager) {
 }
 
 ManualPowerOFFState::~ManualPowerOFFState () {
-    this->manager = NULL;
+    this->manager = nullptr;
 }
 
 powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {

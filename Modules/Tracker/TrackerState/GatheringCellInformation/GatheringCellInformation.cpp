@@ -46,7 +46,7 @@ GatheringCellInformation::GatheringCellInformation (Tracker * tracker) {
 * @param 
 */
 GatheringCellInformation::~GatheringCellInformation () {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void GatheringCellInformation::updatePowerStatus (CellularModule * cellularTransceiver,

@@ -52,7 +52,7 @@ ExchangingMessages::ExchangingMessages (Tracker * tracker, trackerStatus_t track
 * @param 
 */
 ExchangingMessages::~ExchangingMessages () {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void ExchangingMessages::updatePowerStatus (CellularModule * cellularTransceiver,

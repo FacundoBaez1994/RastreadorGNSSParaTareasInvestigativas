@@ -160,6 +160,7 @@ void LoadingMessage::parseMNGNSS(const char* message,
 
     if (!buffer) {
         delete [] buffer;
+        buffer = nullptr;
         return;
     }
 
@@ -169,6 +170,7 @@ void LoadingMessage::parseMNGNSS(const char* message,
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "MNGNSS") != 0) {
         delete [] buffer;
+        buffer = nullptr;
         return;
     }
      
@@ -249,6 +251,7 @@ void LoadingMessage::parseMNMN(const char* message,
     // Limpiar celdas viejas
     for (auto cell : neighborsCellInformation) {
         delete cell;
+        cell = nullptr;
     }
     neighborsCellInformation.clear();
 
@@ -262,6 +265,8 @@ void LoadingMessage::parseMNMN(const char* message,
         // No hay memoria, salimos
         delete[] buffer;
         delete[] neighborsBuffer;
+        buffer = nullptr;
+        neighborsBuffer = nullptr;
         return;
     }
 
@@ -369,13 +374,16 @@ void LoadingMessage::parseMNMN(const char* message,
             neighborsCellInformation.push_back(neighbor);
         } else {
             delete neighbor;
+            neighbor = nullptr;
         }
 
         neighborPart = strtok(nullptr, "|");
     }
 
     delete[] buffer;
+    buffer = nullptr;
     delete[] neighborsBuffer;
+    neighborsBuffer = nullptr;
 }
 
 
@@ -389,6 +397,7 @@ void LoadingMessage::parseGNSS(const char* message,
 
     if (!buffer) {
         delete[] buffer;
+        buffer = nullptr;
         return;
     }
 
@@ -398,6 +407,7 @@ void LoadingMessage::parseGNSS(const char* message,
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "GNSS") != 0) {
         delete[] buffer;
+        buffer = nullptr;
         return;
     }
 
@@ -439,6 +449,7 @@ void LoadingMessage::parseGNSS(const char* message,
     imuData->angles.pitch = atof(token);
 
     delete[] buffer;
+    buffer = nullptr;
 }
 
 
@@ -451,6 +462,7 @@ void LoadingMessage::parseIMU(const char* message,
 
     for (auto sample : IMUDataSamples) {
         delete sample;
+        sample = nullptr;
     }
     IMUDataSamples.clear();
 
@@ -463,6 +475,7 @@ void LoadingMessage::parseIMU(const char* message,
     char* separator = strchr(fullCopy, '|');
     if (!separator) {
         delete[] fullCopy;
+        fullCopy = nullptr;
         return;
     }
 
@@ -539,6 +552,7 @@ void LoadingMessage::parseIMU(const char* message,
             uartUSB.write(log, strlen(log));
         } else {
             delete sample;
+            sample = nullptr;
         }
         sampleToken = strtok(nullptr, "|");
     }
@@ -547,5 +561,6 @@ void LoadingMessage::parseIMU(const char* message,
     uartUSB.write(log, strlen(log));
 
     delete[] fullCopy;
+    fullCopy = nullptr;
 }
 

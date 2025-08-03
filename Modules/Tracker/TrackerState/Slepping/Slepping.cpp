@@ -46,7 +46,7 @@ Slepping::Slepping (Tracker * tracker) {
 * @param 
 */
 Slepping::~Slepping () {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void Slepping::updatePowerStatus (CellularModule * cellularTransceiver,

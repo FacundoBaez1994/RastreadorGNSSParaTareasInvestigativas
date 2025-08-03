@@ -22,7 +22,7 @@
 
 //=====[Implementations of public methods]===================================
 PostHTTP::PostHTTP () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
@@ -41,7 +41,7 @@ PostHTTP::PostHTTP (CellularModule * mobileModule) {
 }
 
 PostHTTP::~PostHTTP () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     delete this->jwt;
     this->jwt = nullptr;
 }

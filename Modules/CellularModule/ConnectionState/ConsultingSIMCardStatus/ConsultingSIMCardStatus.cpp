@@ -41,7 +41,7 @@ ConsultingSIMCardStatus::ConsultingSIMCardStatus (CellularModule * mobileModule)
 }
 
 ConsultingSIMCardStatus::~ConsultingSIMCardStatus () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 CellularConnectionStatus_t ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, 

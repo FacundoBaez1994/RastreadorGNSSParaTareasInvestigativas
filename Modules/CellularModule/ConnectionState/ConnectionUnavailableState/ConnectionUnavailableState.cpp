@@ -27,7 +27,7 @@
 //=====[Implementations of public methods]===================================
 
 ConnectionUnavailableState::ConnectionUnavailableState () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->enableTransceiver = false;
 }
 
@@ -37,7 +37,7 @@ ConnectionUnavailableState::ConnectionUnavailableState (CellularModule * mobileM
 }
 
 ConnectionUnavailableState::~ConnectionUnavailableState () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 CellularConnectionStatus_t ConnectionUnavailableState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,

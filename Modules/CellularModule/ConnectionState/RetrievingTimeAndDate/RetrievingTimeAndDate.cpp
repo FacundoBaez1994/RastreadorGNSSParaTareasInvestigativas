@@ -36,7 +36,7 @@ RetrievingTimeAndDate::RetrievingTimeAndDate (CellularModule * mobileModule) {
 }
 
 RetrievingTimeAndDate::~RetrievingTimeAndDate () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 void RetrievingTimeAndDate::enableConnection () {

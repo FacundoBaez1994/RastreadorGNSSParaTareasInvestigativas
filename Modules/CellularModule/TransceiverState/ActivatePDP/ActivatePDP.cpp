@@ -36,7 +36,7 @@
 * @param 
 */
 ActivatePDP::ActivatePDP () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
@@ -63,7 +63,7 @@ ActivatePDP::ActivatePDP (CellularModule * mobileModule) {
 * @returns 
 */
 ActivatePDP::~ActivatePDP () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 

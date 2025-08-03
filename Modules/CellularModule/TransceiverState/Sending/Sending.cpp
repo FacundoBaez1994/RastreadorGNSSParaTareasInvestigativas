@@ -24,7 +24,7 @@
 //=====[Implementations of public methods]===================================
 
 Sending::Sending () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->transmissionEnable = false;
     this->watingForConfirmation = false;
@@ -42,7 +42,7 @@ Sending::Sending (CellularModule * mobileModule) {
 }
 
 Sending::~Sending () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 

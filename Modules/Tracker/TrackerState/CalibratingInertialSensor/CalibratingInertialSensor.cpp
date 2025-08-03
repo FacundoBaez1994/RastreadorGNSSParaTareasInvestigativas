@@ -46,7 +46,7 @@ CalibratingInertialSensor::CalibratingInertialSensor (Tracker * tracker) {
 * @param 
 */
 CalibratingInertialSensor::~CalibratingInertialSensor() {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 

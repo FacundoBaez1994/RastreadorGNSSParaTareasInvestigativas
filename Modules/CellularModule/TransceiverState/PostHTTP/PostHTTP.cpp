@@ -53,7 +53,7 @@ void PostHTTP::enableTransceiver () {
 CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    static char StringToBeRead [500];
+    static char StringToBeRead [1000];
     static int dataLen;
     char StringToSendUSB [50] = "\r\nTRYING HTTP POST\r\n";
     char ExpectedResponse1 [3] = "OK";

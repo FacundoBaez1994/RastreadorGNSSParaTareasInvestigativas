@@ -80,7 +80,7 @@ public:
     void setLatency(LatencyLevel_t level);
     OperationMode_t getOperationMode ();
     void setOperationMode (OperationMode_t newOperationMode);
-    
+    void setSilentTimer (int hours);
 
     bool encryptMessage (char * message, unsigned int messageSize);
     bool decryptMessage (char * message, unsigned int messageSize);
@@ -95,6 +95,7 @@ private:
     TrackerState * currentState;
 
     NonBlockingDelay * latency;
+    NonBlockingDelay * silentTimer;
     OperationMode_t currentOperationMode;
 
     deviceMotionStatus_t newMotionStatus = DEVICE_ON_MOTION;

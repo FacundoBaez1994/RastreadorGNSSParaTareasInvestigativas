@@ -42,7 +42,7 @@ public:
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     virtual void checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus);
     virtual void goToSleep (CellularModule * cellularTransceiver);
-    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
+    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency, NonBlockingDelay * silentTimer);
     virtual void saveMessage (EEPROMManager * memory, char * message);
     virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,

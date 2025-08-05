@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "Tracker.h"
 #include "Debugger.h" // due to global usbUart
 #include "CalibratingInertialSensor.h"
@@ -17,6 +16,9 @@
 #define VERY_HIGH_LATENCY_MS       (6 * 60 * 60 * 1000)   // 6 hours
 #define EXTREMELY_HIGH_LATENCY_MS  (24 * 60 * 60 * 1000)  // 24 hours
 
+
+//#define HOUR_MS  (1 * 60 * 60 * 1000)  // 1 hours
+#define HOUR_MS  (3 * 60 * 1000)  // 3 min TEST ONLY
 
 #define TIMEOUT_WATCHDOG_TIMER_MS     5000
 #define POWERCHANGEDURATION  700
@@ -47,6 +49,7 @@ Tracker::Tracker () {
     this->currentOperationMode = NORMAL_OPERATION_MODE;
     //this->currentOperationMode = PERSUIT_OPERATION_MODE;
     this->latency = new NonBlockingDelay (EXTREMELY_LOW_LATENCY_MS);
+    this->silentTimer = new NonBlockingDelay (HOUR_MS);
     this->cellularTransceiver = new CellularModule ( );
     this->currentGNSSModule = new GNSSModule (this->cellularTransceiver->getPowerManager()
     , this->cellularTransceiver->getATHandler());
@@ -112,6 +115,8 @@ Tracker::~Tracker() {
     this->socketTargetted = nullptr;
     delete this->latency;
     this->latency = nullptr; 
+    delete this->silentTimer;
+    this->silentTimer = nullptr;
     delete this->currentGNSSModule;
     this->currentGNSSModule = nullptr;
     delete this->cellularTransceiver;
@@ -153,7 +158,7 @@ void Tracker::update () {
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singleton
     watchdog.kick();
-    this->currentState->awake(this->cellularTransceiver, this->latency);
+    this->currentState->awake(this->cellularTransceiver, this->latency, this->silentTimer);
     this->currentState->calibrateIMU (this->inertialSensor);
     this->currentState->updatePowerStatus (this->cellularTransceiver, this->batteryStatus);
     this->currentState->obtainGNSSPosition (this->currentGNSSModule, this->currentGNSSdata);
@@ -268,6 +273,10 @@ void Tracker::updateMovementEvent () {
 
 void Tracker::setOperationMode(OperationMode_t newOperationMode) {
     this->currentOperationMode = newOperationMode;
+}
+
+void Tracker::setSilentTimer (int hours) {
+    this->silentTimer->write(hours * HOUR_MS);
 }
 
 void Tracker::setLatency(LatencyLevel_t level) {

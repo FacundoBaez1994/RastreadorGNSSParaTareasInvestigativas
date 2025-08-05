@@ -54,11 +54,12 @@ void Slepping::updatePowerStatus (CellularModule * cellularTransceiver,
     cellularTransceiver->startStopUpdate();
  }
 
-void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency ) {
+void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency
+,NonBlockingDelay * silentTimer ) {
     static bool timeToWakeUp = false;
     static bool initialize = false;
     MovementEvent_t movementEvent;
-
+    OperationMode_t currentOperationMode = this->tracker->getOperationMode();
     this->tracker->updateMovementEvent();
     movementEvent = this->tracker->getMovementEvent();
     if ( initialize == false){
@@ -66,7 +67,14 @@ void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * l
         latency->restart();
     }
 
-    if (this->tracker->getOperationMode() == PURSUIT_OPERATION_MODE ) {
+     if (currentOperationMode == SILENT_OPERATION_MODE ) {
+         if (silentTimer->read()) {
+            uartUSB.write("\n\r**SILENT MODE TIMEOUT**\n\r", strlen("\n\r**SILENT MODE TIMEOUT**\n\r"));
+            this->tracker->setOperationMode(NORMAL_OPERATION_MODE);
+        }
+     }
+
+    if (currentOperationMode == PURSUIT_OPERATION_MODE ) {
         if (cellularTransceiver->turnOn () ) {
             timeToWakeUp = false;
             initialize = false;

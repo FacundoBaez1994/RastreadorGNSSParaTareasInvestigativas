@@ -36,7 +36,7 @@ public:
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
     virtual void goToSleep (CellularModule * cellularTransceiver);
-    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
+    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency, NonBlockingDelay * silentTimer);
     virtual void checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus);
     virtual void saveMessage (EEPROMManager * memory, char * message);
     virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,

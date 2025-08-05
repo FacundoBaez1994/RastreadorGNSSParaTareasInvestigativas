@@ -24,7 +24,8 @@ public:
     Slepping (Tracker * tracker);
     virtual ~Slepping ();
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
-    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
+    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency,
+    NonBlockingDelay * silentTimer);
 private:
     Tracker * tracker;
   

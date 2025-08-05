@@ -68,7 +68,8 @@ void TrackerBaseState::goToSleep (CellularModule * cellularTransceiver ) {
     return;
 }
 
-void TrackerBaseState::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency ) {
+void TrackerBaseState::awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency, 
+NonBlockingDelay * silentTimer ) {
     return;
  }
 

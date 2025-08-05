@@ -97,6 +97,8 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             char success[30];
             char latency[30];
             char mode[30];
+            char timeSilentString [30];
+            int timeSilent;
 
             if (extractField(receivedMessage, "\"SUCS\"", success, sizeof(success)) == false) {
                 snprintf(logMessage, sizeof(logMessage), "Corrupted Server Message\r\n");
@@ -161,10 +163,31 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
                 return;
             }
             OperationMode_t newOperationMode;
+            int hoursSilentMode;
             if (this->parseOperationMode(mode, &newOperationMode)) {
-                this->tracker->setOperationMode(newOperationMode);
-            }
+                if (newOperationMode == SILENT_OPERATION_MODE) {
+                    if (extractField(receivedMessage, "\"TSOP\"", timeSilentString, sizeof(timeSilentString)) == false) {
+                        newDataAvailable = false;
+                        enableTransceiver = false;
+                        this->tracker->changeState (new LoadingMessage (this->tracker));
+                        return;
+                    }
+                    timeSilent = std::atoi(timeSilentString);
+                    if ( timeSilent < 0) {
+                        newDataAvailable = false;
+                        enableTransceiver = false;
+                        this->tracker->changeState (new LoadingMessage (this->tracker));
+                        return;
+                    }
+                    snprintf(logMessage, sizeof(logMessage), "Setted Silent mode of %i hours\r\n", timeSilent );
+                    uartUSB.write(logMessage, strlen(logMessage));
+                    this->tracker->setOperationMode(newOperationMode);
+                    this->tracker->setSilentTimer(timeSilent);
+                } else {
+                    this->tracker->setOperationMode(newOperationMode);
+                }
 
+            }
 
             snprintf(logMessage, sizeof(logMessage), "MODE: %s\r\n", mode);
             uartUSB.write(logMessage, strlen(logMessage));

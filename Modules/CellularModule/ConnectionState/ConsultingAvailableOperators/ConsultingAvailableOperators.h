@@ -14,6 +14,9 @@
 #include <string>
 #include "CellularModule.h"
 
+//=====[Declaration of defines]========================================
+#define FREQ_BAND_STRING_LEN 20
+
 //=====[Declaration of public data types]======================================
 class CellularModule; //!< Forward declaration to resolve circular dependency.
 struct CellInformation; //!< Forward declaration for cell information structure.
@@ -83,7 +86,7 @@ private:
     int mnc; //!< Mobile Network Code
     char * currentOperator; //!< Mobile Network Operator
     int channel; //!< Channel Asignated
-    char band [20]; //!< frecuency band asignated
+    char band [FREQ_BAND_STRING_LEN]; //!< frecuency band asignated
     int connectionAttempts;   //!< number of tries
     int maxConnectionAttempts;  //!< max number of attempts
 //=====[Declaration of privates methods]=========================================

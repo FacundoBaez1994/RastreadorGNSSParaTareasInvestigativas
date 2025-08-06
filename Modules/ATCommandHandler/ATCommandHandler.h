@@ -10,6 +10,8 @@
 
 //=====[Declaration of public data types]======================================
 
+//=====[Declaration of defines]========================================
+#define BUFFER_LEN_AT_COMMAND_HANDLER 1024
 
 
 //=====[Declaration of public classes]=========================================
@@ -86,7 +88,7 @@ private:
 //=====[Declaration of privates atributes]=========================================
     BufferedSerial* serialComunicationUART; //!< UART interface for communication.
     int bufferIndex;                        //!< Index for the internal response buffer.
-    char buffer[1024];                      //!< Buffer to store incoming data until a line is complete.
+    char buffer[BUFFER_LEN_AT_COMMAND_HANDLER];  //!< Buffer to store incoming data until a line is complete.
     
 //=====[Declaration of privates methods]=========================================
 

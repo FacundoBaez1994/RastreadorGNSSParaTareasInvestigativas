@@ -5,7 +5,35 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define MAXATTEMPTS 30
+#define MAXATTEMPTS 20
+
+#define AT_CMD_GENERIC_EXPECTED_RESPONSE   "OK"
+#define AT_CMD_GENERIC_EXPECTED_RESPONSE_LEN  (sizeof( AT_CMD_GENERIC_EXPECTED_RESPONSE) - 1)
+
+#define AT_CMD_ASSING_PDPCONTEXT_TO_HTTP_STACK  "AT+QHTTPCFG=\"contextid\",1"
+#define AT_CMD_ASSING_PDPCONTEXT_TO_HTTP_STACK_LEN  (sizeof(AT_CMD_ASSING_PDPCONTEXT_TO_HTTP_STACK) - 1)
+
+#define LOG_MESSAGE "Configuring PDP\r\n"
+#define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
+
+#define AT_CMD_CONFIGURING_PDP_PROFILE  "AT+QICSGP=1,1,\"internet.movil\",\"internet\",\"internet\",3"
+#define AT_CMD_CONFIGURING_PDP_PROFILE_LEN  (sizeof(AT_CMD_CONFIGURING_PDP_PROFILE) - 1)
+
+#define AT_CMD_ACTIVATING_PDP_CONTEXT  "AT+QIACT=1"
+#define AT_CMD_ACTIVATING_PDP_CONTEXT_LEN  (sizeof(AT_CMD_ACTIVATING_PDP_CONTEXT ) - 1)
+
+#define AT_CMD_QUERING_PDP_CONTEXT  "AT+QIACT?"
+#define AT_CMD_QUERING_PDP_CONTEXT_LEN  (sizeof(AT_CMD_QUERING_PDP_CONTEXT ) - 1)
+
+#define AT_CMD_CONFIGURING_SERVER_DNS "AT+QIDNSCFG=1,\"8.8.8.8\",\"8.8.4.4\"" // GOOGLE DNS SERVER
+#define AT_CMD_CONFIGURING_SERVER_DNS_LEN  (sizeof(AT_CMD_CONFIGURING_SERVER_DNS ) - 1)
+
+#define AT_CMD_PING_SERVER_DNS "AT+QIDNSGIP=1,\"intent-lion-loudly.ngrok-free.app\""
+#define AT_CMD_PING_SERVER_DNS_LEN  (sizeof(AT_CMD_PING_SERVER_DNS ) - 1)
+
+#define REFRESH_TIME_MS 20000
+
+#define BUFFER_LEN 128
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -48,19 +76,17 @@ void ConfigurePDPForHTTP::enableTransceiver () {
 CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    char StringToBeRead [200];
-    char ExpectedResponse [15] = "OK";
-    char StringToSend1 [50] = "AT+QHTTPCFG=\"contextid\",1";
-    char StringToSendUSB [20] =  "CONFIGURING PDP";
-    //char StringToSend2 [80] = "AT+QICSGP=1,1,\"internet.movil\",\"internet\",\"internet\",1";
-    //internet.tuenti
-    char StringToSend2 [80] = "AT+QICSGP=1,1,\"internet.movil\",\"internet\",\"internet\",3";
-    char StringToSend3 [50] = "AT+QIACT=1";
-    char StringToSend4 [50] = "AT+QIACT?";
-    char StringToSend5 [50] = "AT+QIDNSCFG=1,\"8.8.8.8\",\"8.8.4.4\"";
-    // 
+    char StringToBeRead [BUFFER_LEN];
+    char ExpectedResponse [AT_CMD_GENERIC_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_GENERIC_EXPECTED_RESPONSE;
+    char StringToSend1 [AT_CMD_ASSING_PDPCONTEXT_TO_HTTP_STACK_LEN + 1] = AT_CMD_ASSING_PDPCONTEXT_TO_HTTP_STACK;
+    char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
+    char StringToSend2 [AT_CMD_CONFIGURING_PDP_PROFILE_LEN + 1] = AT_CMD_CONFIGURING_PDP_PROFILE;
+    char StringToSend3 [AT_CMD_ACTIVATING_PDP_CONTEXT_LEN + 1] = AT_CMD_ACTIVATING_PDP_CONTEXT;
+    char StringToSend4 [AT_CMD_QUERING_PDP_CONTEXT_LEN + 1] = AT_CMD_QUERING_PDP_CONTEXT;
+    char StringToSend5 [AT_CMD_CONFIGURING_SERVER_DNS_LEN + 1] = AT_CMD_CONFIGURING_SERVER_DNS;
+
     //char StringToSend6 [50] = "AT+QIDNSGIP=1,\"dns.google\"";
-    char StringToSend6 [50] = "AT+QIDNSGIP=1,\"intent-lion-loudly.ngrok-free.app\"";
+    char StringToSend6 [AT_CMD_PING_SERVER_DNS_LEN + 1] = AT_CMD_PING_SERVER_DNS;
    
    switch (this->currentStatus) {
        case ASSING_PDPCONTEXT_TO_HTTP_STACK:
@@ -73,7 +99,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                 uartUSB.write (StringToSend1  , strlen (StringToSend1  ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////  
-                refreshTime->write(25000);
+                refreshTime->write(REFRESH_TIME_MS);
                 refreshTime->restart();
             }
                 
@@ -161,7 +187,6 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
         case CONFIGURING_SERVER_DNS:
             //this->currentStatus = PING_SERVER_DNS;
             //return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
-            
 
             if (this->readyToSend == true) {
                 ATHandler->sendATCommand(StringToSend5);
@@ -217,9 +242,6 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
         default:
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
    }
-
-
-
 
     if (refreshTime->read()) {
         this->readyToSend = true;

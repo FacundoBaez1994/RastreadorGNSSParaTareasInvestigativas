@@ -6,6 +6,17 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+
+#define AT_CMD_CHECK_MODULE_RESPONSE    "ATI"
+#define AT_CMD_CHECK_MODULE_RESPONSE_LEN  (sizeof(AT_CMD_CHECK_MODULE_RESPONSE) - 1)
+
+#define AT_CMD_CHECK_MODULE_RESPONSE_EXPECTED_RESPONSE     "OK"
+#define AT_CMD_CHECK_MODULE_RESPONSE_EXPECTED_RESPONSE_LEN  (sizeof(AT_CMD_CHECK_MODULE_RESPONSE_EXPECTED_RESPONSE ) - 1)
+
+#define BUFFER_LEN 128
+
+#define LOG_MESSAGE "Idle State\r\n"
+#define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -43,11 +54,10 @@ IdleState::~IdleState () {
 
 CellularConnectionStatus_t  IdleState::connect (ATCommandHandler * ATHandler, NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
-    char StringToSend [15] = "ATI";
-    char StringToBeRead [256];
-    char ExpectedResponse [15] = "OK";
-
-    char StringToSendUSB [40] = "IDLE STATE";
+    char StringToSend [AT_CMD_CHECK_MODULE_RESPONSE_LEN + 1] = AT_CMD_CHECK_MODULE_RESPONSE;
+    char StringToBeRead [BUFFER_LEN];
+    char ExpectedResponse [AT_CMD_CHECK_MODULE_RESPONSE_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_CHECK_MODULE_RESPONSE_EXPECTED_RESPONSE;
+    char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -66,12 +76,7 @@ CellInformation * currentCellInformation) {
         uartUSB.write ( "\r\n",  3 );  // debug only
          ////   ////   ////   ////   ////   ////
 
-        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-            ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "Cambiando de estado";
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////            
+        if (strcmp (StringToBeRead, ExpectedResponse) == 0) { 
             this->mobileNetworkModule->changeConnectionState (new CheckingSignalStrength (this->mobileNetworkModule));
         return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
         }

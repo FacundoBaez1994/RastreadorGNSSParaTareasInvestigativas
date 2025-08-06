@@ -1,10 +1,8 @@
 //=====[#include guards - begin]===============================================
-
 #ifndef _RETRIEVING_TIME_AND_DATE_H_
 #define _RETRIEVING_TIME_AND_DATE_H_
 
 //==================[Libraries]===============================================
-
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"
@@ -14,6 +12,10 @@
 #include <string>
 #include "CellularModule.h"
 #include "timeStampTools.h"
+
+//=====[Declaration of defines]========================================
+#define BUFFER_DATE_LEN 20
+#define BUFFER_TIME_LEN 20
 
 //=====[Declaration of public data types]======================================
 class CellularModule;         //!< Forward declaration of the owning module.
@@ -77,8 +79,8 @@ private:
     CellularModule * mobileNetworkModule;   //!< Pointer to the owning CellularModule.
     bool readyToSend;                       //!< Indicates if the command is ready to be sent.
     bool timeAndDateRetrived;               //!< True if timestamp has been successfully retrieved.
-    char time [20];                         //!< Buffer for time in HHMMSS format.
-    char date [20];                         //!< Buffer for date in DDMMYY format.
+    char time [BUFFER_TIME_LEN];            //!< Buffer for time in HHMMSS format.
+    char date [BUFFER_DATE_LEN];            //!< Buffer for date in DDMMYY format.
     int connectionAttempts;                 //!< Number of attempts made.
     int maxConnectionAttempts;              //!< Maximum number of attempts before failure.
 //=====[Declaration of privates methods]=========================================

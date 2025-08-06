@@ -7,6 +7,36 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 5
+
+#define LOG_MESSAGE_1 "\r\nHTTP Posting\r\n"
+#define LOG_MESSAGE_1_LEN (sizeof(LOG_MESSAGE_1) - 1)
+
+#define AT_CMD_HTTP_POST_SET_URL "AT+QHTTPURL="
+#define AT_CMD_HTTP_POST_SET_URL_LEN  (sizeof(AT_CMD_HTTP_POST_SET_URL) - 1)
+
+#define AT_CMD_HTTP_POST_EXPECTED_RESPONSE_1 "OK"
+#define AT_CMD_HTTP_POST_EXPECTED_RESPONSE_1_LEN  (sizeof(AT_CMD_HTTP_POST_EXPECTED_RESPONSE_1) - 1)
+
+#define AT_CMD_HTTP_POST_EXPECTED_RESPONSE_2 "CONNECT"
+#define AT_CMD_HTTP_POST_EXPECTED_RESPONSE_2_LEN  (sizeof(AT_CMD_HTTP_POST_EXPECTED_RESPONSE_2) - 1)
+
+#define URL "https://intent-lion-loudly.ngrok-free.app/api/canal/envio"
+#define URL_LEN  (sizeof(URL) - 1)
+
+#define AT_CMD_HTTP_POST "AT+QHTTPPOST="
+#define AT_CMD_HTTP_POST_LEN  (sizeof(AT_CMD_HTTP_POST) - 1)
+
+#define AT_CMD_HTTP_POST_READ "AT+QHTTPREAD="
+#define AT_CMD_HTTP_POST_READ_LEN  (sizeof(AT_CMD_HTTP_POST_READ) - 1)
+
+
+#define BUFFER_LEN 256
+
+#define INPUT_TIMEOUT 80
+#define RESPONSE_TIMEOUT 80
+
+#define REFRESH_TIMEOUT_1_MS 10000
+#define REFRESH_TIMEOUT_2_MS 5000
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -53,35 +83,38 @@ void PostHTTP::enableTransceiver () {
 CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    static char StringToBeRead [1000];
+    static char StringToBeRead [BUFFER_LEN];
     static int dataLen;
-    char StringToSendUSB [50] = "\r\nTRYING HTTP POST\r\n";
-    char ExpectedResponse1 [3] = "OK";
-    char ExpectedResponse2 [15] = "CONNECT";
-    char PartialStringToSend1 [50] = "AT+QHTTPURL=";
-    char StringToSend1 [50];
-    char url [100] = "https://intent-lion-loudly.ngrok-free.app/api/canal/envio";
+    char StringToSendUSB [LOG_MESSAGE_1_LEN + 1] = LOG_MESSAGE_1 ;
+    char ExpectedResponse1 [AT_CMD_HTTP_POST_EXPECTED_RESPONSE_1_LEN + 1] = AT_CMD_HTTP_POST_EXPECTED_RESPONSE_1;
+    char ExpectedResponse2 [AT_CMD_HTTP_POST_EXPECTED_RESPONSE_2_LEN + 1] = AT_CMD_HTTP_POST_EXPECTED_RESPONSE_2;
+    char PartialStringToSend1 [AT_CMD_HTTP_POST_SET_URL_LEN + 10] =  AT_CMD_HTTP_POST_SET_URL;
+    char StringToSend1 [AT_CMD_HTTP_POST_SET_URL_LEN + 10];
+    char url [URL_LEN + 1] = URL;
     char confirmationToSend[] = "\x1a";
     
-    char PartialStringToSend2 [50] = "AT+QHTTPPOST=";
-    char StringToSend2 [50]; 
+    char PartialStringToSend2 [AT_CMD_HTTP_POST_LEN + 1] = AT_CMD_HTTP_POST;
+    char StringToSend2 [AT_CMD_HTTP_POST_LEN + 10]; 
 
-    char PartialStringToSend3 [50] = "AT+QHTTPREAD=";
-    char StringToSend3 [50];  
+    char PartialStringToSend3 [ AT_CMD_HTTP_POST_READ_LEN + 1] =  AT_CMD_HTTP_POST_READ;
+    char StringToSend3 [AT_CMD_HTTP_POST_READ_LEN + 3];  
     static bool watingForResponse = false;
     static bool urlSet = false;
 
     int urlLength = strlen(url);
 
-    int inputTimeout = 80;
+    int inputTimeout = INPUT_TIMEOUT;
 
-    int responseTimeout = 80;
+    int responseTimeout = RESPONSE_TIMEOUT;
 
-    sprintf(StringToSend1, "AT+QHTTPURL=%d,%d", urlLength, inputTimeout);
+    // SET URL COMMAND
+    sprintf(StringToSend1, "%s%d,%d", PartialStringToSend1, urlLength, inputTimeout);
 
-    sprintf(StringToSend2, "AT+QHTTPPOST=%d,%d,%d", strlen(message), inputTimeout, responseTimeout);
+    // POST COMMAND
+    sprintf(StringToSend2, "%s%d,%d,%d", PartialStringToSend2, strlen(message), inputTimeout, responseTimeout);
 
-    sprintf(StringToSend3, "AT+QHTTPREAD=%d", responseTimeout);
+    // READ RESPONSE COMMAND
+    sprintf(StringToSend3, "%s%d", PartialStringToSend3, responseTimeout);
    
    switch (this->currentStatus) {
        case SETTING_URL:
@@ -94,8 +127,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 uartUSB.write (StringToSend1  , strlen (StringToSend1  ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////   
-                //refreshTime->write(25000);
-                refreshTime->write(10000);
+                refreshTime->write(REFRESH_TIMEOUT_1_MS);
                 refreshTime->restart();
             }
                 
@@ -140,7 +172,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
 
                 if (strcmp (StringToBeRead, ExpectedResponse2) == 0) { // CONNECT
                     ////   ////   ////   ////   ////   ////  
-                    ATHandler->sendATCommand(message);   // The message 
+                    ATHandler->sendATCommand(message);   // The message to be sent
                     ATHandler->sendATCommand(confirmationToSend);
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     uartUSB.write ("POST Message\r\n"  , strlen ("POST Message\r\n"));  // debug only
@@ -187,9 +219,9 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     if (strcmp (StringToBeRead, ExpectedResponse2) == 0) { // CONNECT
                         ////   ////   ////   ////   ////   ////  
                         watingForResponse = true;
-                        refreshTime->write(5000);
+                        refreshTime->write(REFRESH_TIMEOUT_2_MS);
                         refreshTime->restart();
-                        memset(receivedMessage, 0, 2048);
+                        //memset(receivedMessage, 0, 2048);
                         return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                     }
                 }
@@ -212,7 +244,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
 
             break;
         case DECODING_DATA:
-            char  payloadRetrived [500];
+            char  payloadRetrived [BUFFER_LEN];
             if (this->jwt->decodeJWT(StringToBeRead , payloadRetrived) == false) {
                 uartUSB.write ("Error on decoding JWT:" , strlen ("Error on decoding JWT:"));  // debug only
                 this->readyToSend  = true;
@@ -235,7 +267,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
 
     if (refreshTime->read()) {
         this->readyToSend = true;
-        refreshTime->write(10000);
+        refreshTime->write(REFRESH_TIMEOUT_1_MS);
         this->Attempts++;
         if (this->Attempts >= this->maxAttempts && watingForResponse == false) {
             this->currentStatus = SETTING_URL;

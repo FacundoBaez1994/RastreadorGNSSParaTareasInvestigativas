@@ -8,6 +8,19 @@
 #define MODEM_REGISTERED_LOCALY 1
 #define MODEM_REGISTERED_ROAMING 5
 #define MAXATTEMPTS 20
+
+#define AT_CMD_CONSULT_NETWORK_STATUS_1     "AT+CREG=2"
+#define AT_CMD_CONSULT_NETWORK_STATUS_1_LEN  (sizeof(AT_CMD_CONSULT_NETWORK_STATUS_1 ) - 1)
+
+#define AT_CMD_CONSULT_NETWORK_STATUS_EXPECTED_RESPONSE     "OK"
+#define AT_CMD_CONSULT_NETWORK_STATUS_EXPECTED_RESPONSE_LEN  (sizeof(AT_CMD_CONSULT_NETWORK_STATUS_EXPECTED_RESPONSE ) - 1)
+
+#define AT_CMD_CONSULT_NETWORK_STATUS_2     "AT+CREG?"
+#define AT_CMD_CONSULT_NETWORK_STATUS_2_LEN  (sizeof(AT_CMD_CONSULT_NETWORK_STATUS_2 ) - 1)
+
+#define BUFFER_LEN 128
+#define LOG_MESSAGE "Consulting Network Status\r\n"
+#define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -48,11 +61,11 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
  NonBlockingDelay * refreshTime,
  CellInformation * currentCellInformation) {
 
-    static char StringToBeRead [256];
-    char ExpectedResponse [15] = "OK";
-    char StringToSend [15] = "AT+CREG=2";
-    char StringToSend2 [15] = "AT+CREG?";
-    char StringToSendUSB [40] = "CONSULTING NETWORK STATUS";
+    static char StringToBeRead [BUFFER_LEN];
+    char ExpectedResponse [AT_CMD_CONSULT_NETWORK_STATUS_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_CONSULT_NETWORK_STATUS_EXPECTED_RESPONSE;
+    char StringToSend [AT_CMD_CONSULT_NETWORK_STATUS_1_LEN + 1] = AT_CMD_CONSULT_NETWORK_STATUS_1;
+    char StringToSend2 [AT_CMD_CONSULT_NETWORK_STATUS_2_LEN + 1] = AT_CMD_CONSULT_NETWORK_STATUS_2;
+    char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -90,11 +103,7 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////     
-                char StringToSendUSB [40] = "Cambiando de estado 4";
-                uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////   
+
                 currentCellInformation->cellId = this->cellId;
                 currentCellInformation->lac = this->lac;
                 currentCellInformation->accessTechnology = this->accessTechnology;

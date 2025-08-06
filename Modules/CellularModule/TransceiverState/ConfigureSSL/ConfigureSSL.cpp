@@ -5,7 +5,30 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define MAXATTEMPTS 30
+#define MAXATTEMPTS 20
+
+#define AT_CMD_GENERIC_EXPECTED_RESPONSE   "OK"
+#define AT_CMD_GENERIC_EXPECTED_RESPONSE_LEN  (sizeof( AT_CMD_GENERIC_EXPECTED_RESPONSE) - 1)
+
+#define AT_CMD_SETTING_SSL_CONTEXT  "AT+QHTTPCFG=\"sslctxid\",1"
+#define AT_CMD_SETTING_SSL_CONTEXT_LEN  (sizeof(AT_CMD_SETTING_SSL_CONTEXT) - 1)
+
+#define AT_CMD_SETTING_SSL_VERSION  "AT+QSSLCFG=\"sslversion\",1,1"
+#define AT_CMD_SETTING_SSL_VERSION_LEN  (sizeof(AT_CMD_SETTING_SSL_VERSION) - 1)
+
+#define AT_CMD_SETTING_SSL_CIPHER_SUITE  "AT+QSSLCFG=\"ciphersuite\",1,0x0005"
+#define AT_CMD_SETTING_SSL_CIPHER_SUITE_LEN  (sizeof(AT_CMD_SETTING_SSL_CIPHER_SUITE) - 1)
+
+#define AT_CMD_SETTING_SSL_SECLEVEL "AT+QSSLCFG=\"seclevel\",1,0"
+#define AT_CMD_SETTING_SSL_SECLEVEL_LEN (sizeof(AT_CMD_SETTING_SSL_SECLEVEL) - 1)
+
+
+#define LOG_MESSAGE "Setting SSL \r\n"
+#define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
+
+#define BUFFER_LEN 128
+
+#define REFRESH_TIME_MS 20000
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -49,17 +72,14 @@ void ConfigureSSL::enableTransceiver () {
 CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    char StringToBeRead [200];
-    char ExpectedResponse [4] = "OK";
+    char StringToBeRead [BUFFER_LEN];
+    char ExpectedResponse [AT_CMD_GENERIC_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_GENERIC_EXPECTED_RESPONSE;
+    char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
+    char StringToSend1 [AT_CMD_SETTING_SSL_CONTEXT_LEN + 1] = AT_CMD_SETTING_SSL_CONTEXT;
+    char StringToSend2 [AT_CMD_SETTING_SSL_VERSION_LEN + 1] = AT_CMD_SETTING_SSL_VERSION;
+    char StringToSend3 [AT_CMD_SETTING_SSL_CIPHER_SUITE_LEN + 1] = AT_CMD_SETTING_SSL_CIPHER_SUITE;
+    char StringToSend4 [AT_CMD_SETTING_SSL_SECLEVEL_LEN + 1] = AT_CMD_SETTING_SSL_SECLEVEL;
 
-    char StringToSendUSB [20] =  "SETTING SSL";
-
-    char StringToSend1 [50] = "AT+QHTTPCFG=\"sslctxid\",1";
-    char StringToSend2 [50] = "AT+QSSLCFG=\"sslversion\",1,1";
-    char StringToSend3 [50] = "AT+QSSLCFG=\"ciphersuite\",1,0x0005";
-    char StringToSend4 [50] = "AT+QSSLCFG=\"seclevel\",1,0";
-
-   
    switch (this->currentStatus) {
        case SETTING_SSL_CONTEXT:
             if (this->readyToSend == true) {
@@ -71,7 +91,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 uartUSB.write (StringToSend1  , strlen (StringToSend1  ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   ////  
-                refreshTime->write(25000);
+                refreshTime->write(REFRESH_TIME_MS);
                 refreshTime->restart();
             }
                 
@@ -144,17 +164,14 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
             if (this->readyToSend == true) {
                 ATHandler->sendATCommand(StringToSend4); // AT+QHTTPCFG=\"contextid\",1";
                 this->readyToSend  = false;
-                ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToSend4  , strlen (StringToSend4 ));  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////  
+                uartUSB.write ( "\r\n",  3 );  // debug only 
             }
                 
             if ( ATHandler->readATResponse ( StringToBeRead) == true) {
-                ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////
+
 
                 if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                     ////   ////   ////   ////   ////   ////     

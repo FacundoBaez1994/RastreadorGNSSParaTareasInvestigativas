@@ -6,10 +6,10 @@
 //#include "SensingBatteryStatus.h"
 
 //=====[Declaration of private defines]========================================
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
-
 
 //=====[Declaration of external public global variables]=======================
 
@@ -17,20 +17,11 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-
 void TrackerBaseState::updatePowerStatus (CellularModule * cellularTransceiver,
  BatteryData * currentBatteryStatus) {
     return;
@@ -63,7 +54,7 @@ void TrackerBaseState::exchangeMessages (CellularModule * cellularTransceiver,
 
     return;
 }
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
+
 void TrackerBaseState::goToSleep (CellularModule * cellularTransceiver ) {
     return;
 }

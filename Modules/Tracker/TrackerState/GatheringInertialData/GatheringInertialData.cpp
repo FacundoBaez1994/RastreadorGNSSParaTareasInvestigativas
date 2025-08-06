@@ -80,6 +80,8 @@ void GatheringInertialData::obtainInertialMeasures (IMUManager * inertialSensor,
         for (auto sample : IMUDataSamples) {
             delete sample;
         }
+        snprintf(log, sizeof(log), "\n\r Gathering Inertial Data \n\r");
+        uartUSB.write(log, strlen(log));
         IMUDataSamples.clear();
         vectorCleared = true;
     }

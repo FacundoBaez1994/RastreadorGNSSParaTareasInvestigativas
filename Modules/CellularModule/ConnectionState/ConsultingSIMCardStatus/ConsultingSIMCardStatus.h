@@ -4,7 +4,6 @@
 #define _CONSULTING_SIMCARD_STATUS_H_
 
 //==================[Libraries]===============================================
-
 #include "mbed.h"
 #include "arm_book_lib.h"
 #include "ATCommandHandler.h"

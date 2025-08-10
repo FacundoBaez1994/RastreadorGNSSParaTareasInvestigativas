@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "EEPROMManager.h"
 #include "Debugger.h"
 #include "Non_Blocking_Delay.h"
@@ -13,10 +12,13 @@
 #define EEPROM_SIZE 32768
 
 #define I2C_SDA PA_10
-#define I2C_SCL PA_9 
+#define I2C_SCL PA_9
+
+#define LOG_BUFFER 40 
+#define MAX_STRING_SIZE_ALLOWED 2048 
 
 //=====[Declaration of private data types]=====================================
-const int EEPROM_ADDRESS = 0x50 << 1; // Dirección I2C del AT24C256 (desplazada)
+const int EEPROM_ADDRESS = 0x50 << 1; //I2C dir del AT24C256 (desplazada)
 const int PAGE_SIZE = 64;
 
 //=====[Declaration and initialization of public global objects]===============
@@ -60,7 +62,7 @@ bool EEPROMManager::isEEPROMConnected() {
 void EEPROMManager::printAllStringsFromEEPROM() {
     int currentAddress = 0;
     int stringIndex = 1;
-    char log [40];
+    char log [LOG_BUFFER];
 
     while (true) {
         std::string currentString = this->readCStringFromEEPROM(currentAddress);
@@ -293,7 +295,7 @@ bool EEPROMManager::writeStringToEEPROM (int memoryAddress, const char* data) {
 
 std::string EEPROMManager::readCStringFromEEPROM( uint16_t memoryAddress) {
     std::string result = "";
-    const size_t maxLength = 2024;
+    const size_t maxLength = MAX_STRING_SIZE_ALLOWED;
 
     for (size_t i = 0; i < maxLength; ++i) {
         char addr[2];

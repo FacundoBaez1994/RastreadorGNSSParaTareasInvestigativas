@@ -7,6 +7,23 @@
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
 #define TIMETORESEND 10
+
+
+#define AT_CMD_TCP_RECV "AT+QIRD="
+#define AT_CMD_TCP_RECV_LEN  (sizeof( AT_CMD_TCP_RECV) - 1)
+
+#define AT_CMD_TCP_RECV_EXPECTED_RESPONSE "OK"
+#define AT_CMD_TCP_RECV_EXPECTED_RESPONSE_LEN  (sizeof(AT_CMD_TCP_RECV_EXPECTED_RESPONSE) - 1)
+
+#define AT_CMD_TCP_RECV_NO_DATA_RESPONSE "+QIRD: 0"
+#define AT_CMD_TCP_RECV_NO_DATA_RESPONSE_LEN  (sizeof(AT_CMD_TCP_RECV_NO_DATA_RESPONSE) - 1)
+
+#define LOG_MESSAGE "\r\nRECV Data\r\n"
+#define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
+
+#define BUFFER_LEN 256
+
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -47,14 +64,14 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
     char* receivedMessage,
     bool* newDataAvailable) {
 
-    char ATcommandFirstPart[15] = "AT+QIRD=";
-    char StringToBeSend[20];
-    char StringToBeSendUSB[20] = "RECV Data";
-    char noDataResponse[15] = "+QIRD: 0";
-    char expectedResponse[5] = "OK";  
+    char ATcommandFirstPart[AT_CMD_TCP_RECV_LEN + 1] =  AT_CMD_TCP_RECV;
+    char StringToBeSend[AT_CMD_TCP_RECV_EXPECTED_RESPONSE_LEN + 3];
+    char StringToBeSendUSB[LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
+    char noDataResponse[AT_CMD_TCP_RECV_NO_DATA_RESPONSE_LEN + 1] = AT_CMD_TCP_RECV_NO_DATA_RESPONSE;
+    char expectedResponse[AT_CMD_TCP_RECV_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_TCP_RECV_EXPECTED_RESPONSE;  
 
-    char retrivedMessage[200];
-    char StringToBeRead[200];
+    char retrivedMessage[BUFFER_LEN];
+    char StringToBeRead[BUFFER_LEN];
 
     static bool readyToSend = true;
     static int attempts = 0;
@@ -120,7 +137,6 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
     }
 
     if (refreshTime->read()) {
-        uartUSB.write("REFRESH\r\n", strlen("REFRESH\r\n"));
         readyToSend = true;
         attempts++;
 

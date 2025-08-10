@@ -11,6 +11,12 @@
 #define LOG_MESSAGE_1 "\r\nHTTP Posting\r\n"
 #define LOG_MESSAGE_1_LEN (sizeof(LOG_MESSAGE_1) - 1)
 
+#define LOG_MESSAGE_2 "POST Message:\r\n"
+#define LOG_MESSAGE_3 "POST Message SUCCESS!\r\n"
+#define LOG_MESSAGE_4 "Reading POST response\r\n"
+
+#define LOG_ERROR_MESSAGE "Error decoding JWT\r\n"
+
 #define AT_CMD_HTTP_POST_SET_URL "AT+QHTTPURL="
 #define AT_CMD_HTTP_POST_SET_URL_LEN  (sizeof(AT_CMD_HTTP_POST_SET_URL) - 1)
 
@@ -175,7 +181,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     ATHandler->sendATCommand(message);   // The message to be sent
                     ATHandler->sendATCommand(confirmationToSend);
                     uartUSB.write ( "\r\n",  3 );  // debug only
-                    uartUSB.write ("POST Message\r\n"  , strlen ("POST Message\r\n"));  // debug only
+                    uartUSB.write (LOG_MESSAGE_2 , strlen ( LOG_MESSAGE_2));  // debug only
                     uartUSB.write (message, strlen(message));
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     refreshTime->restart();
@@ -190,7 +196,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 if (postResult == POST_OK) { 
   
                     uartUSB.write ( "\r\n",  3 );  // debug only
-                    uartUSB.write ("POST Message success"  , strlen ("POST Message success"));  // debug only
+                    uartUSB.write (LOG_MESSAGE_3  , strlen (LOG_MESSAGE_3));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     refreshTime->restart();
                     this->currentStatus = READING_DATA;
@@ -230,7 +236,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     ////   ////   ////   ////   ////   ////
                     StringToBeRead [dataLen] = '\0';
                     refreshTime->restart();
-                    uartUSB.write ("Read POST response\r\n"  , strlen ("Read POST response\r\n"));  // debug only
+                    uartUSB.write (LOG_MESSAGE_4, strlen (LOG_MESSAGE_4));  // debug only
                     uartUSB.write (StringToBeRead  , strlen (StringToBeRead ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     watingForResponse = false;
@@ -246,7 +252,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
         case DECODING_DATA:
             char  payloadRetrived [BUFFER_LEN];
             if (this->jwt->decodeJWT(StringToBeRead , payloadRetrived) == false) {
-                uartUSB.write ("Error on decoding JWT:" , strlen ("Error on decoding JWT:"));  // debug only
+                uartUSB.write (LOG_ERROR_MESSAGE , strlen (LOG_ERROR_MESSAGE ));  // debug only
                 this->readyToSend  = true;
                 this->currentStatus = READING_DATA;
                 return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
@@ -297,7 +303,7 @@ PostResult_t PostHTTP::checkHTTPPostResult(char * responseBuffer, int * dataLen)
         uartUSB.write("Parsed POST result:\r\n", 23);
         uartUSB.write(responseBuffer, strlen(responseBuffer));
         uartUSB.write("\r\n", 2);
-        if (result == 0  && (*dataLen > -1 && *dataLen < 2048)) {
+        if (result == 0  && (*dataLen > -1 && *dataLen < BUFFER_LEN)) {
             return POST_OK;
         }
         return POST_FAILURE;

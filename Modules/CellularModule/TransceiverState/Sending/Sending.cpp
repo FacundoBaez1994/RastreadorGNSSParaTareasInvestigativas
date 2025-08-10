@@ -7,6 +7,16 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+#define CHUNK_SIZE 256
+#define BUFFER_LEN 256
+
+
+#define AT_CMD_TCP_SEND "AT+QISEND="
+#define AT_CMD_TCP_SEND_LEN  (sizeof(AT_CMD_TCP_SEND) - 1)
+
+#define AT_CMD_TCP_SEND_EXPECTED_RESPONSE "SEND OK"
+#define AT_CMD_TCP_SEND_EXPECTED_RESPONSE_LEN  (sizeof(AT_CMD_TCP_SEND_EXPECTED_RESPONSE) - 1)
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -53,11 +63,11 @@ void Sending::enableTransceiver () {
 CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHandler,
     NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
      char * receivedMessage, bool * newDataAvailable) {
-    char buffer[100];
+    char buffer[BUFFER_LEN];
 
     static size_t currentMessagePosition = 0; 
     size_t messageLength = strlen(message);  
-    size_t chunkSize = 256;        
+    size_t chunkSize = CHUNK_SIZE;        
     static bool debugFlag = false; 
 
     size_t remainingLength = messageLength - currentMessagePosition;
@@ -76,8 +86,7 @@ CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHand
 
     if (this->sendChunck(ATHandler, refreshTime, messageChunk, socketTargetted)) {
         currentMessagePosition += sizeToSend; 
-
-        
+    
         snprintf(buffer, sizeof(buffer), "Sent chunk, new currentMessagePosition = %zu", currentMessagePosition);
         uartUSB.write(buffer, strlen(buffer));  // Debug only
         uartUSB.write("\r\n", 3);               // Debug only
@@ -98,19 +107,12 @@ CellularTransceiverStatus_t Sending::exchangeMessages (ATCommandHandler * ATHand
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 bool Sending::sendChunck(ATCommandHandler *ATHandler,
     NonBlockingDelay *refreshTime, char *message, TcpSocket * socketTargetted) {
-    char StringToBeSend[100];
-    char StringToBeRead[100];
-    char StringToBeSendUSB[] = "SENDING DATA"; 
-    char ATcommand[] = "AT+QISEND=";
-    char ExpectedResponse [] = "SEND OK";
+    char StringToBeSend[AT_CMD_TCP_SEND_LEN + 5];
+    char StringToBeRead[BUFFER_LEN];
+    char ATcommand[AT_CMD_TCP_SEND_LEN + 1] = AT_CMD_TCP_SEND;
+    char ExpectedResponse [AT_CMD_TCP_SEND_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_TCP_SEND_EXPECTED_RESPONSE;
     int connectID = 0;
     char confirmationToSend[] = "\x1a";
     char confirmationChar = '>';
@@ -135,18 +137,14 @@ bool Sending::sendChunck(ATCommandHandler *ATHandler,
         }
     }
 
-
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToBeSend);
-        uartUSB.write(StringToBeSendUSB, strlen(StringToBeSendUSB));  // debug only
-        uartUSB.write("\r\n", 3);  // debug only
         uartUSB.write(StringToBeSend, strlen(StringToBeSend));  // debug only
         uartUSB.write("\r\n", 3);  // debug only
         refreshTime->restart();
         this->readyToSend = false;
         this->transmissionEnable = true;
     }
-
 
     if (this->watingForConfirmation == true) {
         if ( ATHandler->readATResponse ( StringToBeRead) == true) {
@@ -156,11 +154,8 @@ bool Sending::sendChunck(ATCommandHandler *ATHandler,
             ////   ////   ////   ////   ////   ////
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                 ////   ////   ////   ////   ////   ////
-                char StringToSendUSB [40] = "Cambiando de estado 3";
-                uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
                 counter = 0;
-                this->Attempts =0;
+                this->Attempts = 0;
                 this->readyToSend = true;
                 this->transmissionEnable = false;
                 this->watingForConfirmation = false;
@@ -170,7 +165,6 @@ bool Sending::sendChunck(ATCommandHandler *ATHandler,
             }
         }
     }
-
 
     if (refreshTime->read()) {
         counter++;

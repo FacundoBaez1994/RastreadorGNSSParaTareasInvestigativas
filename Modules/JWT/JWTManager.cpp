@@ -4,15 +4,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-JWTManager::JWTManager () {
-    this->jwt = new CustomJWT (this->JWTKey, 256);
-}
-
-
-JWTManager::~JWTManager() {
-    delete this->jwt;
-    this->jwt = nullptr;
-}
+#define LOG_BUFFER 256
 
 //=====[Declaration of private data types]=====================================
 
@@ -28,16 +20,26 @@ JWTManager::~JWTManager() {
 
 //=====[Implementations of public functions]===================================
 void printData(char *data, size_t dataLen) {
-    char logMessage [150];
+    char logMessage [LOG_BUFFER];
     snprintf(logMessage, sizeof(logMessage), "\n\rData: = %s \n\r", data);
     uartUSB.write(logMessage , strlen(logMessage ));
       snprintf(logMessage, sizeof(logMessage), "\n\rData Length: = %i \n\r", dataLen);
     uartUSB.write(logMessage , strlen(logMessage ));
 }
 
+
 //=====[Implementations of public methods]===================================
+JWTManager::JWTManager () {
+    this->jwt = new CustomJWT (this->JWTKey, 256);
+}
+
+JWTManager::~JWTManager() {
+    delete this->jwt;
+    this->jwt = nullptr;
+}
+
 void JWTManager::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
-    char logMessage [250];
+    char logMessage [LOG_BUFFER];
     this->jwt->allocateJWTMemory();
     snprintf(logMessage, sizeof(logMessage), "Generating a JWT"); 
     uartUSB.write(logMessage , strlen(logMessage ));
@@ -68,7 +70,7 @@ void JWTManager::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
 
 
 bool JWTManager::decodeJWT (char * jwtToDecode, char * payloadRetrived) {
-    char logMessage [150];
+    char logMessage [LOG_BUFFER];
     this->jwt->allocateJWTMemory();
     //Decode the JWT
     snprintf(logMessage, sizeof(logMessage), "Decoding and verifying the JWT\n\r");

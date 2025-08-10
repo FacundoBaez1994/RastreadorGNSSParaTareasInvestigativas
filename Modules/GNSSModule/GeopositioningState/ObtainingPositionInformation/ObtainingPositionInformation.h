@@ -13,6 +13,10 @@
 #include "GNSSState.h"
 #include "timeStampTools.h"
 
+//=====[Declaration of private defines]========================================
+#define UTC_LEN  10
+#define DATE_LEN  7
+
 //=====[Declaration of public data types]======================================
 class GNSSModule;   /**< Forward declaration of GNSSModule. */
 struct GNSSData;    /**< Forward declaration of GNSSData struct. */
@@ -72,8 +76,7 @@ private:
 //=====[Declaration of privates atributes]=========================================
     GNSSModule* currentGNSSModule; /**< Reference to the owning GNSS module. */
     bool readyToSend;              /**< Indicates whether a command can be sent. */
-
-    char utc[10];                  /**< UTC time in HHMMSS format. */
+    char utc[UTC_LEN];             /**< UTC time in HHMMSS format. */
     float latitude;                /**< Latitude in decimal degrees. */
     float longitude;               /**< Longitude in decimal degrees. */
     float hdop;                    /**< Horizontal dilution of precision. */
@@ -82,9 +85,8 @@ private:
     float cog;                     /**< Course over ground. */
     float spkm;                    /**< Speed in km/h. */
     float spkn;                    /**< Speed in knots. */
-    char date[7];                  /**< Date in DDMMYY format. */
+    char date[DATE_LEN ];          /**< Date in DDMMYY format. */
     int nsat;                      /**< Number of satellites used. */
-
     int numberOfTries;             /**< Current retry count. */
     int maxTries;                  /**< Maximum number of allowed retries. */
 };

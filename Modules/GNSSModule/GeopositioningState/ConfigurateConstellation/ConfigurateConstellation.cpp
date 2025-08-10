@@ -5,8 +5,21 @@
 #include "TurningOffGNSS.h"
 
 //=====[Declaration of private defines]========================================
-#define MAXRETRIES  10
+#define MAX_RETRIES  20
 
+#define LOG_MESSAGE "Configuring GNSS Constellations\r\n"
+#define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
+
+#define LOG_MESSAGE_NO_GNSS_WARNING "\r\n**GNSS UNAVAILABLE!**\r\n"
+#define LOG_MESSAGE_NO_GNSS_WARNING_LEN (sizeof(LOG_MESSAGE_NO_GNSS_WARNING) - 1)
+
+#define AT_CMD_CONFIGURE_GNSS_CONSTELATIONS "AT+QGPSCFG=\"gnssconfig\",4" // GPS + BEIDOU
+#define AT_CMD_CONFIGURE_GNSS_CONSTELATIONS_LEN  (sizeof(AT_CMD_CONFIGURE_GNSS_CONSTELATIONS) - 1)
+
+#define AT_CMD_CONFIGURE_GNSS_CONSTELATIONS_EXPECTED_RESPONSE "OK" // GPS + BEIDOU
+#define AT_CMD_CONFIGURE_GNSS_CONSTELATIONS_EXPECTED_RESPONSE_LEN  (sizeof(AT_CMD_CONFIGURE_GNSS_CONSTELATIONS) - 1)
+
+#define BUFFER_LEN 128
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -27,7 +40,7 @@
     this->readyToSend = true;
 
     this->numberOfTries = 0;
-    this->maxTries = MAXRETRIES;
+    this->maxTries = MAX_RETRIES;
 }
 
 ConfigurateConstellation::ConfigurateConstellation  (GNSSModule * aGNSSModule) {
@@ -35,7 +48,7 @@ ConfigurateConstellation::ConfigurateConstellation  (GNSSModule * aGNSSModule) {
     this->readyToSend = true;
 
     this->numberOfTries = 0;
-    this->maxTries = MAXRETRIES;
+    this->maxTries = MAX_RETRIES;
 }
 
 ConfigurateConstellation::~ConfigurateConstellation  () {
@@ -45,10 +58,10 @@ ConfigurateConstellation::~ConfigurateConstellation  () {
 GNSSState_t  ConfigurateConstellation::retrivGeopositioning (GNSSData * Geodata, ATCommandHandler * ATHandler,
      NonBlockingDelay * refreshTime)  {
  
-    char StringToSend [28] = "AT+QGPSCFG=\"gnssconfig\",4"; // 4 == Beidou and GPS
-    char StringToBeRead [50];
-    char ExpectedResponse [3] = "OK";
-    char StringToSendUSB [40] = "CONFIGURE GNSS CONSTELLATION";
+    char StringToSend [AT_CMD_CONFIGURE_GNSS_CONSTELATIONS_LEN + 1] = AT_CMD_CONFIGURE_GNSS_CONSTELATIONS; // 4 == Beidou and GPS
+    char StringToBeRead [BUFFER_LEN];
+    char ExpectedResponse [AT_CMD_CONFIGURE_GNSS_CONSTELATIONS_EXPECTED_RESPONSE_LEN + 1] =  AT_CMD_CONFIGURE_GNSS_CONSTELATIONS_EXPECTED_RESPONSE;
+    char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -76,13 +89,10 @@ GNSSState_t  ConfigurateConstellation::retrivGeopositioning (GNSSData * Geodata,
         this->readyToSend = true;    
         this->numberOfTries ++;
     
-        char StringToSendUSB [40] = "+1 counter retry";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
+
         if (this->numberOfTries >= this->maxTries) {
              ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "GNSS UNAVAILABLE, TURNING OFF";
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_MESSAGE_NO_GNSS_WARNING , strlen (LOG_MESSAGE_NO_GNSS_WARNING ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////    
             this->numberOfTries = 0;

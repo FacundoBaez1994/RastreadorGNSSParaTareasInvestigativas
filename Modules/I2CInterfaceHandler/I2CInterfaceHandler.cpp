@@ -11,23 +11,15 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
 
@@ -37,20 +29,11 @@ I2CInterfaceHandler::I2CInterfaceHandler ( ) {
     this->i2cInterface->frequency(I2C_FREQUENCY_DEFAULT);  // use fast (400 kHz) I2C  
 }
 
-/** 
-* @brief 
-* @returns 
-*/
 I2CInterfaceHandler::~I2CInterfaceHandler ( ) {
     delete this->i2cInterface; 
     this->i2cInterface = nullptr;
 }
 
-
-/** 
-* @brief 
-* @returns 
-*/
 void I2CInterfaceHandler::write_byte(uint8_t address, uint8_t subAddress, uint8_t data) {
     char data_out[2] = {static_cast<char>(subAddress), static_cast<char>(data)};
     i2c_err_ = i2cInterface->write(address << 1, data_out, 2);  // Address shifted left for 8-bit format
@@ -99,13 +82,3 @@ void I2CInterfaceHandler::print_i2c_error() {
     }
 }
 //=====[Implementations of private functions]==================================
-/** 
-* @brief callback function adds 1 to a counter
-* @note ISR cannot form part of the class
-*/
-
-
-/** 
-* @brief returns counter
-* @return tickCounter a counter value
-*/

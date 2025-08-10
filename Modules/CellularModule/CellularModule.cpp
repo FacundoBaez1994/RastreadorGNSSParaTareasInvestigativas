@@ -2,10 +2,8 @@
 #include "CellularModule.h"
 #include "Debugger.h"
 
-
 //=====[Declaration of private defines]========================================
-#define REFRESHTIME  1000
-
+#define REFRESH_TIME  1000
 
 #define CELLULAR_MODULE_TX_UART PB_6 // tx nucleo
 #define CELLULAR_MODULE_RX_UART PB_7 // rx nucleo
@@ -34,7 +32,7 @@
 //=====[Implementations of public methods]===================================
 
 CellularModule::CellularModule () {
-    this->refreshTime = new NonBlockingDelay (REFRESHTIME);
+    this->refreshTime = new NonBlockingDelay (REFRESH_TIME);
     this->ATHandler = new ATCommandHandler (new BufferedSerial  (CELLULAR_MODULE_TX_UART, 
      CELLULAR_MODULE_RX_UART, CELLULAR_MODULE_BAUD_RATE));
     this->currentConnectionState = new ConnectionUnavailableState (this);
@@ -145,7 +143,7 @@ bool CellularModule::retrivNeighborCellsInformation ( std::vector<CellInformatio
      bool result = this->currentConnectionState->retrivNeighborCellsInformation 
         (this->ATHandler, this->refreshTime, neighborsCellInformation, numberOfNeighbors);
     if (result == true) {
-        refreshTime->write(REFRESHTIME);
+        refreshTime->write(REFRESH_TIME);
     }
     return result;
 }

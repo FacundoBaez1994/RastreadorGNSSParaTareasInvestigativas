@@ -18,9 +18,38 @@
 
 #define I2C_FREQUENCY_DEFAULT 400000
 #define REFRESH_TIME_DEFAULT 100
-
+#define REPORT_INTERVAL_ACCEL_US 4000
+#define REPORT_INTERVAL_MOVEMENT_US 10000
 
 #define SAMPLES_PROM 100
+
+
+#define LOG_MESSAGE_INITIALIZATION "Adafruit BNO08x test!\r\n"
+#define LOG_MESSAGE_INITIALIZATION_LEN (sizeof(LOG_MESSAGE_INITIALIZATION_LEN) - 1)
+
+#define LOG_MESSAGE_MODULE_NOT_FOUND "Failed to find BNO08x chip\r\n"
+#define LOG_MESSAGE_MODULE_NOT_FOUND_LEN (sizeof(LOG_MESSAGE_MODULE_NOT_FOUND) - 1)
+
+#define LOG_MESSAGE_MODULE_FOUND "BNO08x Found!\r\n"
+#define LOG_MESSAGE_MODULE_FOUND_LEN (sizeof(LOG_MESSAGE_MODULE_FOUND) - 1)
+
+#define LOG_MESSAGE_MODULE_READY "BNO08x ready to read events\r\n"
+#define LOG_MESSAGE_MODULE_READY_LEN (sizeof(LOG_MESSAGE_MODULE_READY ) - 1)
+
+#define LOG_MESSAGE_MODULE_RESET "BNO08x was reset\r\n"
+#define LOG_MESSAGE_MODULE_RESET_LEN (sizeof(LOG_MESSAGE_MODULE_RESET ) - 1)
+
+#define LOG_MESSAGE_DEVICE_ON_MOTION "\n\rDEVICE_ON_MOTION\n\r"
+#define LOG_MESSAGE_DEVICE_ON_MOTION_LEN (sizeof(LOG_MESSAGE_DEVICE_ON_MOTION ) - 1)
+
+#define LOG_MESSAGE_DEVICE_STATIONARY "\n\rDEVICE_STATIONARY\n\r"
+#define LOG_MESSAGE_DEVICE_STATIONARY_LEN (sizeof(LOG_MESSAGE_DEVICE_STATIONARY ) - 1)
+
+#define LOG_MESSAGE_SETTING_REPORTS "Setting desired reports\n\r"
+#define LOG_MESSAGE_SETTING_REPORTS_LEN (sizeof(LOG_MESSAGE_SETTING_REPORTS) - 1)
+
+#define LOG_MESSAGE_SETTING_REPORTS_ERROR "Could not enable stabilized remote vector\n\r"
+#define LOG_MESSAGE_SETTING_REPORTS_ERROR_LEN (sizeof(LOG_MESSAGE_SETTING_REPORTS_ERROR ) - 1)
 
 //=====[Declaration of private data types]=====================================
 
@@ -50,22 +79,18 @@ IMUManager::~IMUManager() {
 }
 
 bool IMUManager::initialize (void) {
-    char log[100];
 
-    snprintf(log, sizeof(log), "Adafruit BNO08x test!\n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_INITIALIZATION, strlen(LOG_MESSAGE_INITIALIZATION));
 
     // Try to initialize with I2C bus and address
     if (!this->bno08x->begin_I2C(BNO080_DEFAULT_ADDRESS, this->i2c)) {
-        snprintf(log, sizeof(log), "Failed to find BNO08x chip\n\r");
-        uartUSB.write(log, strlen(log));
+        uartUSB.write(LOG_MESSAGE_MODULE_NOT_FOUND, strlen(LOG_MESSAGE_MODULE_NOT_FOUND));
         return false;
     }
-    snprintf(log, sizeof(log), "BNO08x Found!\n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_MODULE_FOUND, strlen(LOG_MESSAGE_MODULE_FOUND));
 
     this->reportType = SH2_ROTATION_VECTOR;
-    this->reportIntervalUs = 4000;
+    this->reportIntervalUs = REPORT_INTERVAL_ACCEL_US;
     if (setReports(this->reportType, this->reportIntervalUs) == false) {
         return false;
     }
@@ -81,15 +106,12 @@ bool IMUManager::initialize (void) {
         return false;
     }
 
-    
     this->reportType = SH2_STABILITY_CLASSIFIER;
-    if (this->bno08x->enableReport(this->reportType, 100000) == false){
+    if (this->bno08x->enableReport(this->reportType, REPORT_INTERVAL_MOVEMENT_US) == false){
         return false;
     }
     
-
-    snprintf(log, sizeof(log), "Reading events\n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_MODULE_READY , strlen(LOG_MESSAGE_MODULE_READY ));
 
     this->clearAcumulatedMeasurement ();
     return true;
@@ -101,8 +123,7 @@ void IMUManager::checkStability(deviceMotionStatus_t* currentMotionStatus) {
     char log[100];
 
     if (this->bno08x->wasReset()) {
-        snprintf(log, sizeof(log), "Sensor was reset\n\r");
-        uartUSB.write(log, strlen(log));
+        uartUSB.write(LOG_MESSAGE_MODULE_RESET, strlen(LOG_MESSAGE_MODULE_RESET));
         setReports(this->reportType, this->reportIntervalUs); 
     }
 
@@ -157,14 +178,14 @@ void IMUManager::checkStability(deviceMotionStatus_t* currentMotionStatus) {
         this->motionCounter = 0;
         this->stillnessCounter = 0;
         this->currentMotionStatus = DEVICE_ON_MOTION;
-        uartUSB.write("\n\rDEVICE_ON_MOTION\n\r", strlen("\n\rDEVICE_ON_MOTION\n\r"));
+        uartUSB.write(LOG_MESSAGE_DEVICE_ON_MOTION, strlen(LOG_MESSAGE_DEVICE_ON_MOTION));
     }
 
     if (stillnessCounter >= THRESHOLD_TO_BE_STATIONARY &&  this->currentMotionStatus ==  DEVICE_ON_MOTION ) {
         this->motionCounter = 0;
         this->stillnessCounter = 0;
         this->currentMotionStatus = DEVICE_STATIONARY;
-        uartUSB.write("\n\rDEVICE_STATIONARY\n\r", strlen("\n\rDEVICE_STATIONARY\n\r"));
+        uartUSB.write(LOG_MESSAGE_DEVICE_STATIONARY, strlen(LOG_MESSAGE_DEVICE_STATIONARY));
     }
     *currentMotionStatus =  this->currentMotionStatus;
 
@@ -174,12 +195,11 @@ void IMUManager::checkStability(deviceMotionStatus_t* currentMotionStatus) {
 
 
 bool IMUManager::obtainInertialMeasures(IMUData_t* inertialMeasures) {
-  char log[100];
+  //char log[100];
 
   if (this->bno08x->wasReset()) {
 
-    snprintf(log, sizeof(log), "sensor was reset \n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_MODULE_RESET, strlen(LOG_MESSAGE_MODULE_RESET));
     setReports(reportType, reportIntervalUs);
   }
 
@@ -323,18 +343,13 @@ void IMUManager::clearAcumulatedMeasurement() {
     this->promAcceleration.az = 0;
     this->samplesCounterAccel = 0;
     this->samplesCounterAngles = 0;
-  
 }
 
 
-
 bool IMUManager::setReports(sh2_SensorId_t reportType, long report_interval) {
-    char log[100];
-    snprintf(log, sizeof(log), "Setting desired reports\n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_SETTING_REPORTS, strlen(LOG_MESSAGE_SETTING_REPORTS));
     if (!this->bno08x->enableReport(reportType, report_interval)) {
-        snprintf(log, sizeof(log), "Could not enable stabilized remote vector\n\r");
-        uartUSB.write(log, strlen(log));
+        uartUSB.write(LOG_MESSAGE_SETTING_REPORTS_ERROR, strlen(LOG_MESSAGE_SETTING_REPORTS_ERROR));
         return false;
     }
     return true;

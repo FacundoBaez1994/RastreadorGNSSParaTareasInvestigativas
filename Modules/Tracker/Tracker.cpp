@@ -37,9 +37,6 @@
 //=====[Declarations (prototypes) of private functions]========================
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief Contructor method creates a new trackerGPS instance ready to be used
-*/
 Tracker::Tracker () {
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_WATCHDOG_TIMER_MS);
@@ -95,7 +92,6 @@ Tracker::Tracker () {
     uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
 }
 
-
 Tracker::~Tracker() {
     delete this->imuData->timestamp;
     this->imuData->timestamp = nullptr;
@@ -145,12 +141,6 @@ Tracker::~Tracker() {
     this->decrypterBase64 = nullptr;
 }
 
-
-/** 
-* @brief Main rutine of the tracker device
-*   
-*
-*/
 void Tracker::update () {
     static char formattedMessage [2048];
     static char receivedMessage [2048];

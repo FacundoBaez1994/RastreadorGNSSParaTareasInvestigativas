@@ -6,6 +6,12 @@
 
 //=====[Declaration of private defines]========================================
 #define TURN_ON_COUNTER 1000
+
+#define LOG_MESSAGE_CURRENT_STATE "\r\nManualPowerOFFState\r\n"
+#define LOG_MESSAGE_CURRENT_STATE_LEN (sizeof(LOG_MESSAGE_CURRENT_STATE) - 1)
+
+#define LOG_MESSAGE_CHANGE_STATE "Turning ON\r\n"
+#define LOG_MESSAGE_CHANGE_STATE_LEN (sizeof(LOG_MESSAGE_CHANGE_STATE) - 1)
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -23,7 +29,7 @@
 
 //=====[Implementations of public methods]===================================
 ManualPowerOFFState::ManualPowerOFFState () {
-    uartUSB.write ("\r\nManualPowerOFFState\r\n", strlen ("\r\nManualPowerOFFState\r\n"));  // debug only
+    uartUSB.write (LOG_MESSAGE_CURRENT_STATE, strlen (LOG_MESSAGE_CURRENT_STATE));  // debug only
 
     this->manager = nullptr;
     this->status = MANUAL_POWER_OFF;
@@ -35,8 +41,8 @@ ManualPowerOFFState::ManualPowerOFFState () {
 }
 
 ManualPowerOFFState::ManualPowerOFFState (PowerManager * newManager) {
-     uartUSB.write ("\r\nManualPowerOFFState\r\n", strlen ("\r\nManualPowerOFFState\r\n"));  // debug only
-
+    uartUSB.write (LOG_MESSAGE_CURRENT_STATE, strlen (LOG_MESSAGE_CURRENT_STATE));  // debug only
+    
     this->manager = newManager;
     this->status = MANUAL_POWER_OFF;
     this->ManualTurningPower = false;
@@ -55,11 +61,7 @@ powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandle
     // If powerStatus is in OFF status the power is ON (negate logic)
     if (this->manager->readPowerStatus()  == OFF && buttonPushed == true) {
         if (this->turnONCounter > TURN_ON_COUNTER)  {
-            //////////////////////////////////////////
-            char StringToSend [30] = "Turning ON";
-            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            //////////////////////////////////////////
+            uartUSB.write (LOG_MESSAGE_CHANGE_STATE, strlen (LOG_MESSAGE_CHANGE_STATE));  // debug only
             this->turnONCounter = 0;
             this->status = POWER_ON;
             this->buttonPushed = false;
@@ -82,9 +84,9 @@ powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandle
     if (ManualTurningPower == true && SignalTurningPowerUp == false && this->TurningUP  == true ) {
 
         //////////////////////////////////////////
-        char StringToSend [30] = "UP";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
+        //char StringToSend [30] = "UP";
+        //uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+        //uartUSB.write ( "\r\n",  3 );  // debug only
          //////////////////////////////////////////
         this->manager->changeKeyDigitalSignal (true);
         this->ManualTurningPower = true;
@@ -94,9 +96,9 @@ powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandle
     if (this->SignalTurningPowerUp  == true && powerChangeDurationTimer->read() && this->TurningUP  == true) {
 
         //////////////////////////////////////////
-        char StringToSend [30] = "DOWN";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
+        //char StringToSend [30] = "DOWN";
+        //uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+        //uartUSB.write ( "\r\n",  3 );  // debug only
          //////////////////////////////////////////
         this->manager->changeKeyDigitalSignal (false);
         this->SignalTurningPowerUp = false;
@@ -123,11 +125,7 @@ bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDela
     this->manager->changePowerDownSignal (ON);
     // If powerStatus is in OFF status the power is ON (negate logic)
     if (this->manager->readPowerStatus()  == OFF) {
-        //////////////////////////////////////////
-        char StringToSend [30] = "Turning ON";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-         //////////////////////////////////////////
+        uartUSB.write (LOG_MESSAGE_CHANGE_STATE, strlen (LOG_MESSAGE_CHANGE_STATE));  // debug only
         this->manager->changePowerState (new PowerONState ( this->manager) );
         this->status = POWER_ON;
         return true;
@@ -138,9 +136,9 @@ bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDela
     if (SignalTurningOn == false  ) {
          if (powerChangeDurationTimer->read()) {
             //////////////////////////////////////////
-            char StringToSend [30] = "UP";
-            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
+            //char StringToSend [30] = "UP";
+            //uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+            //uartUSB.write ( "\r\n",  3 );  // debug only
             //////////////////////////////////////////
             this->manager->changeKeyDigitalSignal (true);
             powerChangeDurationTimer->restart();
@@ -149,9 +147,9 @@ bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDela
     } else {
         if (powerChangeDurationTimer->read()) {
             //////////////////////////////////////////
-            char StringToSend [30] = "DOWN";
-            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
+            //char StringToSend [30] = "DOWN";
+            //uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
+            //uartUSB.write ( "\r\n",  3 );  // debug only
             //////////////////////////////////////////
             this->manager->changeKeyDigitalSignal (false);
             SignalTurningOn = false;

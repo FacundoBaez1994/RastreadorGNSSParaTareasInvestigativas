@@ -4,7 +4,52 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define  MAX_TRIES 10
+#define MAX_TRIES 10
+#define MAX_COUNT_TURN_OFF 20
+
+#define LOG_MESSAGE_CURRENT_STATE "\r\nPowerONState\r\n"
+#define LOG_MESSAGE_CURRENT_STATE_LEN (sizeof(LOG_MESSAGE_CURRENT_STATE) - 1)
+
+#define LOG_MESSAGE_POWER_OFF_DETECTED "POWER OFF DETECTED\r\n"
+#define LOG_MESSAGE_POWER_OFF_DETECTED_LEN (sizeof(LOG_MESSAGE_POWER_OFF_DETECTED) - 1)
+
+#define LOG_MESSAGE_AUTOMATIC_POWER_OFF "AUTOMATIC TURNING OFF\r\n"
+#define LOG_MESSAGE_AUTOMATIC_POWER_OFF_LEN (sizeof(LOG_MESSAGE_AUTOMATIC_POWER_OFF) - 1)
+
+#define LOG_MESSAGE_MANUAL_POWER_OFF "MANUAL TURNING OFF\r\n"
+#define LOG_MESSAGE_MANUAL_POWER_OFF_LEN (sizeof(LOG_MESSAGE_MANUAL_POWER_OFF) - 1)
+
+#define AT_CMD_POWER_DOWN "AT+QPOWD"
+#define AT_CMD_POWER_DOWN_LEN (sizeof(AT_CMD_POWER_DOWN) - 1)
+
+#define AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE "POWERED DOWN"
+#define AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE_LEN (sizeof(AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE) - 1)
+
+#define LOG_MESSAGE_DEVICE_TURNING_DOWN "TURNING DOWN\r\n"
+#define LOG_MESSAGE_DEVICE_TURNING_DOWN_LEN (sizeof(LOG_MESSAGE_DEVICE_TURNING_DOWN ) - 1)
+
+#define LOG_MESSAGE_DEVICE_REBOOTING "Rebooting\r\n"
+#define LOG_MESSAGE_DEVICE_REBOOTING_LEN (sizeof(LOG_MESSAGE_DEVICE_REBOOTING ) - 1)
+
+#define BUFFER 128
+
+#define AT_CMD_SLEEP "AT+QSCLK=1"
+#define AT_CMD_SLEEP_LEN (sizeof(AT_CMD_SLEEP) - 1)
+
+#define AT_CMD_SLEEP_EXPECTED_RESPONSE "OK"
+#define AT_CMD_SLEEP_EXPECTED_RESPONSE_LEN (sizeof( AT_CMD_SLEEP_EXPECTED_RESPONSE) - 1)
+
+#define LOG_MESSAGE_SLEEP "Go To Sleep\r\n"
+#define LOG_MESSAGE_SLEEP_LEN (sizeof(LOG_MESSAGE_SLEEP ) - 1)
+
+#define AT_CMD_BATTERY_MEASURE "AT+CBC"
+#define AT_CMD_BATTERY_MEASURE_LEN (sizeof(AT_CMD_BATTERY_MEASURE) - 1)
+
+#define LOG_MESSAGE_BATTERY_MEASURE "Measuring Battery\r\n"
+#define LOG_MESSAGE_BATTERY_MEASURE_LEN (sizeof(LOG_MESSAGE_BATTERY_MEASURE) - 1)
+
+
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -21,7 +66,7 @@
 
 //=====[Implementations of public methods]===================================
 PowerONState::PowerONState () {
-    uartUSB.write ("\r\nPowerONState\r\n", strlen ("\r\nPowerONState\r\n"));
+    uartUSB.write (LOG_MESSAGE_CURRENT_STATE, strlen (LOG_MESSAGE_CURRENT_STATE));
 
     this->manager = nullptr;
     this->status = POWER_ON;
@@ -32,7 +77,7 @@ PowerONState::PowerONState () {
 }
 
 PowerONState::PowerONState (PowerManager * newManager) {
-    uartUSB.write ("\r\nPowerONState\r\n", strlen ("\r\nPowerONState\r\n"));
+    uartUSB.write (LOG_MESSAGE_CURRENT_STATE, strlen (LOG_MESSAGE_CURRENT_STATE));
     
     this->manager = newManager;
     this->status = POWER_ON;
@@ -60,27 +105,17 @@ powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonB
     if (this->manager->readPowerStatus()  == ON) {
          turnOffCounter ++;
     }
-    if (turnOffCounter == 20) {
-        ////////////  //////////// ////////////
-            char StringToSend [30] = "POWER OFF DETECTED";;
-            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            //////////// //////////// ////////////
+    if (turnOffCounter == MAX_COUNT_TURN_OFF) {
+            uartUSB.write (LOG_MESSAGE_POWER_OFF_DETECTED, strlen (LOG_MESSAGE_POWER_OFF_DETECTED));  // debug only
         if (this->ManualTurningPower == false) {
             ////////////  //////////// ////////////
-            char StringToSend [30] = "AUTOMATIC TURNING OFF";;
-            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
+            uartUSB.write (LOG_MESSAGE_AUTOMATIC_POWER_OFF, strlen (LOG_MESSAGE_AUTOMATIC_POWER_OFF));  // debug only
             //////////// //////////// ////////////
             this->manager->changePowerState (new PowerOFFState ( this->manager) );
             this->status = POWER_OFF;
             return this->status;
         } else {
-            ////////////  //////////// ////////////
-            char StringToSend [30] = "MANUAL TURNING OFF";;
-            uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            //////////// //////////// ////////////
+            uartUSB.write (LOG_MESSAGE_MANUAL_POWER_OFF, strlen (LOG_MESSAGE_MANUAL_POWER_OFF));  // debug only
             this->manager->changePowerState (new ManualPowerOFFState ( this->manager) );
             this->status = MANUAL_POWER_OFF;
             return this->status;
@@ -97,24 +132,12 @@ powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonB
 
     // Start Stop Signal
     if (ManualTurningPower == true && SignalTurningPowerUp == false && this->TurningDown == true ) {
-
-        //////////////////////////////////////////
-        char StringToSend [30] = "UP";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-         //////////////////////////////////////////
         this->manager->changeKeyDigitalSignal (true);
         this->ManualTurningPower = true;
         this->SignalTurningPowerUp = true;
         powerChangeDurationTimer->restart();
     }
     if (this->SignalTurningPowerUp  == true && powerChangeDurationTimer->read() && this->TurningDown == true) {
-
-        //////////////////////////////////////////
-        char StringToSend [30] = "DOWN";
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-         //////////////////////////////////////////
         this->manager->changeKeyDigitalSignal (false);
         this->SignalTurningPowerUp = false;
         powerChangeDurationTimer->restart();
@@ -123,37 +146,31 @@ powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonB
     return this->status;
 }
 
+
 bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool readyToSend = true;
-    char StringToSend [15] = "AT+QPOWD";
-    char StringToBeRead [40];
-    char ExpectedResponse [15] = "POWERED DOWN";
-    char StringToSendUSB [40] = "Rebooting";
+    char StringToSend [AT_CMD_POWER_DOWN_LEN + 1] = AT_CMD_POWER_DOWN;
+    char StringToBeRead [BUFFER];
+    char ExpectedResponse [ AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE_LEN + 1] =  AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE;
+    char StringToSendUSB [LOG_MESSAGE_DEVICE_REBOOTING_LEN + 1] = LOG_MESSAGE_DEVICE_REBOOTING;
 
     if (readyToSend == true) {
         AThandler->sendATCommand (StringToSend);
         readyToSend = false;
-        ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-        ////   ////   ////   ////   ////   ////   
+        uartUSB.write ( "\r\n",  3 );  // debug only 
     }
 
 
     if ( AThandler->readATResponse ( StringToBeRead) == true) {
-         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-         ////   ////   ////   ////   ////   ////
 
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
             ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "TURNING DOWN";
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////            
+            uartUSB.write (LOG_MESSAGE_DEVICE_TURNING_DOWN, strlen (LOG_MESSAGE_DEVICE_TURNING_DOWN ));  // debug only           
             this->manager->changePowerState (new PowerOFFState (this->manager));
             return true;
         }
@@ -165,38 +182,31 @@ bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
     return false;
 }
 
+
+
 bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
    static bool readyToSend = true;
-    char StringToSend [15] = "AT+QSCLK=1";
-    char StringToBeRead [40];
-    char ExpectedResponse [15] = "OK";
-    char StringToSendUSB [40] = "Go To Sleep";
+    char StringToSend [ AT_CMD_SLEEP_LEN + 1] =  AT_CMD_SLEEP;
+    char StringToBeRead [ BUFFER];
+    char ExpectedResponse [AT_CMD_SLEEP_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_SLEEP_EXPECTED_RESPONSE;
+    char StringToSendUSB [LOG_MESSAGE_SLEEP_LEN + 1] = LOG_MESSAGE_SLEEP;
 
     if (readyToSend == true) {
         AThandler->sendATCommand(StringToSend);
         readyToSend = false;
-        ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-        ////   ////   ////   ////   ////   ////   
     }
 
 
     if ( AThandler->readATResponse ( StringToBeRead) == true) {
-         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-         ////   ////   ////   ////   ////   ////
-
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-            ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "Entering Sleep Mode";
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
-            this->manager->changeDTRSignal(ON);
-            ////   ////   ////   ////   ////   ////            
+            this->manager->changeDTRSignal(ON);         
             this->manager->changePowerState (new SleepState (this->manager));
             return true; 
         }
@@ -220,10 +230,10 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
     static bool readyToSend = true;
     static bool hardPowerOffUnderProcess = false;
     static int retryCounter = 0;
-    char StringToSend [15] = "AT+QPOWD";
-    char StringToBeRead [40];
-    char ExpectedResponse [15] = "POWERED DOWN";
-    char StringToSendUSB [40] = "Turning off";
+    char StringToSend [AT_CMD_POWER_DOWN_LEN + 1] = AT_CMD_POWER_DOWN;
+    char StringToBeRead [BUFFER];
+    char ExpectedResponse [AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE;
+    char StringToSendUSB [LOG_MESSAGE_DEVICE_TURNING_DOWN_LEN + 1] = LOG_MESSAGE_DEVICE_TURNING_DOWN;
 
     if (readyToSend == true) {
         AThandler->sendATCommand(StringToSend);
@@ -237,19 +247,10 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
         ////   ////   ////   ////   ////   ////   
     }
 
-
     if ( AThandler->readATResponse ( StringToBeRead) == true) {
-         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-         ////   ////   ////   ////   ////   ////
-
-        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-            ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "TURNING DOWN";
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////            
+        if (strcmp (StringToBeRead, ExpectedResponse) == 0) {         
             this->manager->changePowerState (new ManualPowerOFFState (this->manager));
             return true;
         }
@@ -281,30 +282,26 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
     return false;
 }
 
+
 bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
     ,  BatteryData * currentBatteryData) {
     static bool readyToSend = true;
-    char StringToSend [15] = "AT+CBC";
-    char StringToBeRead [100];
-    char StringToSendUSB [40] = "Measuring Battery";
+    char StringToSend [AT_CMD_BATTERY_MEASURE_LEN + 1] = AT_CMD_BATTERY_MEASURE;
+    char StringToBeRead [BUFFER];
+    char StringToSendUSB [LOG_MESSAGE_BATTERY_MEASURE_LEN + 1] = LOG_MESSAGE_BATTERY_MEASURE;
 
     if (readyToSend == true) {
         AThandler->sendATCommand(StringToSend);
         readyToSend = false;
-        ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-        ////   ////   ////   ////   ////   ////   
     }
 
     if ( AThandler->readATResponse ( StringToBeRead) == true) {
-         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-         ////   ////   ////   ////   ////   ////
-
         if (this->retrivBatteryData (StringToBeRead, currentBatteryData) == true) {
             return true;
         }

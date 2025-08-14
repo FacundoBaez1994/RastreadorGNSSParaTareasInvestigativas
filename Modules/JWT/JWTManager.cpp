@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "JWTManager.h"
 #include "Debugger.h" // due to global usbUart
 

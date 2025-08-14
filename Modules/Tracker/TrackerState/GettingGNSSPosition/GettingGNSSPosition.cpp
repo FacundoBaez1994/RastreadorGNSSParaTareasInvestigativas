@@ -1,7 +1,6 @@
 //=====[Libraries]=============================================================
-
 #include "GettingGNSSPosition.h"
-#include "Tracker.h" //debido a declaracion adelantada
+#include "Tracker.h"
 #include "Debugger.h" // due to global usbUart
 #include "ConnectingToMobileNetwork.h"
 #include "FormattingMessage.h"
@@ -13,40 +12,21 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 GettingGNSSPosition::GettingGNSSPosition (Tracker * tracker) {
     this->tracker = tracker;
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 GettingGNSSPosition::~GettingGNSSPosition () {
     this->tracker = nullptr;
 }

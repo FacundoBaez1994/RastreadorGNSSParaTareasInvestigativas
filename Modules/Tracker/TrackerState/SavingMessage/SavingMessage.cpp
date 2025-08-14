@@ -24,31 +24,15 @@
 
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 SavingMessage::SavingMessage  (Tracker * tracker) {
     this->tracker = tracker;
 
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 SavingMessage::~SavingMessage  () {
-    this->tracker = nullptr;;
+    this->tracker = nullptr;
 }
 
 void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {

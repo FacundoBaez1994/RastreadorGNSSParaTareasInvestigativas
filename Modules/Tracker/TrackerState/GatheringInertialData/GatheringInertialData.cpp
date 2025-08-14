@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "GatheringInertialData.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
@@ -17,31 +16,18 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 GatheringInertialData::GatheringInertialData (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
@@ -49,11 +35,7 @@ GatheringInertialData::GatheringInertialData (Tracker * tracker, trackerStatus_t
     this->auxiliarIMUData = new IMUData_t;
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
+
 GatheringInertialData::~GatheringInertialData() {
     this->tracker = nullptr;
     delete this->timeBeetwenSamples;
@@ -179,9 +161,6 @@ void GatheringInertialData::obtainInertialMeasures (IMUManager * inertialSensor,
     return;
     
 }
-
-
-
 
 
 //=====[Implementations of private methods]==================================

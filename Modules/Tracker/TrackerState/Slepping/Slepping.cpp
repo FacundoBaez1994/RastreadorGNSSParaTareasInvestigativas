@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "Slepping.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
@@ -11,40 +10,21 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 Slepping::Slepping (Tracker * tracker) {
     this->tracker = tracker;
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 Slepping::~Slepping () {
     this->tracker = nullptr;
 }
@@ -113,10 +93,5 @@ void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * l
     }
     return;
  }
-
-
-
-
-
-
+ 
 //=====[Implementations of private methods]==================================

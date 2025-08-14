@@ -11,7 +11,8 @@
 
 
 //=====[Declaration of public defines]=========================================
-
+#define JWT_KEY "a-string-secret-at-least-256-bits-long"
+#define JWT_KEY_LEN (sizeof(JWT_KEY) - 1)
 
 
 //=====[Declaration of public data types]======================================
@@ -56,7 +57,7 @@ public:
 private:
 //=====[Private Attributes]================================================
     CustomJWT * jwt;  ///< Pointer to the underlying JWT implementation
-    char JWTKey [40] = "a-string-secret-at-least-256-bits-long"; ///< Secret key for signing and verifying tokens
+    char JWTKey [JWT_KEY_LEN + 1] = JWT_KEY; ///< Secret key for signing and verifying tokens
 //=====[Declaration of private methods]=========================================
 };
 

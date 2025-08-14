@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "ConnectingToMobileNetwork.h"
 #include "FormattingMessage.h"
 #include "Tracker.h" //debido a declaracion adelantada
@@ -14,41 +13,22 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ConnectingToMobileNetwork::ConnectingToMobileNetwork (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->currentStatus = trackerStatus;
     this->tracker = tracker;
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 ConnectingToMobileNetwork::~ConnectingToMobileNetwork ( ) {
     this->tracker = nullptr;
 }

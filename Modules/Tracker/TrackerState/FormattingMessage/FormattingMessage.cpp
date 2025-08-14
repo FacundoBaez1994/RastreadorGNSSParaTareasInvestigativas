@@ -1,7 +1,6 @@
 //=====[Libraries]=============================================================
-
 #include "FormattingMessage.h"
-#include "Tracker.h" //debido a declaracion adelantada
+#include "Tracker.h" 
 #include "Debugger.h" // due to global usbUart
 #include "ExchangingMessages.h"
 #include "SavingMessage.h"
@@ -18,35 +17,17 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
     this->jwt = new JWTManager ();
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 FormattingMessage::~FormattingMessage () {
     this->tracker = nullptr;
     delete this->jwt;
@@ -225,10 +206,9 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
      const BatteryData  * batteryStatus, char * trackerEvent) {
 
     static char message[2048];
-    static char tempBuffer[250]; // buffer auxiliar para formateo
+    static char tempBuffer[250]; 
     size_t currentLen = 0;
 
-    // Encabezado principal del mensaje JSON con los datos de la celda principal
     currentLen = snprintf(message, sizeof(message),
         "{\"Type\":\"MNMN\","
         "\"IMEI\":%lld,"
@@ -275,7 +255,6 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         imuData->angles.pitch           // 20
     );
 
-    // Agregar array de celdas vecinas si existen
     if (!neighborsCellInformation.empty()) {
         currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Neighbors\":[");
         
@@ -304,7 +283,6 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         strncat(message, "]", sizeof(message) - strlen(message) - 1);
     }
 
-    // Cierre del JSON
     strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
 
     message[sizeof(message) - 1] = '\0';
@@ -489,7 +467,6 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         inertialData->angles.pitch           // 13 %.2f
     );
 
-    // Agregar array de celdas vecinas si existen
     if (!IMUDataSamples.empty()) {
         currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Samples\":[");
         
@@ -506,7 +483,6 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
             );
             strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
 
-            // Si no es el último, agregamos coma
             if (i < IMUDataSamples.size() - 1) {
                 strncat(message, ",", sizeof(message) - strlen(message) - 1);
             }
@@ -516,7 +492,6 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         strncat(message, "]", sizeof(message) - strlen(message) - 1);
     }
 
-    // Cierre del JSON
     strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
 
     message[sizeof(message) - 1] = '\0';
@@ -594,7 +569,7 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
      const BatteryData  * batteryStatus, char * trackerEvent) {
 
     static char message[2048];
-    static char tempBuffer[250]; // buffer auxiliar para formateo
+    static char tempBuffer[250];
     size_t currentLen = 0;
 
 
@@ -604,7 +579,6 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only}
 
-    // Encabezado principal del mensaje JSON con los datos de la celda principal
     currentLen = snprintf(message, sizeof(message),
         "MNMN,%s,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
         trackerEvent,                   // 1 %s
@@ -630,7 +604,6 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
     );
     // inertialData,  //13 status, 13 ax, 14 ay, 15 az, 16 yaw, 17 roll, 18 pitch
 
-    // Agregar array de celdas vecinas si existen
     if (!neighborsCellInformation.empty()) {
         for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
             CellInformation* neighbor = neighborsCellInformation[i];
@@ -652,7 +625,6 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
     strcpy(formattedMessage, message);
     //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
 }
-
 
 //// MNGNSS for save on memory
 void FormattingMessage::formatMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo,
@@ -721,14 +693,12 @@ void FormattingMessage::formatGNSSMemoryMessage(char * formattedMessage, const G
     //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
 }
 
-
-
 //// IMU for save on memory
 void FormattingMessage::formatMemoryMessage(char * formattedMessage, const IMUData_t * imuData,
 const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus, char * trackerEvent) {
 
     static char message[2048];
-    static char tempBuffer[250]; // buffer auxiliar para formateo
+    static char tempBuffer[250]; 
     size_t currentLen = 0;
 
 
@@ -738,7 +708,6 @@ const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatu
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only}
 
-    // Encabezado principal del mensaje JSON con los datos de la celda principal
     currentLen = snprintf(message, sizeof(message),
         "IMU,%s,%s,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
         trackerEvent,       // 1 %s
@@ -755,7 +724,6 @@ const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatu
         imuData->angles.pitch           // 12 %.2f
     );
 
-    // Agregar array de celdas vecinas si existen
     if (!IMUDataSamples.empty()) {
         for (size_t i = 0; i < IMUDataSamples.size(); ++i) {
             IMUData_t* sample = IMUDataSamples[i];

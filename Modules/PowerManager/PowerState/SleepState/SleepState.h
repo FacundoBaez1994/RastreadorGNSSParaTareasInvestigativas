@@ -34,7 +34,7 @@ public:
      * @brief Constructor with PowerManager reference.
      * @param newManager Pointer to the PowerManager handling the state.
      */
-    SleepState(PowerManager * newManager);
+    SleepState(PowerManager* newManager);
 
     /**
      * @brief Destructor.
@@ -47,7 +47,7 @@ public:
      * @param powerChangeDurationTimer Timer used to handle non-blocking time-based transitions.
      * @return Current power status (always SLEEP for this state).
      */
-    powerStatus_t startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    powerStatus_t startStopUpdate (ATCommandHandler* AThandler, NonBlockingDelay* powerChangeDurationTimer);
 
     /**
      * @brief Attempt to reboot the device (not allowed in sleep you must awake first).
@@ -55,7 +55,7 @@ public:
      * @param powerChangeDurationTimer Timer used to handle non-blocking time-based transitions.
      * @return Always false in this state.
      */
-    bool reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    bool reboot (ATCommandHandler* AThandler, NonBlockingDelay* powerChangeDurationTimer);
 
     /**
      * @brief Put device to sleep (already in this state).
@@ -63,14 +63,14 @@ public:
      * @param powerChangeDurationTimer Timer used to handle non-blocking time-based transitions.
      * @return Always true.
      */
-    bool goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    bool goToSleep (ATCommandHandler* AThandler, NonBlockingDelay* powerChangeDurationTimer);
 
     /**
      * @brief Wake the device from sleep mode.
      * @param AThandler Pointer to the AT command interface.
      * @param powerChangeDurationTimer Timer used to handle non-blocking time-based transitions.
      */
-    void awake (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    void awake (ATCommandHandler* AThandler, NonBlockingDelay* powerChangeDurationTimer);
 
     /**
      * @brief Attempt to measure battery (not supported in sleep).
@@ -79,8 +79,8 @@ public:
      * @param currentBatteryData Pointer to a structure to hold battery information.
      * @return Always false.
      */
-    bool measureBattery (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer
-    ,  BatteryData * currentBatteryData);
+    bool measureBattery (ATCommandHandler* AThandler, NonBlockingDelay* powerChangeDurationTimer
+    ,  BatteryData* currentBatteryData);
 
 
     /**
@@ -89,7 +89,7 @@ public:
      * @param powerChangeDurationTimer Timer used to handle non-blocking time-based transitions.
      * @return Always true.
      */
-    bool turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    bool turnOn (ATCommandHandler* AThandler, NonBlockingDelay* powerChangeDurationTimer);
 
     /**
      * @brief Turns off the device, using soft or hard shutdown as fallback.
@@ -97,7 +97,7 @@ public:
      * @param powerChangeDurationTimer Timer used to handle non-blocking time-based transitions.
      * @return True if shutdown was successful.
      */
-    bool turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer);
+    bool turnOff (ATCommandHandler* AThandler, NonBlockingDelay* powerChangeDurationTimer);
   
 private:
 //=====[Declaration of privates atributes]=========================================

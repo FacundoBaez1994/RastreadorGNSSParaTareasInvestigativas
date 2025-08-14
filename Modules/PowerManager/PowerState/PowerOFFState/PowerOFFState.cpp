@@ -4,7 +4,11 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
+#define LOG_MESSAGE_CURRENT_STATE "\r\nPowerOFFState\r\n"
+#define LOG_MESSAGE_CURRENT_STATE_LEN (sizeof(LOG_MESSAGE_CURRENT_STATE) - 1)
 
+#define LOG_MESSAGE_CHANGE_STATE "AUTOMATIC POWER ON"
+#define LOG_MESSAGE_CHANGE_STATE_LEN (sizeof(LOG_MESSAGE_CHANGE_STATE) - 1)
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -21,14 +25,14 @@
 
 //=====[Implementations of public methods]===================================
 PowerOFFState::PowerOFFState () {
-    uartUSB.write ("\r\nPowerOFFState\r\n", strlen ("\r\nPowerOFFState\r\n"));
+    uartUSB.write ( LOG_MESSAGE_CURRENT_STATE , strlen ( LOG_MESSAGE_CURRENT_STATE ));
 
     this->manager = nullptr;
     this->status = POWER_OFF;
 }
 
 PowerOFFState::PowerOFFState (PowerManager * newManager) {
-    uartUSB.write ("\r\nPowerOFFState\r\n", strlen ("\r\nPowerOFFState\r\n"));
+    uartUSB.write ( LOG_MESSAGE_CURRENT_STATE , strlen ( LOG_MESSAGE_CURRENT_STATE ));
     this->manager = newManager;
     this->status = POWER_OFF;
 }
@@ -48,11 +52,7 @@ powerStatus_t PowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, Non
     }
 
     if (turningPower == false && powerChangeDurationTimer->read() ) {
-        ////////////  //////////// ////////////
-        char StringToSend [30] = "AUTOMATIC POWER ON";;
-        uartUSB.write (StringToSend, strlen (StringToSend));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
-         //////////// //////////// ////////////
+        uartUSB.write (LOG_MESSAGE_CHANGE_STATE, strlen (LOG_MESSAGE_CHANGE_STATE));  // debug only
         this->manager->changeKeyDigitalSignal (true);
         turningPower = true;
         powerChangeDurationTimer->restart();

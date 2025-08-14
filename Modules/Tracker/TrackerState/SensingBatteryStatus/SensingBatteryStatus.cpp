@@ -31,13 +31,6 @@
 
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 SensingBatteryStatus::SensingBatteryStatus (Tracker * tracker) {
     this->tracker = tracker;
 }

@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "LoadingMessage.h"
 #include "SavingMessage.h"
 #include "Tracker.h" //debido a declaracion adelantada
@@ -13,41 +12,22 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 LoadingMessage::LoadingMessage  (Tracker * tracker) {
     this->tracker = tracker;
     //this->poppedString = new char [this->sizeOfPoppedString];
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 LoadingMessage::~LoadingMessage  () {
     this->tracker = nullptr;
     //delete [] this->poppedString;
@@ -67,7 +47,6 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
         memset(poppedString, 0, sizeof(poppedString));
         init = true;
     }
-    
     
     EEPROMStatus state;
     if (popProcessFinished  == false) {
@@ -248,7 +227,6 @@ void LoadingMessage::parseMNMN(const char* message,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
     
-    // Limpiar celdas viejas
     for (auto cell : neighborsCellInformation) {
         delete cell;
         cell = nullptr;
@@ -262,7 +240,6 @@ void LoadingMessage::parseMNMN(const char* message,
     char* neighborsBuffer = new char[sizeOfBuffer];
 
     if (!buffer || !neighborsBuffer) {
-        // No hay memoria, salimos
         delete[] buffer;
         delete[] neighborsBuffer;
         buffer = nullptr;
@@ -273,7 +250,6 @@ void LoadingMessage::parseMNMN(const char* message,
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer - 1] = '\0';
 
-    // Procesar parte principal
     char* mainPart = strtok(buffer, "|");
     if (!mainPart) {
         delete[] buffer;
@@ -352,10 +328,9 @@ void LoadingMessage::parseMNMN(const char* message,
         fieldIndex++;
     }
 
-    // Procesar celdas vecinas
     strncpy(neighborsBuffer, message, sizeOfBuffer);
     neighborsBuffer[sizeOfBuffer - 1] = '\0';
-    strtok(neighborsBuffer, "|"); // Saltar parte principal
+    strtok(neighborsBuffer, "|"); 
     char* neighborPart = strtok(nullptr, "|");
 
     while (neighborPart != nullptr) {
@@ -479,12 +454,10 @@ void LoadingMessage::parseIMU(const char* message,
         return;
     }
 
-    // Terminar la parte principal y apuntar al inicio de muestras
     *separator = '\0';
     char* mainPart = fullCopy;
     char* sampleStart = separator + 1;
 
-    // --- Parsear parte principal ---
     char* token = strtok(mainPart, ",");
     int index = 0;
     while (token != nullptr) {
@@ -532,7 +505,6 @@ void LoadingMessage::parseIMU(const char* message,
         index++;
     }
 
-    // --- Parsear muestras ---
     char* sampleToken = strtok(sampleStart, "|");
     while (sampleToken != nullptr) {
         IMUData_t* sample = new IMUData_t();

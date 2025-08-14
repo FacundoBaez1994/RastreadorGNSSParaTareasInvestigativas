@@ -1,5 +1,4 @@
 //=====[Libraries]=============================================================
-
 #include "ExchangingMessages.h"
 #include "GatheringInertialData.h"
 #include "LoadingMessage.h"
@@ -16,41 +15,22 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ExchangingMessages::ExchangingMessages (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 ExchangingMessages::~ExchangingMessages () {
     this->tracker = nullptr;
 }
@@ -89,8 +69,6 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
 
             //////////////////   MESSAGE INTERPRETATION ////////////////
             ////////////////////////////////////////////////////////////////
-
-            
             newDataAvailable = false;
             enableTransceiver = false;
 
@@ -247,7 +225,6 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             this->tracker->changeState (new FormattingMessage (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE));
             return;
         }
-        // aca iria a gathering otra vez para llenar el vector
         this->tracker->changeState (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERING_INERTIAL_INFO));
         return;
     }

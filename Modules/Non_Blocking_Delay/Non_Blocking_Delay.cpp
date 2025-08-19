@@ -15,6 +15,7 @@
 
 //=====[Declaration and initialization of private global variables]============
 
+
 static tick_t tickCounter = 0;
 
 
@@ -24,31 +25,23 @@ void tickerCallback();
 tick_t tickRead();
 
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
+
 void NonBlockingDelay::tickInit() {
     this->ticker.attach( tickerCallback, 0.01);
 }
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief Contructor method
-* creates a new nonBlockingDelay instance ready to be used
-* @param durationValue the duration of the delay
-*/
 NonBlockingDelay::NonBlockingDelay (tick_t durationValue ) {
     this->tickInit ();
     this->duration = durationValue;
     this->isRunning = false;
 }
 
-/** 
-* @brief reads if the delay time has ended
-* if the delay wasn't running it will set it on
-* when the duration of the delay has reach or surpasses the attribute duration the delay will stop and the method returns true
-* @returns true or false if the delay has reach the duration
-*/
+NonBlockingDelay::~NonBlockingDelay() {
+    ticker.detach();  
+}
+
+
 bool NonBlockingDelay::read (void) {
    bool timeArrived = false;
    tick_t elapsedTime;
@@ -66,10 +59,7 @@ bool NonBlockingDelay::read (void) {
    return timeArrived;
 }
 
-/** 
-* @brief get the start time of the ticker
-* @note 
-*/
+
 tick_t NonBlockingDelay::getStartTime() {
    return this->startTime;
 }
@@ -80,18 +70,11 @@ bool NonBlockingDelay::getRunningStatus(){
 }
 
 
-/** 
-* @brief sets a new duration value for the delay
-* @note durationValue the new duration to be set into the delay
-*/
 void NonBlockingDelay::write( tick_t durationValue ) {
    this->duration = durationValue;
 }
 
-/** 
-* @brief sets a new duration value for the delay
-* @note durationValue the new duration to be set into the delay
-*/
+
 void NonBlockingDelay::restart(  ) {
     this->startTime = tickCounter;
     this->isRunning = true;
@@ -99,10 +82,6 @@ void NonBlockingDelay::restart(  ) {
 
 
 
-/** 
-* @brief returns current counter
-* @return tickCounter a counter value
-*/
 tick_t NonBlockingDelay::getCurrentTick() {
     return tickCounter;
 }

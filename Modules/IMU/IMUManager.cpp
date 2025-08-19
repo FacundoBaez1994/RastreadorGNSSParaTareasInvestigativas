@@ -13,11 +13,43 @@
 
 #define BNO080_DEFAULT_ADDRESS 0x4A
 
+#define THRESHOLD_TO_BE_ON_MOTION 10
+#define THRESHOLD_TO_BE_STATIONARY 1000
+
 #define I2C_FREQUENCY_DEFAULT 400000
 #define REFRESH_TIME_DEFAULT 100
-
+#define REPORT_INTERVAL_ACCEL_US 4000
+#define REPORT_INTERVAL_MOVEMENT_US 10000
 
 #define SAMPLES_PROM 100
+
+
+#define LOG_MESSAGE_INITIALIZATION "Adafruit BNO08x test!\r\n"
+#define LOG_MESSAGE_INITIALIZATION_LEN (sizeof(LOG_MESSAGE_INITIALIZATION_LEN) - 1)
+
+#define LOG_MESSAGE_MODULE_NOT_FOUND "Failed to find BNO08x chip\r\n"
+#define LOG_MESSAGE_MODULE_NOT_FOUND_LEN (sizeof(LOG_MESSAGE_MODULE_NOT_FOUND) - 1)
+
+#define LOG_MESSAGE_MODULE_FOUND "BNO08x Found!\r\n"
+#define LOG_MESSAGE_MODULE_FOUND_LEN (sizeof(LOG_MESSAGE_MODULE_FOUND) - 1)
+
+#define LOG_MESSAGE_MODULE_READY "BNO08x ready to read events\r\n"
+#define LOG_MESSAGE_MODULE_READY_LEN (sizeof(LOG_MESSAGE_MODULE_READY ) - 1)
+
+#define LOG_MESSAGE_MODULE_RESET "BNO08x was reset\r\n"
+#define LOG_MESSAGE_MODULE_RESET_LEN (sizeof(LOG_MESSAGE_MODULE_RESET ) - 1)
+
+#define LOG_MESSAGE_DEVICE_ON_MOTION "\n\rDEVICE_ON_MOTION\n\r"
+#define LOG_MESSAGE_DEVICE_ON_MOTION_LEN (sizeof(LOG_MESSAGE_DEVICE_ON_MOTION ) - 1)
+
+#define LOG_MESSAGE_DEVICE_STATIONARY "\n\rDEVICE_STATIONARY\n\r"
+#define LOG_MESSAGE_DEVICE_STATIONARY_LEN (sizeof(LOG_MESSAGE_DEVICE_STATIONARY ) - 1)
+
+#define LOG_MESSAGE_SETTING_REPORTS "Setting desired reports\n\r"
+#define LOG_MESSAGE_SETTING_REPORTS_LEN (sizeof(LOG_MESSAGE_SETTING_REPORTS) - 1)
+
+#define LOG_MESSAGE_SETTING_REPORTS_ERROR "Could not enable stabilized remote vector\n\r"
+#define LOG_MESSAGE_SETTING_REPORTS_ERROR_LEN (sizeof(LOG_MESSAGE_SETTING_REPORTS_ERROR ) - 1)
 
 //=====[Declaration of private data types]=====================================
 
@@ -33,9 +65,7 @@
 
 //=====[Implementations of public methods]===================================
 
-/**
- * @brief Contructor method creates a new trackerGPS instance ready to be used
- */
+
 IMUManager::IMUManager() {
     this->bno08x = new Adafruit_BNO08x(I2C_RST_DEFAULT);
     this->i2c = new I2C(I2C_SDA_DEFAULT, I2C_SCL_DEFAULT);
@@ -49,22 +79,18 @@ IMUManager::~IMUManager() {
 }
 
 bool IMUManager::initialize (void) {
-    char log[100];
 
-    snprintf(log, sizeof(log), "Adafruit BNO08x test!\n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_INITIALIZATION, strlen(LOG_MESSAGE_INITIALIZATION));
 
     // Try to initialize with I2C bus and address
     if (!this->bno08x->begin_I2C(BNO080_DEFAULT_ADDRESS, this->i2c)) {
-        snprintf(log, sizeof(log), "Failed to find BNO08x chip\n\r");
-        uartUSB.write(log, strlen(log));
+        uartUSB.write(LOG_MESSAGE_MODULE_NOT_FOUND, strlen(LOG_MESSAGE_MODULE_NOT_FOUND));
         return false;
     }
-    snprintf(log, sizeof(log), "BNO08x Found!\n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_MODULE_FOUND, strlen(LOG_MESSAGE_MODULE_FOUND));
 
     this->reportType = SH2_ROTATION_VECTOR;
-    this->reportIntervalUs = 5000;
+    this->reportIntervalUs = REPORT_INTERVAL_ACCEL_US;
     if (setReports(this->reportType, this->reportIntervalUs) == false) {
         return false;
     }
@@ -80,27 +106,104 @@ bool IMUManager::initialize (void) {
         return false;
     }
 
-    snprintf(log, sizeof(log), "Reading events\n\r");
-    uartUSB.write(log, strlen(log));
+    this->reportType = SH2_STABILITY_CLASSIFIER;
+    if (this->bno08x->enableReport(this->reportType, REPORT_INTERVAL_MOVEMENT_US) == false){
+        return false;
+    }
+    
+    uartUSB.write(LOG_MESSAGE_MODULE_READY , strlen(LOG_MESSAGE_MODULE_READY ));
 
     this->clearAcumulatedMeasurement ();
     return true;
 }
 
 
-bool IMUManager::obtainInertialMeasures(IMUData_t * inertialMeasures) {
-  char log[100];
+
+void IMUManager::checkStability(deviceMotionStatus_t* currentMotionStatus) {
+    char log[100];
+
+    if (this->bno08x->wasReset()) {
+        uartUSB.write(LOG_MESSAGE_MODULE_RESET, strlen(LOG_MESSAGE_MODULE_RESET));
+        setReports(this->reportType, this->reportIntervalUs); 
+    }
+
+    if (this->bno08x->getSensorEvent(&this->sensorValue)) {
+
+        //snprintf(log, sizeof(log), "Sensor ID: %d\n\r", this->sensorValue.sensorId);
+        //uartUSB.write(log, strlen(log));
+
+        if (this->sensorValue.sensorId == SH2_STABILITY_CLASSIFIER) {
+            sh2_StabilityClassifier_t stability = this->sensorValue.un.stabilityClassifier;
+
+            switch (stability.classification) {
+                case STABILITY_CLASSIFIER_UNKNOWN:
+                    //uartUSB.write("Stability: Unknown\n\r", strlen("Stability: Unknown\n\r"));
+                    
+                    break;
+                case STABILITY_CLASSIFIER_ON_TABLE:
+                    //uartUSB.write("Stability: On Table\n\r", strlen("Stability: On Table\n\r"));
+                    if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                        this->stillnessCounter++;
+                    }
+                    break;
+                case STABILITY_CLASSIFIER_STATIONARY:
+                    if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                        this->stillnessCounter++;
+                    }
+                    //uartUSB.write("Stability: Stationary\n\r", strlen("Stability: Stationary\n\r"));
+                    break;
+                case STABILITY_CLASSIFIER_STABLE:
+                    if (this->currentMotionStatus == DEVICE_ON_MOTION) {
+                        this->stillnessCounter++;
+                    }
+                   // uartUSB.write("Stability: Stable\n\r", strlen("Stability: Stable\n\r"));
+                    break;
+                case STABILITY_CLASSIFIER_MOTION:
+                    if (this->currentMotionStatus == DEVICE_STATIONARY) {
+                       this->motionCounter++;
+                    }  else {
+                        this->stillnessCounter = 0;
+                    }
+                    //uartUSB.write("Stability: In Motion\n\r", strlen("Stability: In Motion\n\r"));
+                     break;
+                default:
+                    //uartUSB.write("Stability: Unrecognized\n\r", strlen("Stability: Unrecognized\n\r"));
+                     break;
+            }
+        } else {
+            return;
+        }
+    }
+    if (motionCounter >= THRESHOLD_TO_BE_ON_MOTION &&  this->currentMotionStatus == DEVICE_STATIONARY ) {
+        this->motionCounter = 0;
+        this->stillnessCounter = 0;
+        this->currentMotionStatus = DEVICE_ON_MOTION;
+        uartUSB.write(LOG_MESSAGE_DEVICE_ON_MOTION, strlen(LOG_MESSAGE_DEVICE_ON_MOTION));
+    }
+
+    if (stillnessCounter >= THRESHOLD_TO_BE_STATIONARY &&  this->currentMotionStatus ==  DEVICE_ON_MOTION ) {
+        this->motionCounter = 0;
+        this->stillnessCounter = 0;
+        this->currentMotionStatus = DEVICE_STATIONARY;
+        uartUSB.write(LOG_MESSAGE_DEVICE_STATIONARY, strlen(LOG_MESSAGE_DEVICE_STATIONARY));
+    }
+    *currentMotionStatus =  this->currentMotionStatus;
+
+    return;
+}
+
+
+
+bool IMUManager::obtainInertialMeasures(IMUData_t* inertialMeasures) {
+  //char log[100];
 
   if (this->bno08x->wasReset()) {
 
-    snprintf(log, sizeof(log), "sensor was reset \n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_MODULE_RESET, strlen(LOG_MESSAGE_MODULE_RESET));
     setReports(reportType, reportIntervalUs);
   }
 
   if (this->bno08x->getSensorEvent(&this->sensorValue)) {
-    // in this demo only one report type will be received depending on FAST_MODE
-    // define (above)
     switch (this->sensorValue.sensorId) {
         case SH2_ROTATION_VECTOR:
             quaternionToEuler(this->sensorValue.un.rotationVector.real,
@@ -181,7 +284,6 @@ bool IMUManager::obtainInertialMeasures(IMUData_t * inertialMeasures) {
 }
 
 //=====[Implementations of private methods]==================================
-
 void IMUManager::promAccelMeasurement() {
     if (this->samplesCounterAccel < SAMPLES_PROM) {
         this->samplesCounterAccel++;
@@ -201,7 +303,7 @@ void IMUManager::promEulerMeasurement() {
     if (this->samplesCounterAngles < SAMPLES_PROM) {
         this->samplesCounterAngles++;
 
-        // Promediar ángulos correctamente usando seno y coseno
+        // angle prom
         static float rollSinAccum = 0, rollCosAccum = 0;
         static float pitchSinAccum = 0, pitchCosAccum = 0;
         static float yawSinAccum = 0, yawCosAccum = 0;
@@ -241,18 +343,13 @@ void IMUManager::clearAcumulatedMeasurement() {
     this->promAcceleration.az = 0;
     this->samplesCounterAccel = 0;
     this->samplesCounterAngles = 0;
-  
 }
 
 
-
 bool IMUManager::setReports(sh2_SensorId_t reportType, long report_interval) {
-    char log[100];
-    snprintf(log, sizeof(log), "Setting desired reports\n\r");
-    uartUSB.write(log, strlen(log));
+    uartUSB.write(LOG_MESSAGE_SETTING_REPORTS, strlen(LOG_MESSAGE_SETTING_REPORTS));
     if (!this->bno08x->enableReport(reportType, report_interval)) {
-        snprintf(log, sizeof(log), "Could not enable stabilized remote vector\n\r");
-        uartUSB.write(log, strlen(log));
+        uartUSB.write(LOG_MESSAGE_SETTING_REPORTS_ERROR, strlen(LOG_MESSAGE_SETTING_REPORTS_ERROR));
         return false;
     }
     return true;

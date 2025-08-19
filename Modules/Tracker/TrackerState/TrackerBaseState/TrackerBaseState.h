@@ -11,32 +11,109 @@
 #include "Tracker.h"
 
 //=====[Declaration of public data types]======================================
-class Tracker; //debido a declaracion adelantada
+class Tracker; ///< Forward declaration of the Tracker class.
+
 
 //=====[Declaration of public classes]=========================================
-/*
- * Abtract class - State desing pattern
- * 
+/**
+ * @brief Abstract base class for tracker states (State design pattern).
+ * This class provides default (empty) implementations for all methods declared
+ * in the `TrackerState` interface. It allows derived state classes to override
+ * only the methods they need, avoiding the need to implement unused functionality.
+ * The only non-empty default method is `checkStabillity()`, which delegates the
+ * stability check to the provided IMUManager instance.
  */
 class TrackerBaseState : public TrackerState {
 public:
 //=====[Declaration of public methods]=========================================
+    /**
+     * @copydoc TrackerState::calibrateIMU()
+     * Default implementation: does nothing.
+     */
     virtual void calibrateIMU (IMUManager * inertialSensor);
-    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * inertialData);
+
+    /**
+     * @copydoc TrackerState::obtainInertialMeasures()
+     * Default implementation: does nothing.
+     */
+    virtual void obtainInertialMeasures (IMUManager * inertialSensor, IMUData_t * inertialData, 
+    std::vector<IMUData_t*> &IMUDataSamples);
+
+    /**
+     * @copydoc TrackerState::updatePowerStatus()
+     * Default implementation: does nothing.
+     */
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
+
+    /**
+     * @copydoc TrackerState::obtainGNSSPosition()
+     * Default implementation: does nothing.
+     */
     virtual void obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata);
+
+
+    /**
+     * @copydoc TrackerState::connectToMobileNetwork()
+     * Default implementation: does nothing.
+     */
     virtual void connectToMobileNetwork (CellularModule * cellularTransceiver,
     CellInformation * currentCellInformation);
+
+    /**
+     * @copydoc TrackerState::obtainNeighborCellsInformation()
+     * Default implementation: does nothing.
+     */
     virtual void obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors );
-    virtual void formatMessage (char * formattedMessage, CellInformation* aCellInfo,
-    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData, BatteryData  * batteryStatus); 
+
+    /**
+     * @copydoc TrackerState::formatMessage()
+     * Default implementation: does nothing.
+    */
+    virtual void formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
+    const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
+    const IMUData_t * imuData, const std::vector<IMUData_t*> &IMUDataSample, const BatteryData  * batteryStatus); 
+
+    
+    /**
+     * @copydoc TrackerState::exchangeMessages()
+     * Default implementation: does nothing.
+     */
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
-    // agregar LoRa // exchageMessages (Lora * LoRaModule);
+
+    
+    /**
+     * @copydoc TrackerState::goToSleep()
+     * Default implementation: does nothing.
+     */
     virtual void goToSleep (CellularModule * cellularTransceiver);
-    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
+
+    /**
+     * @copydoc TrackerState::awake()
+     * Default implementation: does nothing.
+     */
+    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency, NonBlockingDelay * silentTimer);
+
+    /**
+     * @copydoc TrackerState::checkStabillity()
+     * Default implementation: calls `IMUManager::checkStability()` on the given inertial sensor.
+     */
+    virtual void checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus);
+
+    /**
+     * @copydoc TrackerState::saveMessage()
+     * Default implementation: does nothing.
+     */
+    virtual void saveMessage (EEPROMManager * memory, char * message);
+
+    /**
+     * @copydoc TrackerState::loadMessage()
+     * Default implementation: does nothing.
+     */
+    virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
+    GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatus);
 private:
 //=====[Declaration of privates atributes]=========================================
 

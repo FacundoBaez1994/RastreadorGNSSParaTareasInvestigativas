@@ -11,20 +11,62 @@
 #include "Tracker.h"
 
 //=====[Declaration of public data types]======================================
-class Tracker; //debido a declaracion adelantada
+class Tracker;  /**< Forward declaration to avoid circular dependency with Tracker.h */
 
 //=====[Declaration of public classes]=========================================
-/*
- *  class - State desing pattern
- * 
+/**
+ * @class Slepping
+ * @brief Represents the "Sleeping" state in the Tracker's State design pattern.
+ * @details In this state, the device reduces its activity to save power. 
+ * It monitors specific events (e.g., movement detection, timers, and silent mode expiration) 
+ * to decide when to transition back to an active state. 
+ * The state is responsible for:
+ * - Periodic power status checks.
+ * - Waking up the device under certain movement or timer conditions.
+ * - Coordinating transitions to other states such as SensingBatteryStatus.
  */
 class Slepping : public TrackerBaseState {
 public:
 //=====[Declaration of public methods]=========================================
+    /**
+     * @brief Constructs the Sleeping state.
+     * @param tracker Pointer to the main Tracker context to allow state transitions and data access.
+     */
     Slepping (Tracker * tracker);
+
+    /**
+     * @brief Destructor for the Sleeping state.
+     * @details Cleans up internal references to avoid dangling pointers.
+     */
     virtual ~Slepping ();
+
+    /**
+     * @brief Updates the device's power status during the sleeping phase.
+     * @details Typically used to trigger background tasks related to the cellular transceiver's 
+     * power management.
+     * @param cellularTransceiver Pointer to the cellular module interface.
+     * @param currentBatteryStatus Pointer to the current battery status data structure.
+     */
     virtual void updatePowerStatus (CellularModule * cellularTransceiver, BatteryData * currentBatteryStatus);
-    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency);
+
+    
+    /**
+     * @brief Attempts to wake up the device from the sleeping state.
+     * @details This method evaluates multiple conditions, such as movement events, 
+     * latency timers, and silent mode expiration, to decide if the Tracker should 
+     * transition to an active state.
+     * Typical wake-up triggers:
+     * - Expiration of silent mode.
+     * - Operation mode set to pursuit.
+     * - Movement detected (restarted or active after parking).
+     * - Latency timeout when moving.
+     * Upon successful wake-up, the Tracker usually transitions to SensingBatteryStatus state.
+     * @param cellularTransceiver Pointer to the cellular module interface.
+     * @param latency Pointer to a non-blocking delay timer controlling wake-up latency.
+     * @param silentTimer Pointer to a non-blocking delay timer controlling silent mode duration.
+     */
+    virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency,
+    NonBlockingDelay * silentTimer);
 private:
     Tracker * tracker;
   

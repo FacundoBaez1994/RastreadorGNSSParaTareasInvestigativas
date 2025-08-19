@@ -11,42 +11,23 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 GatheringCellInformation::GatheringCellInformation (Tracker * tracker) {
     this->tracker = tracker;
 }
 
-/** 
-* @brief
-* 
-* @param 
-*/
 GatheringCellInformation::~GatheringCellInformation () {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void GatheringCellInformation::updatePowerStatus (CellularModule * cellularTransceiver,
@@ -63,9 +44,14 @@ void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* c
          TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK));
          return;
      }
-    // Format message for LoRa 
     return; 
 }
+
+void GatheringCellInformation::checkStabillity (IMUManager * inertialSensor, deviceMotionStatus_t * newMotionStatus) {
+   // inertialSensor->checkStability(newMotionStatus);
+    return;
+}
+
 
 
 

@@ -1,13 +1,27 @@
 //=====[Libraries]=============================================================
 
 #include "DefinePDPContext.h"
-#include "CellularModule.h" //debido a declaracion adelantada
+#include "CellularModule.h"
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
+<<<<<<< HEAD
 //#define APN_MOVISTAR "AT+CGDCONT=1,\"IP\",\"internet.movistar.com.ar\"" //APN / username / password   internet.gprs.unifon.com.ar
 #define APN_TUENTI "AT+CGDCONT=1,\"IP\",\"internet.movil\"" // APN de Tuenti Argentina
+=======
+>>>>>>> origin/StatePatternJWTMemory
 #define MAXATTEMPTS 20
+//#define APN_MOVISTAR "AT+CGDCONT=1,\"IP\",\"internet.movistar.com.ar\"" //APN / username / password  movistar
+#define APN "AT+CGDCONT=1,\"IP\",\"internet.movil\"" //APN / username / password   tuenti
+#define APN_LEN  (sizeof(APN) - 1)
+
+#define AT_CMD_DEFINE_PDP_CONTEXT_EXPECTED_RESPONSE     "OK"
+#define AT_CMD_DEFINE_PDP_CONTEXT_EXPECTED_RESPONSE_LEN  (sizeof(AT_CMD_DEFINE_PDP_CONTEXT_EXPECTED_RESPONSE) - 1)
+
+#define LOG_MESSAGE "Defining PDP Context\r\n"
+#define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
+
+#define BUFFER_LEN 128
 //=====[Declaration of private sdata types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -32,24 +46,14 @@
 
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
+
 DefinePDPContext::DefinePDPContext () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
     this->readyToSend = true;
     this->connectionAttempts = 0; 
     this->maxConnectionAttempts = MAXATTEMPTS;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->readyToSend = true;
@@ -58,26 +62,15 @@ DefinePDPContext::DefinePDPContext (CellularModule * mobileModule) {
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 DefinePDPContext::~DefinePDPContext () {
-    this->mobileNetworkModule = NULL;
+    this->mobileNetworkModule = nullptr;
 }
 
 
-/** 
-* @brief 
-* 
-* 
-* @returns 
-*/
 CellularConnectionStatus_t DefinePDPContext::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
+<<<<<<< HEAD
     char StringToBeRead [256];
     char ExpectedResponse [15] = "OK";
     char StringToSend [50] = APN_TUENTI;
@@ -85,6 +78,15 @@ CellInformation * currentCellInformation) {
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(APN_TUENTI);
+=======
+    char StringToBeRead [BUFFER_LEN];
+    char ExpectedResponse [AT_CMD_DEFINE_PDP_CONTEXT_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_DEFINE_PDP_CONTEXT_EXPECTED_RESPONSE;
+    char StringToSend [APN_LEN + 1] = APN;
+    char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
+
+    if (this->readyToSend == true) {
+        ATHandler->sendATCommand(StringToSend);
+>>>>>>> origin/StatePatternJWTMemory
         this->readyToSend  = false;
         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
@@ -101,10 +103,6 @@ CellInformation * currentCellInformation) {
          ////   ////   ////   ////   ////   ////
 
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-            ////   ////   ////   ////   ////   ////
-            char StringToSendUSB [40] = "Cambiando de estado 7";
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
             ////   ////   ////   ////   ////   ////        
             this->mobileNetworkModule->changeConnectionState (new ConnectedState (this->mobileNetworkModule));
             return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;

@@ -31,13 +31,6 @@
 
 
 //=====[Implementations of public methods]===================================
-
-
-/** 
-* @brief
-* 
-* @param 
-*/
 SensingBatteryStatus::SensingBatteryStatus (Tracker * tracker) {
     this->tracker = tracker;
 }
@@ -48,7 +41,7 @@ SensingBatteryStatus::SensingBatteryStatus (Tracker * tracker) {
 * @param 
 */
 SensingBatteryStatus::~SensingBatteryStatus ( ) {
-    this->tracker = NULL;
+    this->tracker = nullptr;
 }
 
 void SensingBatteryStatus::updatePowerStatus (CellularModule * cellularTransceiver,

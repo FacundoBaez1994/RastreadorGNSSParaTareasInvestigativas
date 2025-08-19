@@ -52,11 +52,11 @@
 
 
 #define LORA_DEFAULT_SPI_FREQUENCY 8E6
-#define LORA_DEFAULT_SS_PIN     PA_4       
-#define LORA_DEFAULT_RESET_PIN  D7        
+#define LORA_DEFAULT_SS_PIN     PA_4       //ok 
+#define LORA_DEFAULT_RESET_PIN  D7        //ok
 #define LORA_DEFAULT_MISO   PA_6   
-#define LORA_DEFAULT_MOSI   PA_7
-#define LORA_DEFAULT_SCK    PA_5
+#define LORA_DEFAULT_MOSI   PA_7        //ok
+#define LORA_DEFAULT_SCK    PA_5        //ok
 
 #define LORA_DEFAULT_DIO0_PIN  PA_3
 

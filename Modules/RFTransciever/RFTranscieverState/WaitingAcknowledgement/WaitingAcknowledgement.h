@@ -30,7 +30,7 @@ public:
 //=====[Declaration of public methods]=========================================
     WaitingAcknowledgement  (Tracker * tracker);
     virtual ~WaitingAcknowledgement  ();
-    virtual void addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend);
+    virtual void addRFFormatToMessage (long long int deviceId, int messageNumber, char * messageToBeSend);
     virtual void sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime);
     virtual bool getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved, NonBlockingDelay * timeOut);
 private:

@@ -22,6 +22,8 @@
 #include "ChecksumGenerator.h"
 #include "Decrypter.h"
 #include "Encrypter.h"
+#include "DecrypterBase64.h"
+#include "EncrypterBase64.h"
 
 
 //=====[Declaration of public defines]=========================================
@@ -41,13 +43,13 @@ public:
     virtual ~Tracker ();
     void update();
     void changeState  (RFTransicieverState * newState);
-    bool prepareMessage (char * messageOutput);
-    bool processMessage (char * incomingMessage);
+    bool prepareMessage (char * messageOutput, unsigned int sizeOfMessage);
+    bool processMessage (char * incomingMessage, unsigned int sizeOfMessage);
     bool checkMessageIntegrity ( char *messageReceived);
 private:
 
     RFTransicieverState * RFState;
-    int deviceId;
+    long long int deviceId;
     int messageNumber;
 
 

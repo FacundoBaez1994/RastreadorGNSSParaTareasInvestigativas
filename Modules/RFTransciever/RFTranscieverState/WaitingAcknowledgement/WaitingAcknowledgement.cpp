@@ -5,7 +5,7 @@
 #include "AddingRFFormat.h"
 
 //=====[Declaration of private defines]========================================
-#define TIMEOUT        8000
+#define TIMEOUT       1000
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -49,7 +49,7 @@ WaitingAcknowledgement::~WaitingAcknowledgement() {
      this->tracker = NULL;
 }
 
-void WaitingAcknowledgement::addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend) {
+void WaitingAcknowledgement::addRFFormatToMessage (long long int deviceId, int messageNumber, char * messageToBeSend) {
     return;
 }
 
@@ -58,17 +58,15 @@ NonBlockingDelay * backoffTime) {
     return; 
 }
 
-
 bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved,
  NonBlockingDelay * timeOut){
     static bool messageReceived = false; 
     static std::vector<char> accumulatedBuffer; // Acumulador de fragmentos
     static std::string fullMessage;
 
-    static char processedMessageReceived  [256] = {0};
-    static char buffer[256] = {0};
-    static char message[100];
-    static char payload[100] = {0}; // Espacio suficiente para almacenar el payload
+    char processedMessageReceived  [2048];
+    static char buffer[2048] = {0};
+    static char message[1024];
 
     int deviceId = 0;
     int messageNumber = 0;
@@ -160,17 +158,19 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
             uartUSB.write("Fail to process received message\r\n", strlen("Fail to process received message\r\n"));
             return false;
         }
+
         const char* constCharPtr = fullMessage.c_str(); 
+        strncpy(processedMessageReceived, constCharPtr, sizeof(processedMessageReceived) - 1);
+        processedMessageReceived[sizeof(processedMessageReceived) - 1] = '\0';
 
-        //char* processedMessageReceived = new char[fullMessage.size() + 1]; // +1 para '\0'
-        strcpy(processedMessageReceived, constCharPtr);
-
-        if (this->tracker->processMessage(processedMessageReceived) == false) {
+        if (this->tracker->processMessage(processedMessageReceived, sizeof (processedMessageReceived) ) == false) {
             uartUSB.write("Fail to process received message\r\n", strlen("Fail to process received message\r\n")); // Debug
             messageReceived = false;
             return false;
         }
         strcpy ( messageRecieved, processedMessageReceived);
+        uartUSB.write("Recepted message\r\n", strlen("Recepted message\r\n"));
+        uartUSB.write(messageRecieved, strlen(messageRecieved));
         messageReceived  = false;
         accumulatedBuffer.clear(); // Elimina todos los elementos del vector
         stringInsertCount = 0;
@@ -195,5 +195,6 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
     }
     return false;
 }
+
 
 //=====[Implementations of private functions]==================================

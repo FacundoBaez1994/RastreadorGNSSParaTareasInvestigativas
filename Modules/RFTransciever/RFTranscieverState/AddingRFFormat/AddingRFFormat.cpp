@@ -49,15 +49,12 @@ AddingRFFormat::~AddingRFFormat () {
      this->tracker = NULL;
 }
 
-void AddingRFFormat::addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend) {
-    char tempBuffer[256];
-    char trialMessage [7] = "hello"; // ELIMINAR CUANDO SE HAGA MERGE CON RUTINA PRINCIPAL
-
-    // Limpiar el contenido del buffer
-    std::fill_n(messageToBeSend, 256, '\0'); // Cambia a fill_n para limpiar el buffer dinámico
+void AddingRFFormat::addRFFormatToMessage (long long int deviceId, int messageNumber, char * messageToBeSend) {
+    char tempBuffer[1024];
+    char trialMessage [1024] = "PARK,2,88,3,1.1,0,2.8,-112.33,4.44,71"; // ELIMINAR CUANDO SE HAGA MERGE CON RUTINA PRINCIPAL
 
    // snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d,%s", deviceId, messageNumber, messageToBeSend); USAR EN RUTINA PRINCIPAL
-    snprintf(tempBuffer, sizeof(tempBuffer), "%d,%d,%s", deviceId, messageNumber, trialMessage); // ELIMINAR CUANDO SE HAGA MERGE CON RUTINA PRINCIPAL
+    snprintf(tempBuffer, sizeof(tempBuffer), "LORALORA,%lld,%d,%s", deviceId, messageNumber, trialMessage); // ELIMINAR CUANDO SE HAGA MERGE CON RUTINA PRINCIPAL
     strcpy(messageToBeSend, tempBuffer);
 
     uartUSB.write("Sending Message:\r\n", strlen("Sending Message:\r\n"));

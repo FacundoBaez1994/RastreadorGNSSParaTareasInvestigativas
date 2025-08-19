@@ -32,23 +32,23 @@ Tracker::Tracker () {
         uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
-    this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
-    this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
-    this->LoRaTransciever->setSignalBandwidth(125E3); // 125 kHz
+    //this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
+    //this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
+    //this->LoRaTransciever->setSignalBandwidth(125E3); // 125 kHz
     this->timeout = new NonBlockingDelay (LATENCY);
 
     this->RFState = new AddingRFFormat (this);
 
-    this->encrypter = new Encrypter ();
+    this->encrypter = new EncrypterBase64 ();
     this->authgen = new AuthenticationGenerator ();
     this->ckgen = new ChecksumGenerator ();
     this->checksumVerifier = new ChecksumVerifier ();
     this->authVer = new AuthenticationVerifier ();
-    this->decrypter = new Decrypter ();
+    this->decrypter = new DecrypterBase64 ();
 
 
-    this->deviceId = 1;
-    this->messageNumber = 0;
+    this->deviceId = 356789104982315;
+    this->messageNumber = 1;
     /*
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_MS);
@@ -125,9 +125,9 @@ void Tracker::update () {
     int deviceIdReceived;
     int messageNumberReceived;
     char payload[50] = {0};
-    static char messageToSend[256] = "hello";
+    static char messageToSend[2048];
     //static char plainMessageToSend[256];
-    static char ACKMessage [256];
+    static char ACKMessage [2048];
     char logMessage[50];
     int static timeoutCounter = 0;
 
@@ -175,14 +175,14 @@ void Tracker::changeState  (RFTransicieverState * newState) {
     char logMessage [60];
 
     char payload [60];
-    int deviceIdReceived;
+    long long int deviceIdReceived;
     int messageNumberReceived; 
     char payloadReceived [60];
 
-    if (sscanf(messageReceived, "%d,%d,%s", &deviceIdReceived, &messageNumberReceived, payloadReceived) == 3) {
+    if (sscanf(messageReceived, "%lld,%d,%s", &deviceIdReceived, &messageNumberReceived, payloadReceived) == 3) {
         bool messageCorrect = false;
         uartUSB.write ("\r\n", strlen("\r\n"));
-        snprintf(logMessage, sizeof(logMessage), "Device ID Received: %d\r\n", deviceIdReceived);
+        snprintf(logMessage, sizeof(logMessage), "Device ID Received: %lld\r\n", deviceIdReceived);
         uartUSB.write(logMessage, strlen(logMessage));
         if (deviceIdReceived == this->deviceId) {
             uartUSB.write("OK\r\n", strlen("OK\r\n"));
@@ -215,18 +215,18 @@ void Tracker::changeState  (RFTransicieverState * newState) {
     }
  }
 
-bool Tracker::prepareMessage (char * messageOutput) {
+bool Tracker::prepareMessage (char * messageOutput, unsigned int sizeOfMessage) {
     this->encrypter->setNextHandler(this->authgen)->setNextHandler(this->ckgen);
-    if (this->encrypter->handleMessage (messageOutput) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    if (this->encrypter->handleMessage (messageOutput, sizeOfMessage) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;
     }
 }
 
-bool Tracker::processMessage (char * incomingMessage) {
+bool Tracker::processMessage (char * incomingMessage, unsigned int sizeOfMessage) {
     this->checksumVerifier->setNextHandler(this->authVer)->setNextHandler(this->decrypter);
-    if (this->checksumVerifier->handleMessage (incomingMessage) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    if (this->checksumVerifier->handleMessage (incomingMessage, sizeOfMessage) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;

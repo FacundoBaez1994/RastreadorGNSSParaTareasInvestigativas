@@ -5,8 +5,8 @@
 #include "WaitingAcknowledgement.h"
 
 //=====[Declaration of private defines]========================================
-#define BACKOFFTIME        500
-#define MAX_CHUNK_SIZE     5
+#define BACKOFFTIME        250
+#define MAX_CHUNK_SIZE     255
 #define FLY_TIME           800
 //=====[Declaration of private data types]=====================================
 
@@ -51,12 +51,13 @@ SendingMessage::~SendingMessage() {
      this->tracker = NULL;
 }
 
-void SendingMessage::addRFFormatToMessage (int deviceId, int messageNumber, char * messageToBeSend) {
+void SendingMessage::addRFFormatToMessage (long long int deviceId, int messageNumber, char * messageToBeSend) {
     return;
 }
 
 void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend, NonBlockingDelay * backoffTime) {
-    char buffer [256];
+    //char buffer [1024] = "helloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwF-16";
+    char buffer [2048];
     static bool firstChunkSent = false;
     static bool firstDelayPassed = false;
     static bool messageFormatted = false;
@@ -84,18 +85,18 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
         uartUSB.write ("Sending plaintext message:\r\n", strlen ("Sending plaintext message:\r\n"));  // debug only
         uartUSB.write ( messageToBeSend, strlen ( messageToBeSend));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-
-        if (this->tracker->prepareMessage ( messageToBeSend) == false) {
+        strcpy(buffer, messageToBeSend);
+        if (this->tracker->prepareMessage ( buffer, strlen (buffer)) == false) {
             return;
         }
         uartUSB.write ("coded message:\r\n", strlen ("coded message:\r\n"));  // debug only
-        uartUSB.write ( messageToBeSend, strlen ( messageToBeSend) + 4);  // debug only
+        uartUSB.write ( buffer, strlen ( buffer));  // debug only
         uartUSB.write("\r\n", strlen("\r\n"));
 
-        size_t originalLength = strlen(messageToBeSend);
+        size_t originalLength = strlen(buffer);
 
         // Copiar la cadena original y agregar '|'
-        strcpy(buffer, messageToBeSend);
+        
         buffer[originalLength ] = '|';  // Agregar '|'
         buffer[originalLength + 1] = '|';      // Asegurar terminación nula
         buffer[originalLength + 2] = '\0';      // Asegurar terminación nula
@@ -105,8 +106,6 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
         uartUSB.write("\r\n", strlen("\r\n"));
         messageFormatted = true; 
     }
-
-
 
 
     if (backoffTime->read() || firstChunkSent == false) {
@@ -120,10 +119,13 @@ void SendingMessage::sendMessage (LoRaClass * LoRaModule, char * messageToBeSend
         LoRaModule->disableInvertIQ();               // normal mode
         size_t currentChunkSize = (totalLength - stringIndex < chunkSize) ? (totalLength - stringIndex) : chunkSize;
         uartUSB.write("\r\n", strlen("\r\n"));
-        uartUSB.write ( buffer + stringIndex, currentChunkSize);  // debug only
+        uartUSB.write ( buffer, strlen (buffer));  // debug only
         uartUSB.write("\r\n", strlen("\r\n"));
         LoRaModule->beginPacket();
         LoRaModule->write((uint8_t*)(buffer + stringIndex), currentChunkSize);
+        //LoRaModule->write(reinterpret_cast<const uint8_t*>(buffer), strlen(buffer));
+
+        //LoRaModule->write((uint8_t*)(buffer), strlen (buffer));
         LoRaModule->endPacket();
         stringIndex += chunkSize;
         if (stringIndex  > totalLength) {

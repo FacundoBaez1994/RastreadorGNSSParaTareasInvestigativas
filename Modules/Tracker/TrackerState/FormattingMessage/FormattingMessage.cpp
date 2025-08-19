@@ -283,19 +283,9 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         strncat(message, "]", sizeof(message) - strlen(message) - 1);
     }
 
-    strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
-
     message[sizeof(message) - 1] = '\0';
 
-    //strcpy(formattedMessage, message);
-<<<<<<< HEAD
-    this->tracker->encodeJWT (message, formattedMessage);
-
-    strcat(formattedMessage, "\n");
-}
-=======
     this->jwt->encodeJWT (message, formattedMessage);
->>>>>>> origin/StatePatternJWTMemory
 
      strcat(formattedMessage, "\n");
 }

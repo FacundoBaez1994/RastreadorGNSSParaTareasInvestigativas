@@ -69,14 +69,6 @@ ConsultingSIMCardStatus::~ConsultingSIMCardStatus () {
 CellularConnectionStatus_t ConsultingSIMCardStatus::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
-<<<<<<< HEAD
-    static char StringToBeRead [256];
-    char expectedResponse [15] = "OK";
-    char noSimCardError [20] = "+CME ERROR: 10";
-    char noSimCardError2 [20] = "+CME ERROR: 13";
-    char simCardReady [20] = "+CPIN: READY";
-    char StringToSend [15] = "AT+CPIN?";
-=======
     static char StringToBeRead [BUFFER_LEN];
     char expectedResponse [AT_CMD_CONSULT_SIMCARD_STATUS_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_CONSULT_SIMCARD_STATUS_EXPECTED_RESPONSE;
     char noSimCardError [AT_CMD_CONSULT_SIMCARD_STATUS_NO_SIMCARD_ERROR_LEN + 1] = AT_CMD_CONSULT_SIMCARD_STATUS_NO_SIMCARD_ERROR;
@@ -84,7 +76,6 @@ CellInformation * currentCellInformation) {
     char StringToSend [AT_CMD_CONSULT_SIMCARD_STATUS_LEN + 1] = AT_CMD_CONSULT_SIMCARD_STATUS;
     char StringToSendUSB [LOG_MESSAGE_1_LEN + 1] = LOG_MESSAGE_1;
     char StringToSendUSB2 [LOG_MESSAGE_2_LEN + 1] = LOG_MESSAGE_2;
->>>>>>> origin/StatePatternJWTMemory
    
 
     if (this->readyToSend == true) {

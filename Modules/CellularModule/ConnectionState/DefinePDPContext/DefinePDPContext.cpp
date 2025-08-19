@@ -5,11 +5,9 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-<<<<<<< HEAD
 //#define APN_MOVISTAR "AT+CGDCONT=1,\"IP\",\"internet.movistar.com.ar\"" //APN / username / password   internet.gprs.unifon.com.ar
-#define APN_TUENTI "AT+CGDCONT=1,\"IP\",\"internet.movil\"" // APN de Tuenti Argentina
-=======
->>>>>>> origin/StatePatternJWTMemory
+//#define APN_TUENTI "AT+CGDCONT=1,\"IP\",\"internet.movil\"" // APN de Tuenti Argentina
+
 #define MAXATTEMPTS 20
 //#define APN_MOVISTAR "AT+CGDCONT=1,\"IP\",\"internet.movistar.com.ar\"" //APN / username / password  movistar
 #define APN "AT+CGDCONT=1,\"IP\",\"internet.movil\"" //APN / username / password   tuenti
@@ -70,15 +68,6 @@ DefinePDPContext::~DefinePDPContext () {
 CellularConnectionStatus_t DefinePDPContext::connect (ATCommandHandler * ATHandler, 
 NonBlockingDelay * refreshTime,
 CellInformation * currentCellInformation) {
-<<<<<<< HEAD
-    char StringToBeRead [256];
-    char ExpectedResponse [15] = "OK";
-    char StringToSend [50] = APN_TUENTI;
-    char StringToSendUSB [40] = "DEFINING PDP CONTEXT";
-
-    if (this->readyToSend == true) {
-        ATHandler->sendATCommand(APN_TUENTI);
-=======
     char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [AT_CMD_DEFINE_PDP_CONTEXT_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_DEFINE_PDP_CONTEXT_EXPECTED_RESPONSE;
     char StringToSend [APN_LEN + 1] = APN;
@@ -86,7 +75,6 @@ CellInformation * currentCellInformation) {
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
->>>>>>> origin/StatePatternJWTMemory
         this->readyToSend  = false;
         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only

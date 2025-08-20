@@ -4,6 +4,7 @@
 #include "Debugger.h" // due to global usbUart
 #include "ExchangingMessages.h"
 #include "SavingMessage.h"
+#include "ExchangingLoRaMessages.h"
 
 //=====[Declaration of private defines]========================================
 
@@ -114,7 +115,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
+            this->tracker->changeState (new ExchangingLoRaMessages (this->tracker, this->currentStatus));
             break;
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA:
@@ -128,7 +129,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
             snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
             uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
+            this->tracker->changeState (new ExchangingLoRaMessages (this->tracker, this->currentStatus));
             break;
 
 
@@ -505,10 +506,12 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
 void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const GNSSData* GNSSInfo, const IMUData_t * imuData,
     const BatteryData  * batteryStatus, char * trackerEvent) {
-  static char message[2048]; 
+  static char message[2048];
+  int messageNumber = this->tracker->getLoraMessageNumber ();
     snprintf(message, sizeof(message), 
-    "LORAGNSS,%lld,%s,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
-        aCellInfo->IMEI,                    // 1 %lld  
+    "LORAGNSS,%lld,%d,%s,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+        aCellInfo->IMEI,                    // 1 %lld 
+        messageNumber,                      // 2 %d  
         trackerEvent,                        // 2 %s  
         GNSSInfo->latitude,                 // 3 %.6f
         GNSSInfo->longitude,                // 4 %.6f
@@ -535,10 +538,12 @@ void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInf
 
 void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellInformation* aCellInfo, 
  const IMUData_t * imuData, const BatteryData  * batteryStatus, char * trackerEvent) {
-  static char message[2048]; 
+    static char message[2048];
+    int messageNumber = this->tracker->getLoraMessageNumber (); 
     snprintf(message, sizeof(message), 
-    "LORALORA,%s,%lld,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+    "LORALORA,%d,%s,%lld,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         aCellInfo->IMEI,                     // 1 %lld
+        messageNumber,                      // 2 %d  
         trackerEvent,                       // 2 %s
         batteryStatus->batteryChargeStatus, // 3 %d
         batteryStatus->chargeLevel,         // 4 %d

@@ -55,6 +55,11 @@ void TrackerBaseState::exchangeMessages (CellularModule * cellularTransceiver,
     return;
 }
 
+void TrackerBaseState::exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage) {
+    return;
+}
+
+
 void TrackerBaseState::goToSleep (CellularModule * cellularTransceiver ) {
     return;
 }

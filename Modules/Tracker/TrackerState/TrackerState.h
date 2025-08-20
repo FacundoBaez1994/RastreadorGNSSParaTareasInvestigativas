@@ -11,6 +11,7 @@
 #include "CellularModule.h"
 #include "GNSSModule.h"
 #include "IMUManager.h"
+#include "LoRa.h"
 #include "EEPROMManager.h"
 
 
@@ -99,6 +100,14 @@ public:
      */
     virtual void exchangeMessages (CellularModule* cellularTransceiver,
     char* message, TcpSocket* socketTargetted, char* receivedMessage );
+
+    /**
+     * @brief Exchanges messages with the LoRaGateway via the LoRa transceiver Module.
+     * @param LoRaModule Pointer LoRa transceiver Module instance.
+     * @param message Pointer to the message to send.
+     * @param receivedMessage Pointer to the buffer where the received message will be stored.
+     */
+    virtual void exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage );
 
     /**
      * @brief Checks the stability of the device based on IMU data.

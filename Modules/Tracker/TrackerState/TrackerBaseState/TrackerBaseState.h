@@ -76,12 +76,19 @@ public:
 
     
     /**
-     * @copydoc TrackerState::exchangeMessages()
+     * @copydoc TrackerState::exchangeMessages(CellularModule * cellularTransceiver,
+     *  char * message, TcpSocket * socketTargetted, char * receivedMessage)
      * Default implementation: does nothing.
      */
     virtual void exchangeMessages (CellularModule * cellularTransceiver,
     char * message, TcpSocket * socketTargetted, char * receivedMessage );
 
+    /**
+     * @copydoc TrackerState::exchangeMessages(LoRaClass * LoRaModule, char * message, 
+     * char * receivedMessage)
+     * Default implementation: does nothing.
+     */
+    virtual void exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage );
     
     /**
      * @copydoc TrackerState::goToSleep()

@@ -27,6 +27,8 @@
 #include "IMUManager.h"
 #include "EEPROMManager.h"
 
+#include "LoRa.h"
+
 #include "MessageHandler.h"
 #include "MessageHandlerStatus.h"
 #include "AuthenticationGenerator.h"
@@ -203,6 +205,16 @@ public:
      */
     bool processLoRaMessage (char * message, unsigned int messageSize);
 
+    /**
+     * @brief Retrivs the current numeration of messages sent via LoRa.
+     * @return an int with.
+     */
+    int getLoraMessageNumber ();
+
+    /**
+     * @brief increase by one the current numeration of messages sent via LoRa.
+     */
+    void increaseLoraMessageNumber ();
     
 private:
     TrackerState* currentState;            /**< Current operational state */
@@ -220,6 +232,10 @@ private:
     std::vector<IMUData_t*> IMUDataSamples;      /**< Sampled IMU data */
 
     EEPROMManager* memory;                     /**< EEPROM storage manager */
+
+     // IMU 
+    int loraMessageNumber = 1;      /**< interger counting the number of messages sent by LoRa */
+    LoRaClass * LoRaTransciever;    /**< LoRa Module transceiver */
     
     // MN Module 
     CellularModule* cellularTransceiver;        /**< Cellular transceiver */
@@ -235,13 +251,13 @@ private:
     BatteryData* batteryStatus;        /**< Current battery status */
 
    // Message Handlers
-    MessageHandler* encrypter;          /**< Encryption handler */
+    //MessageHandler* encrypter;          /**< Encryption handler */
     MessageHandler* encrypterBase64;    /**< Base64 encryption handler */
     MessageHandler* authgen;            /**< Authentication generator */
     MessageHandler* ckgen;             /**< Checksum generator */
     MessageHandler* checksumVerifier;  /**< Checksum verifier */
     MessageHandler* authVer;           /**< Authentication verifier */
-    MessageHandler* decrypter;         /**< Decryption handler */
+    //MessageHandler* decrypter;         /**< Decryption handler */
     MessageHandler* decrypterBase64;   /**< Base64 decryption handler */
 
 };

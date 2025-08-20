@@ -75,14 +75,17 @@ Tracker::Tracker () {
     //this->currentState =  new SavingMessage (this);
     //this->currentState =  new LoadingMessage (this);
 
-    this->encrypter = new Encrypter ();
+    this->LoRaTransciever = new LoRaClass ();
+
+     //this->encrypter = new Encrypter ();
     this->encrypterBase64 = new EncrypterBase64 ();
     this->authgen = new AuthenticationGenerator ();
     this->ckgen = new ChecksumGenerator ();
+    
 
     this->checksumVerifier = new ChecksumVerifier ();
     this->authVer = new AuthenticationVerifier ();
-    this->decrypter = new Decrypter ();
+     //this->decrypter = new Decrypter ();
     this->decrypterBase64 = new DecrypterBase64 ();
 
     while (! this->memory->clearAll()) {
@@ -123,8 +126,11 @@ Tracker::~Tracker() {
     delete this->memory;
     this->memory = nullptr;
 
-    delete this->encrypter;
-    this->encrypter = nullptr;
+    delete this->LoRaTransciever;
+    this->LoRaTransciever  = nullptr;
+
+    //delete this->encrypter;
+    //this->encrypter = nullptr;
     delete this->encrypterBase64;
     this->encrypterBase64 = nullptr;
     delete this->authgen;
@@ -135,8 +141,8 @@ Tracker::~Tracker() {
     this->checksumVerifier = nullptr;
     delete this->authVer;
     this->authVer = nullptr;
-    delete this->decrypter;
-    this->decrypter = nullptr;
+    //delete this->decrypter;
+    //this->decrypter = nullptr;
     delete this->decrypterBase64;
     this->decrypterBase64 = nullptr;
 }
@@ -161,7 +167,8 @@ void Tracker::update () {
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
     this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,
-    formattedMessage, this->socketTargetted, receivedMessage ); // agregar modulo LoRa al argumento
+    formattedMessage, this->socketTargetted, receivedMessage );
+    this->currentState->exchangeMessages (this->LoRaTransciever, formattedMessage, receivedMessage);
     this->currentState->saveMessage(this->memory, formattedMessage);
     this->currentState->loadMessage(this->memory, this->currentCellInformation, this->currentGNSSdata,
      this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus);
@@ -327,8 +334,8 @@ bool Tracker::decryptMessage (char * message, unsigned int messageSize) {
 }
 
 bool Tracker::prepareLoRaMessage (char * message, unsigned int messageSize) {
-    this->encrypter->setNextHandler(this->authgen)->setNextHandler(this->ckgen);
-    if (this->encrypter->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
+    this->encrypterBase64->setNextHandler(this->authgen)->setNextHandler(this->ckgen);
+    if (this->encrypterBase64->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;
@@ -336,12 +343,26 @@ bool Tracker::prepareLoRaMessage (char * message, unsigned int messageSize) {
 }
 
 bool Tracker::processLoRaMessage (char * message, unsigned int messageSize) {
-    this->checksumVerifier->setNextHandler(this->authVer)->setNextHandler(this->decrypter);
+    this->checksumVerifier->setNextHandler(this->authVer)->setNextHandler(this->decrypterBase64);
     if (this->checksumVerifier->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
         return true;
     } else {
         return false;
     }
+}
+
+
+
+int Tracker::getLoraMessageNumber () {
+    return this->loraMessageNumber;
+}
+
+void Tracker::increaseLoraMessageNumber () {
+    this->loraMessageNumber++;
+    if (this->loraMessageNumber >= 2147483647) { // max int value
+        this->loraMessageNumber = 1;
+    }
+    return;
 }
 
 

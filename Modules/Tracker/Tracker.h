@@ -215,6 +215,15 @@ public:
      * @brief increase by one the current numeration of messages sent via LoRa.
      */
     void increaseLoraMessageNumber ();
+
+    /**
+     * @brief Checks if the message from the gateway is the correct ACK
+     * with the correct identifier and messageNumber.
+     * increases LoraMessageNumber if correct
+     * @param message Pointer to the message buffer in plaintext.
+     * @return bolean true if the ACK message is the expected.
+     */
+    bool checkMessageIntegrity ( char *messageReceived);
     
 private:
     TrackerState* currentState;            /**< Current operational state */

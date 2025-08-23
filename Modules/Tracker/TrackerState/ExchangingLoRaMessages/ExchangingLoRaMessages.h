@@ -14,7 +14,12 @@
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada
-//struct TcpSocket;
+
+typedef enum {
+    INITIALIZE_TRANSCIEVER,
+    SENDING_MESSAGE,
+    WAITING_FOR_ACK,
+} ExchangingLoRaMessagesStatus_t;
 
 //=====[Declaration of public classes]=========================================
 /*
@@ -32,6 +37,7 @@ private:
     Tracker * tracker;
     trackerStatus_t currentStatus; ///< Current tracker status
     NonBlockingDelay * backoffTime;
+    ExchangingLoRaMessagesStatus_t currentExchangingLoRaMessagesStatus;
 //=====[Declaration of privates atributes]=========================================
 
 //=====[Declaration of privates methods]=========================================

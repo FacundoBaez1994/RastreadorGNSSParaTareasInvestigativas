@@ -366,6 +366,52 @@ void Tracker::increaseLoraMessageNumber () {
 }
 
 
+bool Tracker::checkMessageIntegrity ( char *messageReceived) {
+    char logMessage [60];
+
+    char payload [60];
+    long long int deviceIdReceived;
+    int messageNumberReceived; 
+    char payloadReceived [60];
+
+    if (sscanf(messageReceived, "%lld,%d,%s", &deviceIdReceived, &messageNumberReceived, payloadReceived) == 3) {
+        bool messageCorrect = false;
+        uartUSB.write ("\r\n", strlen("\r\n"));
+        snprintf(logMessage, sizeof(logMessage), "Device ID Received: %lld\r\n", deviceIdReceived);
+        uartUSB.write(logMessage, strlen(logMessage));
+        if (deviceIdReceived == this->currentCellInformation->IMEI) {
+            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+        } else {
+            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            return false;
+        }
+        snprintf(logMessage, sizeof(logMessage), "Message Number Received: %d\r\n", messageNumberReceived);
+        uartUSB.write(logMessage, strlen(logMessage));
+        if (messageNumberReceived == this->loraMessageNumber) {
+            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+        } else {
+            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            return false;
+        }
+        snprintf(logMessage, sizeof(logMessage), "Payload Received: %s\r\n", payloadReceived);
+        uartUSB.write(logMessage, strlen(logMessage));
+        if (strcmp (payloadReceived, "ACK") == 0 || strcmp (payloadReceived, "ACK\r") == 0 ||
+         strcmp (payloadReceived, "ACK\r\n") == 0 ) {
+            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+        } else {
+            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            return false;
+        }
+        this->increaseLoraMessageNumber ();
+        return true;
+    } else {
+        uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+        return false;
+    }
+ }
+
+
+
 
 
 //=====[Implementations of private methods]==================================

@@ -531,8 +531,21 @@ void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInf
         imuData->angles.pitch               // 18 %.2f
             );
     message[sizeof(message) - 1] = '\0';       
-    strcpy(formattedMessage, message);
-    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
+
+    uartUSB.write ("plaintext message:\r\n", strlen ("plaintext message:\r\n"));  // debug only
+    uartUSB.write ( message, strlen ( message));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only
+
+    if (this->tracker->prepareLoRaMessage ( message, strlen (message)) == false) {
+        return;
+    }
+
+    size_t originalLength = strlen(message);
+    message[originalLength ] = '|';  // add '||' to indicate the end of the full message 
+    message[originalLength + 1] = '|';     
+    message[originalLength + 2] = '\0';      // Asegurar terminación nula
+
+    strcpy (formattedMessage, message);
 }
 
 
@@ -541,7 +554,7 @@ void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellIn
     static char message[2048];
     int messageNumber = this->tracker->getLoraMessageNumber (); 
     snprintf(message, sizeof(message), 
-    "LORALORA,%d,%s,%lld,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+    "LORALORA,%lld,%d,%s,%lld,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         aCellInfo->IMEI,                     // 1 %lld
         messageNumber,                      // 2 %d  
         trackerEvent,                       // 2 %s
@@ -556,8 +569,21 @@ void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellIn
         imuData->angles.pitch               // 11 %.2f
             );
     message[sizeof(message) - 1] = '\0';       
-    strcpy(formattedMessage, message);
-    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
+
+    uartUSB.write ("plaintext message:\r\n", strlen ("plaintext message:\r\n"));  // debug only
+    uartUSB.write ( message, strlen ( message));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only
+
+    if (this->tracker->prepareLoRaMessage ( message, strlen (message)) == false) {
+        return;
+    }
+
+    size_t originalLength = strlen(message);
+    message[originalLength ] = '|';  // add '||' to indicate the end of the full message 
+    message[originalLength + 1] = '|';     
+    message[originalLength + 2] = '\0';      // Asegurar terminación nula
+
+    strcpy (formattedMessage, message);
 }
 
 

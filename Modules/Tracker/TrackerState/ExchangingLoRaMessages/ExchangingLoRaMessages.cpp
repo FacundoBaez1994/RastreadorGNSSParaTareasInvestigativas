@@ -3,11 +3,16 @@
 #include "Non_Blocking_Delay.h"
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
+#include "GoingToSleep.h"
+#include "SavingMessage.h"
+#include "FormattingMessage.h"
+#include "GatheringInertialData.h"
 
 //=====[Declaration of private defines]========================================
 #define BACKOFFTIME        250
 #define MAX_CHUNK_SIZE     255
 #define FLY_TIME           800
+#define TIMEOUT          5000
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -41,6 +46,7 @@ ExchangingLoRaMessages::ExchangingLoRaMessages (Tracker * tracker, trackerStatus
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
     this->backoffTime = new NonBlockingDelay (BACKOFFTIME);
+    this->currentExchangingLoRaMessagesStatus = INITIALIZE_TRANSCIEVER;
 }
 
 
@@ -60,23 +66,21 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
     //char buffer [1024] = "helloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwF-16";
     char buffer [2048];
     static bool firstChunkSent = false;
-    static bool firstDelayPassed = false;
-    static bool messageFormatted = false;
-    static bool firstEntryOnThisMethod = true;
+    //static bool firstDelayPassed = false;
     static size_t stringIndex = 0;
 
-    
-    if (firstEntryOnThisMethod == true) {
-        if (!LoRaModule->begin (915E6)) {
-            uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only
-            return;
-        }
-        this->backoffTime->write(BACKOFFTIME);
-        this->backoffTime->restart();
-        firstEntryOnThisMethod = false;
-    }
+    char logMessage [100];
 
+
+    static char receptionBuffer[2048] = {0};
+    static char processedMessageReceived  [2048];
+    static bool messageReceived = false; 
+    static std::vector<char> accumulatedBuffer; // Acumulador de fragmentos
+    static std::string fullMessage;
+    static int stringInsertCount = 0;
+    static int timeoutCounter = 0;
+
+    /*
     if (firstDelayPassed == false) {
         if (this->backoffTime->read()) {
             firstDelayPassed = true;
@@ -85,101 +89,64 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
             return;
         }
     }
+    */
 
-    if (messageFormatted == false) {
-        uartUSB.write ("Sending plaintext message:\r\n", strlen ("Sending plaintext message:\r\n"));  // debug only
-        uartUSB.write ( message, strlen ( message));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
+
+    switch ( this->currentExchangingLoRaMessagesStatus) {
+    case  INITIALIZE_TRANSCIEVER:
+        if (!LoRaModule->begin (915E6)) {
+            uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
+            uartUSB.write ( "\r\n",  3 );  // debug only
+            // AGREGAR contandor si supera limite mandarlo a guardar el mensaje en la EEPROM
+            return;
+        }
         strcpy(buffer, message);
-        if (this->tracker->prepareLoRaMessage ( buffer, strlen (buffer)) == false) {
-            return;
-        }
-        uartUSB.write ("coded message:\r\n", strlen ("coded message:\r\n"));  // debug only
-        uartUSB.write ( buffer, strlen ( buffer));  // debug only
-        uartUSB.write("\r\n", strlen("\r\n"));
-
-        size_t originalLength = strlen(buffer);
-
-        // Copiar la cadena original y agregar '|'
-        
-        buffer[originalLength ] = '|';  // Agregar '|'
-        buffer[originalLength + 1] = '|';      // Asegurar terminación nula
-        buffer[originalLength + 2] = '\0';      // Asegurar terminación nula
-
-        uartUSB.write("\r\n", strlen("\r\n"));
-        uartUSB.write ( buffer, strlen ( buffer));  // debug only
-        uartUSB.write("\r\n", strlen("\r\n"));
-        messageFormatted = true; 
-    }
-
-
-    if (this->backoffTime->read() || firstChunkSent == false) {
-        firstChunkSent = true;
-        this->backoffTime->write(FLY_TIME);
+        this->backoffTime->write(BACKOFFTIME);
         this->backoffTime->restart();
+        this->currentExchangingLoRaMessagesStatus = SENDING_MESSAGE;
+        break;   
 
-        size_t totalLength = strlen(buffer);
-        size_t chunkSize = MAX_CHUNK_SIZE;  // Fragmentos de 50 bytes
-        LoRaModule->idle();                          // set standby mode
-        LoRaModule->disableInvertIQ();               // normal mode
-        size_t currentChunkSize = (totalLength - stringIndex < chunkSize) ? (totalLength - stringIndex) : chunkSize;
-        uartUSB.write("\r\n", strlen("\r\n"));
-        uartUSB.write ( buffer, strlen (buffer));  // debug only
-        uartUSB.write("\r\n", strlen("\r\n"));
-        LoRaModule->beginPacket();
-        LoRaModule->write((uint8_t*)(buffer + stringIndex), currentChunkSize);
-        //LoRaModule->write(reinterpret_cast<const uint8_t*>(buffer), strlen(buffer));
+    case  SENDING_MESSAGE:
+        if (this->backoffTime->read() || firstChunkSent == false) {
+            firstChunkSent = true;
+            this->backoffTime->write(FLY_TIME);
+            this->backoffTime->restart();
 
-        //LoRaModule->write((uint8_t*)(buffer), strlen (buffer));
-        LoRaModule->endPacket();
-        stringIndex += chunkSize;
-        if (stringIndex  > totalLength) {
+            size_t totalLength = strlen(buffer);
+            size_t chunkSize = MAX_CHUNK_SIZE;  // Fragmentos de 50 bytes
+            LoRaModule->idle();                          // set standby mode
+            LoRaModule->disableInvertIQ();               // normal mode
+            size_t currentChunkSize = (totalLength - stringIndex < chunkSize) ? (totalLength - stringIndex) : chunkSize;
             uartUSB.write("\r\n", strlen("\r\n"));
-            uartUSB.write ("Changing State to Waiting Acknowledgement:\r\n", 
-            strlen ("Changing State to Waiting Acknowledgement:\r\n"));  // debug only
+            uartUSB.write ( buffer, strlen (buffer));  // debug only
             uartUSB.write("\r\n", strlen("\r\n"));
-            firstDelayPassed = false;
-            messageFormatted = false;
-            firstEntryOnThisMethod = true;
-            messageFormatted = false; 
-            stringIndex = 0;
-            //this->tracker->changeState(new WaitingAcknowledgement (this->tracker));
-            return;
+            LoRaModule->beginPacket();
+            LoRaModule->write((uint8_t*)(buffer + stringIndex), currentChunkSize);
+            //LoRaModule->write(reinterpret_cast<const uint8_t*>(buffer), strlen(buffer));
+
+            //LoRaModule->write((uint8_t*)(buffer), strlen (buffer));
+            LoRaModule->endPacket();
+            stringIndex += chunkSize;
+            if (stringIndex  > totalLength) {
+                uartUSB.write("\r\n", strlen("\r\n"));
+                uartUSB.write ("Waiting Acknowledgement:\r\n", 
+                strlen ("Waiting Acknowledgement:\r\n"));  // debug only
+                uartUSB.write("\r\n", strlen("\r\n"));
+                //firstDelayPassed = false;
+            // messageFormatted = false; 
+                firstChunkSent = false; 
+
+                this->backoffTime->write(TIMEOUT);
+                this->backoffTime->restart();
+                stringIndex = 0;
+                this->currentExchangingLoRaMessagesStatus = WAITING_FOR_ACK;
+                //this->tracker->changeState(new WaitingAcknowledgement (this->tracker));
+                return;
+            }
         }
-    }
-}
+        break;
 
-
-
-
-/*
-
-bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * messageRecieved,
- NonBlockingDelay * timeOut){
-    static bool messageReceived = false; 
-    static std::vector<char> accumulatedBuffer; // Acumulador de fragmentos
-    static std::string fullMessage;
-
-    char processedMessageReceived  [2048];
-    static char buffer[2048] = {0};
-    static char message[1024];
-
-    int deviceId = 0;
-    int messageNumber = 0;
-
-    static bool firstPacketReceived = false;
-    static bool firstEntryOnThisMethod = true;
-    static int stringInsertCount = 0;
-
-    uint8_t receivedBuffer[64];
-
-    if (firstEntryOnThisMethod == true) {
-        timeOut->write(TIMEOUT);
-        timeOut->restart();
-        uartUSB.write("time out restart\r\n", strlen("time out restart\r\n")); // Debug
-        firstEntryOnThisMethod = false;
-    }
-
+    case WAITING_FOR_ACK:
     if (messageReceived  == false) {
         LoRaModule->enableInvertIQ();    
         int packetSize = LoRaModule->parsePacket();
@@ -187,11 +154,12 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
             uartUSB.write("Packet Received!\r\n", strlen("Packet Received!\r\n")); // Debug
 
              //restart timeOut Timer
+             /*
             if (firstPacketReceived == false) {
                 timeOut->restart ();
                 uartUSB.write("time out restart\r\n", strlen("time out restart\r\n")); // Debug
                 firstPacketReceived = true;
-            }
+            } */
 
             int maxIterations = 100; // Límite para evitar un ciclo infinito
             int iterations = 0;
@@ -217,7 +185,7 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
                         // Acción adicional, si es necesario
                         uartUSB.write("Buffer cleared size reach limit\r\n", strlen("Buffer cleared size reach limit\r\n"));
                         messageReceived = false;
-                        return false;
+                        return;
                     }
 
                     // Buscar el delimitador `|`
@@ -235,14 +203,14 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
                         messageReceived = true;
 
                         int packetRSSI = LoRaModule->packetRssi();
-                        snprintf(message, sizeof(message), "packet RSSI: %d\r\n", packetRSSI);
-                        uartUSB.write(message, strlen(message));
+                        snprintf(logMessage, sizeof(logMessage), "packet RSSI: %d\r\n", packetRSSI);
+                        uartUSB.write(logMessage, strlen(logMessage));
                     }
                     iterations++;
                     if (iterations >= maxIterations) {
                         uartUSB.write("Warning: Exceeded max iterations\r\n", strlen("Warning: Exceeded max iterations\r\n"));
                         messageReceived = false;
-                        return false;
+                        return;
                     }
                 } //  if (bytesRead > 0) end
             } // while (LoRaModule->available() > 0 && iterations < maxIterations)  end
@@ -252,44 +220,72 @@ bool WaitingAcknowledgement::getAcknowledgement (LoRaClass * LoRaModule, char * 
             accumulatedBuffer.clear();
             messageReceived = false;
             uartUSB.write("Fail to process received message\r\n", strlen("Fail to process received message\r\n"));
-            return false;
+            return;
         }
 
         const char* constCharPtr = fullMessage.c_str(); 
         strncpy(processedMessageReceived, constCharPtr, sizeof(processedMessageReceived) - 1);
         processedMessageReceived[sizeof(processedMessageReceived) - 1] = '\0';
 
-        if (this->tracker->processMessage(processedMessageReceived, sizeof (processedMessageReceived) ) == false) {
+        if (this->tracker->processLoRaMessage(processedMessageReceived, sizeof (processedMessageReceived) ) == false) {
             uartUSB.write("Fail to process received message\r\n", strlen("Fail to process received message\r\n")); // Debug
             messageReceived = false;
-            return false;
+            return;
         }
-        strcpy ( messageRecieved, processedMessageReceived);
+        processedMessageReceived;
         uartUSB.write("Recepted message\r\n", strlen("Recepted message\r\n"));
-        uartUSB.write(messageRecieved, strlen(messageRecieved));
+        uartUSB.write( processedMessageReceived, strlen( processedMessageReceived));
         messageReceived  = false;
         accumulatedBuffer.clear(); // Elimina todos los elementos del vector
         stringInsertCount = 0;
         fullMessage.clear();       // Elimina todo el contenido de la cadena
       
-        if (this->tracker->checkMessageIntegrity (messageRecieved)) {
-             wait_us(3000000); //backoff Nota este back eliminalo luego porque con la rutina principal no tiene sentido
-            uartUSB.write("Changing To AddingRFFormat\r\n", strlen("Changing To AddingRFFormat\r\n"));
-            firstEntryOnThisMethod  = true;
-            firstPacketReceived = false;
-            this->tracker->changeState(new AddingRFFormat (this->tracker));
-            return true;
+        if (this->tracker->checkMessageIntegrity ( processedMessageReceived)) {
+             //wait_us(3000000); //backoff Nota este back eliminalo luego porque con la rutina principal no tiene sentido
+            uartUSB.write("ACK OK!!\r\n", strlen("ACK OK!!\r\n"));;
+            //firstPacketReceived = false;
+            this->backoffTime->write(BACKOFFTIME);
+             this->backoffTime->restart();
+             strcpy(buffer, message);
+            this->currentExchangingLoRaMessagesStatus = SENDING_MESSAGE;
+            this->tracker->changeState  (new GoingToSleep (this->tracker));
+            return;
         }
     }
 
-    if (timeOut->read() && firstEntryOnThisMethod == false) {
+    if (this->backoffTime->read()) {
+        accumulatedBuffer.clear();
+        fullMessage.clear();
+        stringInsertCount = 0;
+        messageReceived = false;
+
         uartUSB.write ("Timeout for ACK\r\n", strlen ("Timeout for ACK\r\n"));  // debug only
         uartUSB.write("Changing To AddingRFFormat\r\n", strlen("Changing To AddingRFFormat\r\n"));
-        firstEntryOnThisMethod  = true;
-        firstPacketReceived = false;
-        this->tracker->changeState(new AddingRFFormat (this->tracker));
+        //firstPacketReceived = false;
+        this->backoffTime->write(BACKOFFTIME);
+        this->backoffTime->restart();
+        strcpy(buffer, message);
+        this->currentExchangingLoRaMessagesStatus = SENDING_MESSAGE;
+        timeoutCounter++;
+        if (timeoutCounter >= 3) {
+            uartUSB.write ("LoRa Unavailable\r\n" , strlen ("LoRa Unavailable\r\n"));  // debug only
+            if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA ){
+                this->tracker->changeState (new FormattingMessage (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE));
+                return;
+            }
+            this->tracker->changeState (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERING_INERTIAL_INFO));
+            return;
+        }
     }
-    return false;
+
+        break;
+    default:
+        return;
+    }
+
 }
-*/
+
+
+
+
 //=====[Implementations of private functions]==================================

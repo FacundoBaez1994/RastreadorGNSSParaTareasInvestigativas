@@ -6,6 +6,7 @@
 #include "GoingToSleep.h"
 #include "FormattingMessage.h"
 
+
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
 //=====[Declaration of private data types]=====================================

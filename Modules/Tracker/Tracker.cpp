@@ -16,6 +16,14 @@
 #define VERY_HIGH_LATENCY_MS       (6 * 60 * 60 * 1000)   // 6 hours
 #define EXTREMELY_HIGH_LATENCY_MS  (24 * 60 * 60 * 1000)  // 24 hours
 
+#define EXTREMELY_LOW_LATENCY_KEEP_ALIVE_MULTIPLIER   180    // 1 hour
+#define VERY_LOW_LATENCY_KEEP_ALIVE_MULTIPLIER        120   // 2 hour
+#define LOW_LATENCY_KEEP_ALIVE_MULTIPLIER            24  // 4 hours
+#define MEDIUM_LATENCY_KEEP_ALIVE_MULTIPLIER          12 // 6 hours
+#define HIGH_LATENCY_KEEP_ALIVE_MULTIPLIER            8  // 8 hour
+#define VERY_HIGH_LATENCY_KEEP_ALIVE_MULTIPLIER       2  // 12 hours
+#define EXTREMELY_HIGH_LATENCY_KEEP_ALIVE_MULTIPLIER  1 // 24 hours
+
 
 //#define HOUR_MS  (1 * 60 * 60 * 1000)  // 1 hours
 #define HOUR_MS  (3 * 60 * 1000)  // 3 min TEST ONLY
@@ -46,7 +54,7 @@ Tracker::Tracker () {
     this->currentOperationMode = NORMAL_OPERATION_MODE;
     //this->currentOperationMode = PERSUIT_OPERATION_MODE;
     this->latency = new NonBlockingDelay (EXTREMELY_LOW_LATENCY_MS);
-    this->silentTimer = new NonBlockingDelay (HOUR_MS);
+    this->silentKeepAliveTimer = new NonBlockingDelay (HOUR_MS);
     this->cellularTransceiver = new CellularModule ( );
     this->currentGNSSModule = new GNSSModule (this->cellularTransceiver->getPowerManager()
     , this->cellularTransceiver->getATHandler());
@@ -114,8 +122,8 @@ Tracker::~Tracker() {
     this->socketTargetted = nullptr;
     delete this->latency;
     this->latency = nullptr; 
-    delete this->silentTimer;
-    this->silentTimer = nullptr;
+    delete this->silentKeepAliveTimer;
+    this->silentKeepAliveTimer = nullptr;
     delete this->currentGNSSModule;
     this->currentGNSSModule = nullptr;
     delete this->cellularTransceiver;
@@ -154,7 +162,7 @@ void Tracker::update () {
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singleton
     watchdog.kick();
-    this->currentState->awake(this->cellularTransceiver, this->latency, this->silentTimer);
+    this->currentState->awake(this->cellularTransceiver, this->latency, this->silentKeepAliveTimer);
     this->currentState->calibrateIMU (this->inertialSensor);
     this->currentState->updatePowerStatus (this->cellularTransceiver, this->batteryStatus);
     this->currentState->obtainGNSSPosition (this->currentGNSSModule, this->currentGNSSdata);
@@ -273,7 +281,7 @@ void Tracker::setOperationMode(OperationMode_t newOperationMode) {
 }
 
 void Tracker::setSilentTimer (int hours) {
-    this->silentTimer->write(hours * HOUR_MS);
+    this->silentKeepAliveTimer->write(hours * HOUR_MS);
 }
 
 void Tracker::setLatency(LatencyLevel_t level) {
@@ -281,24 +289,31 @@ void Tracker::setLatency(LatencyLevel_t level) {
 
     switch (level) {
         case EXTREMELY_LOW_LATENCY:
+            this->latencyLevel = EXTREMELY_LOW_LATENCY;
             newLatency = EXTREMELY_LOW_LATENCY_MS;
             break;
         case VERY_LOW_LATENCY:
+            this->latencyLevel = VERY_LOW_LATENCY;
             newLatency = VERY_LOW_LATENCY_MS;
             break;
         case LOW_LATENCY:
+            this->latencyLevel = LOW_LATENCY;
             newLatency = LOW_LATENCY_MS;
             break;
         case MEDIUM_LATENCY:
+            this->latencyLevel = MEDIUM_LATENCY;
             newLatency = MEDIUM_LATENCY_MS;
             break;
         case HIGH_LATENCY:
+            this->latencyLevel = HIGH_LATENCY;
             newLatency = HIGH_LATENCY_MS;
             break;
         case VERY_HIGH_LATENCY:
+            this->latencyLevel = VERY_HIGH_LATENCY;
             newLatency = VERY_HIGH_LATENCY_MS;
             break;
         case EXTREMELY_HIGH_LATENCY:
+            this->latencyLevel = EXTREMELY_HIGH_LATENCY;
             newLatency = EXTREMELY_HIGH_LATENCY_MS;
             break;
         default:
@@ -312,6 +327,48 @@ void Tracker::setLatency(LatencyLevel_t level) {
     snprintf(buffer, sizeof(buffer), "\n\rNew latency set: %llu ms\n\r", newLatency);
     uartUSB.write(buffer, strlen(buffer));
 }
+
+
+
+void Tracker::actualizeKeepAliveLatency () {
+tick_t newKeepAliveLatency = EXTREMELY_LOW_LATENCY_MS;
+
+    switch (this->latencyLevel) {
+        case EXTREMELY_LOW_LATENCY:
+            newKeepAliveLatency = EXTREMELY_LOW_LATENCY_MS * EXTREMELY_LOW_LATENCY_KEEP_ALIVE_MULTIPLIER ;
+            break;
+        case VERY_LOW_LATENCY:
+            newKeepAliveLatency = VERY_LOW_LATENCY_MS * VERY_LOW_LATENCY_KEEP_ALIVE_MULTIPLIER ;
+            break;
+        case LOW_LATENCY:
+            newKeepAliveLatency = LOW_LATENCY_MS * VERY_LOW_LATENCY_KEEP_ALIVE_MULTIPLIER;
+            break;
+        case MEDIUM_LATENCY:
+            newKeepAliveLatency = MEDIUM_LATENCY_MS * MEDIUM_LATENCY_KEEP_ALIVE_MULTIPLIER;
+            break;
+        case HIGH_LATENCY:
+            newKeepAliveLatency = HIGH_LATENCY_MS * HIGH_LATENCY_KEEP_ALIVE_MULTIPLIER;
+            break;
+        case VERY_HIGH_LATENCY:
+            newKeepAliveLatency = VERY_HIGH_LATENCY_MS * VERY_HIGH_LATENCY_KEEP_ALIVE_MULTIPLIER;
+            break;
+        case EXTREMELY_HIGH_LATENCY:
+            newKeepAliveLatency = EXTREMELY_HIGH_LATENCY_MS * EXTREMELY_HIGH_LATENCY_KEEP_ALIVE_MULTIPLIER;
+            break;
+        default:
+            break;
+    }
+
+    this->silentKeepAliveTimer->write(newKeepAliveLatency);
+    this->silentKeepAliveTimer->restart();
+
+    char buffer[100];
+    snprintf(buffer, sizeof(buffer), "\n\rNew keep alive latency set: %llu ms\n\r", newKeepAliveLatency);
+    uartUSB.write(buffer, strlen(buffer));
+}
+
+
+
 
 
 

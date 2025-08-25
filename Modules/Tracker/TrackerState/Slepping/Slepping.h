@@ -63,10 +63,11 @@ public:
      * Upon successful wake-up, the Tracker usually transitions to SensingBatteryStatus state.
      * @param cellularTransceiver Pointer to the cellular module interface.
      * @param latency Pointer to a non-blocking delay timer controlling wake-up latency.
-     * @param silentTimer Pointer to a non-blocking delay timer controlling silent mode duration.
+     * @param silentKeepAliveTimer Pointer to a non-blocking delay timer controlling silent mode
+     * and keepalive duration.
      */
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency,
-    NonBlockingDelay * silentTimer);
+    NonBlockingDelay * silentKeepAliveTimer);
 private:
     Tracker * tracker;
   

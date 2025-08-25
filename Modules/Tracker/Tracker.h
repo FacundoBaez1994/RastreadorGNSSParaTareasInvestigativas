@@ -174,6 +174,13 @@ public:
     void setSilentTimer (int hours);
 
     /**
+     * @brief Actualize the keep alive timer.
+     * @details when the tracker is in STOPPED MODE, it would send a message
+     * periodically but with and increase latency based on the current latency.
+     */
+    void actualizeKeepAliveLatency ();
+
+    /**
      * @brief Encrypts a message using the configured encryption chain.
      * @param message Pointer to the message buffer.
      * @param messageSize Size of the message in bytes.
@@ -228,7 +235,8 @@ public:
 private:
     TrackerState* currentState;            /**< Current operational state */
     NonBlockingDelay* latency;             /**< Latency timer */
-    NonBlockingDelay* silentTimer;         /**< Silent mode timer */
+    NonBlockingDelay* silentKeepAliveTimer;         /**< Silent mode timer */
+    LatencyLevel_t latencyLevel;
     OperationMode_t currentOperationMode;   /**< Current mode of operation */
 
     deviceMotionStatus_t newMotionStatus = DEVICE_ON_MOTION;        /**< Latest motion status */

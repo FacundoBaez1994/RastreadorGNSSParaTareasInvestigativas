@@ -32,6 +32,9 @@
 #define POWERCHANGEDURATION  700
 #define TIME_BETWEEN_IMU_SAMPLES 10 // 10 seconds
 
+#define URL_PATH_CHANNEL "https://intent-lion-loudly.ngrok-free.app/api/canal/envio"
+#define CURRENT_DEVICE_IDENTIFIER "device/tracker-001"
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -50,6 +53,16 @@ Tracker::Tracker () {
     watchdog.start(TIMEOUT_WATCHDOG_TIMER_MS);
     char StringToSendUSB [50] = "Tracker initialization";
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+
+
+    this->urlPathChannel = new char [100]; 
+    strcpy (this->urlPathChannel, URL_PATH_CHANNEL);
+    this->deviceIdentifier = new char [100];
+    strcpy (this->deviceIdentifier, CURRENT_DEVICE_IDENTIFIER);
+    this->prevChainHash = new char [100];
+    strcpy (this->prevChainHash, "-");
+    this->currChainHash = new char [100];
+    strcpy (this->currChainHash, "-");
 
     this->currentOperationMode = NORMAL_OPERATION_MODE;
     //this->currentOperationMode = PERSUIT_OPERATION_MODE;
@@ -104,6 +117,15 @@ Tracker::Tracker () {
 }
 
 Tracker::~Tracker() {
+    delete [] this->urlPathChannel; 
+    this->urlPathChannel  = nullptr;
+    delete [] this->deviceIdentifier;
+    this->deviceIdentifier  = nullptr;
+    delete [] this->prevChainHash;
+    this->prevChainHash = nullptr;
+    delete []  this->currChainHash;
+    this->currChainHash = nullptr;
+
     delete this->imuData->timestamp;
     this->imuData->timestamp = nullptr;
     delete this->imuData;
@@ -156,8 +178,8 @@ Tracker::~Tracker() {
 }
 
 void Tracker::update () {
-    static char formattedMessage [2048];
-    static char receivedMessage [2048];
+    static char formattedMessage [2248];
+    static char receivedMessage [2248];
 
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singleton
@@ -466,6 +488,38 @@ bool Tracker::checkMessageIntegrity ( char *messageReceived) {
         return false;
     }
  }
+
+
+void Tracker::getUrlPathChannel ( char * urlPathChannel) {
+    strcpy (urlPathChannel, this->urlPathChannel);
+}
+
+ 
+void Tracker::getDeviceIdentifier ( char * deviceId) {
+    strcpy (deviceId, this->deviceIdentifier);
+}
+
+int Tracker::getSequenceNumber () {
+    return this->sequenceMessageNumber;
+}
+
+
+void Tracker::increaseSequenceNumber () {
+    this->sequenceMessageNumber ++;
+}
+
+void Tracker::progressOnHashChain () {
+    strcpy (this->prevChainHash, this->currChainHash);
+}
+
+void Tracker::setCurrentHashChain (char * hashChain) {
+    strcpy (this->currChainHash, hashChain );
+}
+
+
+void Tracker::getPrevHashChain (char * hashChain) {
+    strcpy (hashChain, this->prevChainHash);
+}
 
 
 

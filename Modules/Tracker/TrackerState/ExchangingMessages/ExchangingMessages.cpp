@@ -45,7 +45,6 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
-    static char payloadRetrived [500];
     char logMessage [100];
     
     // if conected to mobile network send the message throght LTE Modem
@@ -100,6 +99,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             snprintf(logMessage, sizeof(logMessage), "SUCCESS: %s\r\n", success);
             uartUSB.write(logMessage, strlen(logMessage));
 
+
             if (strcmp (success, "true") != 0 && strcmp (success, "TRUE") != 0) {
                 snprintf(logMessage, sizeof(logMessage), "Server returns error\r\n");
                 uartUSB.write(logMessage, strlen(logMessage));
@@ -119,6 +119,10 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
                 this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
                 return;
             }
+
+            
+            this->tracker->progressOnHashChain ();
+            this->tracker->increaseSequenceNumber ();
 
             if (extractField(receivedMessage, "\"LTCY\"", latency, sizeof(latency)) == false) {    
                 newDataAvailable = false;

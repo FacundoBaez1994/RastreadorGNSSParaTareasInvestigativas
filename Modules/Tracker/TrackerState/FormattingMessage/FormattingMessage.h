@@ -9,6 +9,11 @@
 #include "Tracker.h"
 #include "JWTManager.h"
 
+#include "mbedtls/sha256.h"
+#include "mbedtls/base64.h"
+#include <cstring>
+#include <cstdio>
+
 //=====[Declaration of public data types]======================================
 class Tracker; ///< Forward declaration to avoid circular dependency
 
@@ -60,6 +65,9 @@ public:
 
 private:
 //=====[Declaration of privates methods]=========================================
+
+    void addMetaData(char *messageToAddMetaData);
+
     /**
      * @brief Creates a JWT type message combining cellular info, GNSS data, inertial data,
      * battery status, in order to be send to a remote server through Mobile network

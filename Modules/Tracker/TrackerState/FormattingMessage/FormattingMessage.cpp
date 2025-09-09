@@ -19,6 +19,36 @@
 //=====[Declaration and initialization of private global variables]============
 
 //=====[Declarations (prototypes) of private functions]========================
+bool hash_and_base64(const char *input, char *output, size_t output_size) {
+    if (!input || !output) return false;
+
+    unsigned char hash[32]; // SHA-256 -> 32 bytes
+    size_t olen = 0;
+
+    // 1. Calcular SHA-256
+    mbedtls_sha256_context ctx;
+    mbedtls_sha256_init(&ctx);
+    mbedtls_sha256_starts_ret(&ctx, 0); // 0 = SHA-256, 1 = SHA-224
+    mbedtls_sha256_update_ret(&ctx, (const unsigned char*)input, strlen(input));
+    mbedtls_sha256_finish_ret(&ctx, hash);
+    mbedtls_sha256_free(&ctx);
+
+    // 2. Codificar en Base64
+    if (mbedtls_base64_encode((unsigned char*)output, output_size, &olen,
+                              hash, sizeof(hash)) != 0) {
+        return false;
+    }
+
+    // Asegurar terminación de string
+    if (olen < output_size) {
+        output[olen] = '\0';
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
 
 //=====[Implementations of private methods]===================================
 
@@ -201,6 +231,202 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
 
 
 //=====[Implementations of private methods]==================================
+void FormattingMessage::addMetaData(char *messageToAddMetaData) {
+    int sizeOfBuffer = 2048;
+    int sizeOfTimeStamp = 20;
+    int sizeOfHash = 100;
+    char * workBuffer;   // buffer auxiliar único y reutilizable
+    workBuffer = new char [sizeOfBuffer];
+    char * hashCanonicData;
+    hashCanonicData = new char [sizeOfHash];
+    char * hashCurrentJson;
+    hashCurrentJson = new char [sizeOfHash];
+    char * urlPathChannel;
+    urlPathChannel = new char [sizeOfHash];
+    char * deviceIdentifier;
+    deviceIdentifier = new char [sizeOfHash];
+    char * hashPrevJson;
+    hashPrevJson = new char [sizeOfHash];
+    char * timestampJson = new char [sizeOfTimeStamp];
+    char * timestampJsonExpiration = new char [sizeOfTimeStamp];
+
+
+
+    int currentSequenceNumber = this->tracker->getSequenceNumber();
+    this->tracker->getUrlPathChannel(urlPathChannel);
+    this->tracker->getDeviceIdentifier(deviceIdentifier);
+    this->tracker->getPrevHashChain(hashPrevJson);
+
+    // Calcular hash del payload base
+    hash_and_base64(messageToAddMetaData, hashCanonicData, sizeOfHash);
+
+    // Timestamp actual y de expiración
+    time_t seconds = time(NULL);
+
+    epochToTimestamp(seconds, timestampJson, sizeOfTimeStamp);
+
+    time_t secondsToExpire = seconds + 24 * 60 * 60; // +24h
+    epochToTimestamp(secondsToExpire, timestampJsonExpiration, sizeOfTimeStamp);
+
+    // Armar JSON intermedio en workBuffer
+    int written = snprintf(workBuffer, sizeOfBuffer,
+        "{\"iss\":\"%s\","
+        "\"aud\":\"%s\","
+        "\"ias\":\"%s\","
+        "\"exp\":\"%s\","
+        "\"d\":\"%s\","
+        "\"seq\":%d,"
+        "\"prev\":\"%s\","
+        "%s}",
+        deviceIdentifier,        // iss
+        urlPathChannel,          // aud
+        timestampJson,           // ias
+        timestampJsonExpiration, // exp
+        hashCanonicData,         // d
+        currentSequenceNumber,   // seq
+        hashPrevJson,            // prev
+        messageToAddMetaData                  // payload original
+    );
+
+    if (written < 0 || (size_t)written >= sizeOfBuffer) {
+        workBuffer[sizeOfBuffer - 1] = '\0'; // protección
+    }
+
+    // Calcular hash del JSON completo
+    hash_and_base64(workBuffer, hashCurrentJson, sizeOfHash);
+
+    // Quitar llaves externas { }
+    size_t len = strlen(workBuffer);
+    if (len > 2 && workBuffer[0] == '{' && workBuffer[len - 1] == '}') {
+        workBuffer[len - 1] = '\0';                 // saco '}'
+        memmove(workBuffer, workBuffer + 1, len-1); // corro eliminando '{'
+    }
+
+    // JSON final se escribe directo en message
+    written = snprintf(messageToAddMetaData, 2048,
+        "{\"curr\":\"%s\",%s}",
+        hashCurrentJson,
+        workBuffer
+    );
+
+    if (written < 0 || (size_t)written >= 2048) {
+        messageToAddMetaData[2048 - 1] = '\0'; // protección
+    }
+
+    //this->tracker->setCurrentHashChain(hashCurrentJson);
+    delete [] workBuffer;
+    workBuffer = nullptr;
+
+    delete [] hashCanonicData;
+    hashCanonicData = nullptr;
+
+    delete [] urlPathChannel;
+    urlPathChannel = nullptr;
+
+    delete [] hashCurrentJson;
+    hashCurrentJson = nullptr;
+
+    delete [] deviceIdentifier;
+    deviceIdentifier = nullptr;
+
+    delete [] hashPrevJson;
+    hashPrevJson = nullptr;
+    
+    delete [] timestampJson;
+    timestampJson = nullptr;
+
+    delete [] timestampJsonExpiration;
+    timestampJsonExpiration = nullptr;
+}
+/*
+void FormattingMessage::addMetaData(char *messageToAddMetaData) {
+    int sizeOfBuffer = 2048;
+    int sizeOfTimeStamp = 20;
+    int sizeOfHash = 100;
+    char * workBuffer;   // buffer auxiliar único y reutilizable
+    workBuffer = new char [sizeOfBuffer];
+    char * hashCanonicData;
+    hashCanonicData = new char [sizeOfHash];
+    char * hashCurrentJson;
+    hashCurrentJson = new char [sizeOfHash];
+    char * urlPathChannel;
+    urlPathChannel = new char [sizeOfHash];
+    char * deviceIdentifier;
+    deviceIdentifier = new char [sizeOfHash];
+    char * hashPrevJson;
+    hashPrevJson = new char [sizeOfHash];
+        char timestampJson[20];
+
+
+
+    int currentSequenceNumber = this->tracker->getSequenceNumber();
+    this->tracker->getUrlPathChannel(urlPathChannel);
+    this->tracker->getDeviceIdentifier(deviceIdentifier);
+    this->tracker->getPrevHashChain(hashPrevJson);
+
+    // Calcular hash del payload base
+    hash_and_base64(messageToAddMetaData, hashCanonicData, sizeof(hashCanonicData));
+
+    // Timestamp actual y de expiración
+    time_t seconds = time(NULL);
+
+    epochToTimestamp(seconds, timestampJson, sizeof(timestampJson));
+
+    char timestampJsonExpiration[20];
+    time_t secondsToExpire = seconds + 24 * 60 * 60; // +24h
+    epochToTimestamp(secondsToExpire, timestampJsonExpiration, sizeof(timestampJsonExpiration));
+
+    // Armar JSON intermedio en workBuffer
+    int written = snprintf(workBuffer, sizeOfBuffer,
+        "{\"iss\":\"%s\","
+        "\"aud\":\"%s\","
+        "\"ias\":\"%s\","
+        "\"exp\":\"%s\","
+        "\"d\":\"%s\","
+        "\"seq\":%d,"
+        "\"prev\":\"%s\","
+        "%s}",
+        deviceIdentifier,        // iss
+        urlPathChannel,          // aud
+        timestampJson,           // ias
+        timestampJsonExpiration, // exp
+        hashCanonicData,         // d
+        currentSequenceNumber,   // seq
+        hashPrevJson,            // prev
+        messageToAddMetaData                  // payload original
+    );
+
+    if (written < 0 || (size_t)written >= sizeOfBuffer) {
+        workBuffer[sizeOfBuffer - 1] = '\0'; // protección
+    }
+
+    // Calcular hash del JSON completo
+    hash_and_base64(workBuffer, hashCurrentJson, sizeof(hashCurrentJson));
+
+    // Quitar llaves externas { }
+    size_t len = strlen(workBuffer);
+    if (len > 2 && workBuffer[0] == '{' && workBuffer[len - 1] == '}') {
+        workBuffer[len - 1] = '\0';                 // saco '}'
+        memmove(workBuffer, workBuffer + 1, len-1); // corro eliminando '{'
+    }
+
+    // JSON final se escribe directo en message
+    written = snprintf(messageToAddMetaData, 2048,
+        "{\"curr\":\"%s\",%s}",
+        hashCurrentJson,
+        workBuffer
+    );
+
+    if (written < 0 || (size_t)written >= 2048) {
+        messageToAddMetaData[sizeof (messageToAddMetaData) - 1] = '\0'; // protección
+    }
+
+    //this->tracker->setCurrentHashChain(hashCurrentJson);
+    delete [] workBuffer;
+    workBuffer = nullptr;
+}
+*/
+
 //////////////////////// MN messages /// 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
@@ -211,7 +437,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     size_t currentLen = 0;
 
     currentLen = snprintf(message, sizeof(message),
-        "{\"Type\":\"MNMN\","
+        "\"Type\":\"MNMN\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","
         "\"MCC\":%d,"
@@ -286,6 +512,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
 
     message[sizeof(message) - 1] = '\0';
 
+    this->addMetaData(message);
+
     this->jwt->encodeJWT (message, formattedMessage);
 
      strcat(formattedMessage, "\n");
@@ -298,8 +526,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     static char message[2048];
     size_t currentLen = 0;
 
-    currentLen = snprintf(message, sizeof(message),
-        "{" 
+    currentLen = snprintf(message, sizeof(message), 
         "\"Type\":\"MNGNSS\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","
@@ -327,8 +554,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         "\"AZ\":%.2f,"
         "\"YAW\":%.2f,"
         "\"ROLL\":%.2f,"
-        "\"PTCH\":%.2f"
-        "}",
+        "\"PTCH\":%.2f",
         aCellInfo->IMEI,               // 1
         trackerEvent,                  // 2
         GNSSInfo->latitude,            // 3
@@ -359,6 +585,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     );
     message[sizeof(message) - 1] = '\0';
 
+    this->addMetaData(message);
     //strcpy(formattedMessage, message);
     this->jwt->encodeJWT (message, formattedMessage);
 
@@ -377,7 +604,6 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     size_t currentLen = 0;
 
     currentLen = snprintf(message, sizeof(message),
-        "{" 
         "\"Type\":\"GNSS\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","
@@ -396,8 +622,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         "\"AZ\":%.2f,"
         "\"YAW\":%.2f,"
         "\"ROLL\":%.2f,"
-        "\"PTCH\":%.2f"
-        "}",
+        "\"PTCH\":%.2f",
         IMEI,                // 0
         GNSSInfo->latitude,            // 1
         GNSSInfo->longitude,           // 2
@@ -419,6 +644,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     message[sizeof(message) - 1] = '\0';
 
     //strcpy(formattedMessage, message);
+    this->addMetaData(message);
+
     this->jwt->encodeJWT (message, formattedMessage);
 
     strcat(formattedMessage, "\n");
@@ -436,7 +663,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     size_t currentLen = 0;
 
     currentLen = snprintf(message, sizeof(message),
-        "{\"Type\":\"IMU\","
+        "\"Type\":\"IMU\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","        
         "\"TIME\":\"%s\","
@@ -490,14 +717,14 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         strncat(message, "]", sizeof(message) - strlen(message) - 1);
     }
 
-    strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
+   // strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
 
     message[sizeof(message) - 1] = '\0';
 
+    this->addMetaData(message);
     //strcpy(formattedMessage, message);
     this->jwt->encodeJWT (message, formattedMessage);
 
-    strcat(formattedMessage, "\n");
 
     strcat(formattedMessage, "\n");
 }

@@ -38,7 +38,7 @@ LoadingMessage::~LoadingMessage  () {
 void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples,  BatteryData  * batteryStatus) {
-    static char  poppedString [2048] = {0};
+    static char  poppedString [2248] = {0};
     char  log [50];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;

@@ -64,7 +64,7 @@ ExchangingLoRaMessages::~ExchangingLoRaMessages() {
 
 void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage ) {
     //char buffer [1024] = "helloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwF-16";
-    char buffer [2048];
+    char buffer [2248];
     static bool firstChunkSent = false;
     //static bool firstDelayPassed = false;
     static size_t stringIndex = 0;
@@ -72,8 +72,8 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
     char logMessage [100];
 
 
-    static char receptionBuffer[2048] = {0};
-    static char processedMessageReceived  [2048];
+    static char receptionBuffer[2248] = {0};
+    static char processedMessageReceived  [2248];
     static bool messageReceived = false; 
     static std::vector<char> accumulatedBuffer; // Acumulador de fragmentos
     static std::string fullMessage;

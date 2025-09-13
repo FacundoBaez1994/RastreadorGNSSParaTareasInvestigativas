@@ -57,12 +57,18 @@ FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t tracker
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
     this->jwt = new JWTManager ();
+    this->sizeOfMessageBuffer = 2248;
+    this->messageBuffer = new char [this->sizeOfMessageBuffer];
 }
 
 FormattingMessage::~FormattingMessage () {
     this->tracker = nullptr;
     delete this->jwt;
     this->jwt = nullptr;
+
+    delete [] this->messageBuffer;
+    this->messageBuffer = nullptr;
+
 }
 
 void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
@@ -232,7 +238,7 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
 
 //=====[Implementations of private methods]==================================
 void FormattingMessage::addMetaData(char *messageToAddMetaData) {
-    int sizeOfBuffer = 2048;
+    int sizeOfBuffer = this->sizeOfMessageBuffer;
     int sizeOfTimeStamp = 20;
     int sizeOfHash = 100;
     char * workBuffer;   // buffer auxiliar único y reutilizable
@@ -303,17 +309,18 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     }
 
     // JSON final se escribe directo en message
-    written = snprintf(messageToAddMetaData, 2048,
+    written = snprintf(messageToAddMetaData, sizeOfBuffer,
         "{\"curr\":\"%s\",%s}",
         hashCurrentJson,
         workBuffer
     );
 
-    if (written < 0 || (size_t)written >= 2048) {
-        messageToAddMetaData[2048 - 1] = '\0'; // protección
+    if (written < 0 || (size_t)written >= sizeOfBuffer) {
+        messageToAddMetaData[sizeOfBuffer - 1] = '\0'; // protección
     }
 
-    //this->tracker->setCurrentHashChain(hashCurrentJson);
+    this->tracker->setCurrentHashChain(hashCurrentJson);
+    
     delete [] workBuffer;
     workBuffer = nullptr;
 
@@ -338,105 +345,16 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     delete [] timestampJsonExpiration;
     timestampJsonExpiration = nullptr;
 }
-/*
-void FormattingMessage::addMetaData(char *messageToAddMetaData) {
-    int sizeOfBuffer = 2048;
-    int sizeOfTimeStamp = 20;
-    int sizeOfHash = 100;
-    char * workBuffer;   // buffer auxiliar único y reutilizable
-    workBuffer = new char [sizeOfBuffer];
-    char * hashCanonicData;
-    hashCanonicData = new char [sizeOfHash];
-    char * hashCurrentJson;
-    hashCurrentJson = new char [sizeOfHash];
-    char * urlPathChannel;
-    urlPathChannel = new char [sizeOfHash];
-    char * deviceIdentifier;
-    deviceIdentifier = new char [sizeOfHash];
-    char * hashPrevJson;
-    hashPrevJson = new char [sizeOfHash];
-        char timestampJson[20];
-
-
-
-    int currentSequenceNumber = this->tracker->getSequenceNumber();
-    this->tracker->getUrlPathChannel(urlPathChannel);
-    this->tracker->getDeviceIdentifier(deviceIdentifier);
-    this->tracker->getPrevHashChain(hashPrevJson);
-
-    // Calcular hash del payload base
-    hash_and_base64(messageToAddMetaData, hashCanonicData, sizeof(hashCanonicData));
-
-    // Timestamp actual y de expiración
-    time_t seconds = time(NULL);
-
-    epochToTimestamp(seconds, timestampJson, sizeof(timestampJson));
-
-    char timestampJsonExpiration[20];
-    time_t secondsToExpire = seconds + 24 * 60 * 60; // +24h
-    epochToTimestamp(secondsToExpire, timestampJsonExpiration, sizeof(timestampJsonExpiration));
-
-    // Armar JSON intermedio en workBuffer
-    int written = snprintf(workBuffer, sizeOfBuffer,
-        "{\"iss\":\"%s\","
-        "\"aud\":\"%s\","
-        "\"ias\":\"%s\","
-        "\"exp\":\"%s\","
-        "\"d\":\"%s\","
-        "\"seq\":%d,"
-        "\"prev\":\"%s\","
-        "%s}",
-        deviceIdentifier,        // iss
-        urlPathChannel,          // aud
-        timestampJson,           // ias
-        timestampJsonExpiration, // exp
-        hashCanonicData,         // d
-        currentSequenceNumber,   // seq
-        hashPrevJson,            // prev
-        messageToAddMetaData                  // payload original
-    );
-
-    if (written < 0 || (size_t)written >= sizeOfBuffer) {
-        workBuffer[sizeOfBuffer - 1] = '\0'; // protección
-    }
-
-    // Calcular hash del JSON completo
-    hash_and_base64(workBuffer, hashCurrentJson, sizeof(hashCurrentJson));
-
-    // Quitar llaves externas { }
-    size_t len = strlen(workBuffer);
-    if (len > 2 && workBuffer[0] == '{' && workBuffer[len - 1] == '}') {
-        workBuffer[len - 1] = '\0';                 // saco '}'
-        memmove(workBuffer, workBuffer + 1, len-1); // corro eliminando '{'
-    }
-
-    // JSON final se escribe directo en message
-    written = snprintf(messageToAddMetaData, 2048,
-        "{\"curr\":\"%s\",%s}",
-        hashCurrentJson,
-        workBuffer
-    );
-
-    if (written < 0 || (size_t)written >= 2048) {
-        messageToAddMetaData[sizeof (messageToAddMetaData) - 1] = '\0'; // protección
-    }
-
-    //this->tracker->setCurrentHashChain(hashCurrentJson);
-    delete [] workBuffer;
-    workBuffer = nullptr;
-}
-*/
 
 //////////////////////// MN messages /// 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
      const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char message[2048];
     static char tempBuffer[250]; 
     size_t currentLen = 0;
 
-    currentLen = snprintf(message, sizeof(message),
+    currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
         "\"Type\":\"MNMN\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","
@@ -483,7 +401,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     );
 
     if (!neighborsCellInformation.empty()) {
-        currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Neighbors\":[");
+        currentLen += snprintf(this->messageBuffer + currentLen, this->sizeOfMessageBuffer - currentLen, ",\"Neighbors\":[");
         
         for (size_t i = 0; i < neighborsCellInformation.size(); ++i) {
             CellInformation* neighbor = neighborsCellInformation[i];
@@ -496,25 +414,25 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
                 neighbor->cellId,
                 neighbor->signalLevel
             );
-            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+            strncat(this->messageBuffer, tempBuffer, this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
 
             // Si no es el último, agregamos coma
             if (i < neighborsCellInformation.size() - 1) {
-                strncat(message, ",", sizeof(message) - strlen(message) - 1);
+                strncat(this->messageBuffer, ",", this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
             }
 
             //delete neighborsCellInformation[i];
             //neighborsCellInformation[i] = nullptr;
         }
         //neighborsCellInformation.clear();
-        strncat(message, "]", sizeof(message) - strlen(message) - 1);
+        strncat(this->messageBuffer, "]", this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
     }
 
-    message[sizeof(message) - 1] = '\0';
+   this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-    this->addMetaData(message);
+    this->addMetaData(this->messageBuffer);
 
-    this->jwt->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
 
      strcat(formattedMessage, "\n");
 }
@@ -523,10 +441,9 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
  const GNSSData* GNSSInfo,  const IMUData_t * imuData,
   const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char message[2048];
     size_t currentLen = 0;
 
-    currentLen = snprintf(message, sizeof(message), 
+    currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
         "\"Type\":\"MNGNSS\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","
@@ -583,11 +500,11 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         imuData->angles.roll,        // 27
         imuData->angles.pitch        // 28
     );
-    message[sizeof(message) - 1] = '\0';
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-    this->addMetaData(message);
+    this->addMetaData(this->messageBuffer);
     //strcpy(formattedMessage, message);
-    this->jwt->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
 
@@ -600,10 +517,9 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
  const GNSSData* GNSSInfo,  const IMUData_t * imuData, 
  const BatteryData  * batteryStatus , char * trackerEvent) {
 
-    static char message[2048];
     size_t currentLen = 0;
 
-    currentLen = snprintf(message, sizeof(message),
+    currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
         "\"Type\":\"GNSS\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","
@@ -641,12 +557,12 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         imuData->angles.roll,                // 15
         imuData->angles.pitch                // 16
     );
-    message[sizeof(message) - 1] = '\0';
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
     //strcpy(formattedMessage, message);
-    this->addMetaData(message);
+    this->addMetaData(this->messageBuffer);
 
-    this->jwt->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
 
@@ -658,11 +574,10 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     const IMUData_t * inertialData,  const std::vector<IMUData_t*> &IMUDataSamples, 
     const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char message[2048];
     static char tempBuffer[250];
     size_t currentLen = 0;
 
-    currentLen = snprintf(message, sizeof(message),
+    currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
         "\"Type\":\"IMU\","
         "\"IMEI\":%lld,"
         "\"EVNT\":\"%s\","        
@@ -693,7 +608,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     );
 
     if (!IMUDataSamples.empty()) {
-        currentLen += snprintf(message + currentLen, sizeof(message) - currentLen, ",\"Samples\":[");
+        currentLen += snprintf(this->messageBuffer + currentLen, this->sizeOfMessageBuffer - currentLen, ",\"Samples\":[");
         
         for (size_t i = 0; i < IMUDataSamples.size(); ++i) {
             IMUData_t* sample = IMUDataSamples[i];
@@ -706,24 +621,24 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
                 sample->angles.roll,           // 10 %.2f
                 sample->angles.pitch           // 11 %.2f
             );
-            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+            strncat(this->messageBuffer, tempBuffer, this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
 
             if (i < IMUDataSamples.size() - 1) {
-                strncat(message, ",", sizeof(message) - strlen(message) - 1);
+                strncat(this->messageBuffer, ",", this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
             }
 
 
         }
-        strncat(message, "]", sizeof(message) - strlen(message) - 1);
+        strncat(this->messageBuffer, "]", this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
     }
 
    // strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
 
-    message[sizeof(message) - 1] = '\0';
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-    this->addMetaData(message);
+    this->addMetaData(this->messageBuffer);
     //strcpy(formattedMessage, message);
-    this->jwt->encodeJWT (message, formattedMessage);
+    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
 
 
     strcat(formattedMessage, "\n");
@@ -733,9 +648,9 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
 void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const GNSSData* GNSSInfo, const IMUData_t * imuData,
     const BatteryData  * batteryStatus, char * trackerEvent) {
-  static char message[2048];
+
   int messageNumber = this->tracker->getLoraMessageNumber ();
-    snprintf(message, sizeof(message), 
+    snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
     "LORAGNSS,%lld,%d,%s,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         aCellInfo->IMEI,                    // 1 %lld 
         messageNumber,                      // 2 %d  
@@ -757,30 +672,30 @@ void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInf
         imuData->angles.roll,               // 17 %.2f
         imuData->angles.pitch               // 18 %.2f
             );
-    message[sizeof(message) - 1] = '\0';       
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';       
 
     uartUSB.write ("plaintext message:\r\n", strlen ("plaintext message:\r\n"));  // debug only
-    uartUSB.write ( message, strlen ( message));  // debug only
+    uartUSB.write ( this->messageBuffer, strlen ( this->messageBuffer));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only
 
-    if (this->tracker->prepareLoRaMessage ( message, strlen (message)) == false) {
+    if (this->tracker->prepareLoRaMessage ( this->messageBuffer, strlen (this->messageBuffer)) == false) {
         return;
     }
 
-    size_t originalLength = strlen(message);
-    message[originalLength ] = '|';  // add '||' to indicate the end of the full message 
-    message[originalLength + 1] = '|';     
-    message[originalLength + 2] = '\0';      // Asegurar terminación nula
+    size_t originalLength = strlen(this->messageBuffer);
+    this->messageBuffer[originalLength ] = '|';  // add '||' to indicate the end of the full message 
+    this->messageBuffer[originalLength + 1] = '|';     
+    this->messageBuffer[originalLength + 2] = '\0';      // Asegurar terminación nula
 
-    strcpy (formattedMessage, message);
+    strcpy (formattedMessage, this->messageBuffer);
 }
 
 
 void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellInformation* aCellInfo, 
  const IMUData_t * imuData, const BatteryData  * batteryStatus, char * trackerEvent) {
-    static char message[2048];
+
     int messageNumber = this->tracker->getLoraMessageNumber (); 
-    snprintf(message, sizeof(message), 
+    snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
     "LORALORA,%lld,%d,%s,%lld,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         aCellInfo->IMEI,                     // 1 %lld
         messageNumber,                      // 2 %d  
@@ -795,22 +710,22 @@ void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellIn
         imuData->angles.roll,               // 10 %.2f
         imuData->angles.pitch               // 11 %.2f
             );
-    message[sizeof(message) - 1] = '\0';       
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';       
 
     uartUSB.write ("plaintext message:\r\n", strlen ("plaintext message:\r\n"));  // debug only
-    uartUSB.write ( message, strlen ( message));  // debug only
+    uartUSB.write ( this->messageBuffer, strlen ( this->messageBuffer));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only
 
-    if (this->tracker->prepareLoRaMessage ( message, strlen (message)) == false) {
+    if (this->tracker->prepareLoRaMessage ( this->messageBuffer, strlen (this->messageBuffer)) == false) {
         return;
     }
 
-    size_t originalLength = strlen(message);
-    message[originalLength ] = '|';  // add '||' to indicate the end of the full message 
-    message[originalLength + 1] = '|';     
-    message[originalLength + 2] = '\0';      // Asegurar terminación nula
+    size_t originalLength = strlen(this->messageBuffer);
+    this->messageBuffer[originalLength ] = '|';  // add '||' to indicate the end of the full message 
+    this->messageBuffer[originalLength + 1] = '|';     
+    this->messageBuffer[originalLength + 2] = '\0';      // Asegurar terminación nula
 
-    strcpy (formattedMessage, message);
+    strcpy (formattedMessage, this->messageBuffer);
 }
 
 
@@ -824,7 +739,6 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
      const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char message[2048];
     static char tempBuffer[250];
     size_t currentLen = 0;
 
@@ -835,7 +749,7 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only}
 
-    currentLen = snprintf(message, sizeof(message),
+    currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
         "MNMN,%s,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
         trackerEvent,                   // 1 %s
         aCellInfo->mcc,               // 2 %d
@@ -872,21 +786,21 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
                 neighbor->cellId,
                 neighbor->signalLevel
             );
-            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+            strncat(this->messageBuffer, tempBuffer, this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
 
             uartUSB.write ( tempBuffer,  strlen (tempBuffer) );  // debug only}
         }
     }
-    message[sizeof(message) - 1] = '\0';
-    strcpy(formattedMessage, message);
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+    strcpy(formattedMessage, this->messageBuffer);
     //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
 }
 
 //// MNGNSS for save on memory
 void FormattingMessage::formatMemoryMessage(char * formattedMessage, const CellInformation* aCellInfo,
  const GNSSData* GNSSInfo,  const IMUData_t * imuData, const BatteryData  * batteryStatus, char * trackerEvent) {
-    static char message[2048]; 
-    snprintf(message, sizeof(message), 
+
+    snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
     "MNGNSS,%s,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%X,%X,%.2f,%d,%d,%d,%s,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
         trackerEvent,                       // 1 %s
         GNSSInfo->latitude,                 // 2 %.6f
@@ -915,16 +829,16 @@ void FormattingMessage::formatMemoryMessage(char * formattedMessage, const CellI
         imuData->angles.roll,               // 25 %.2f
         imuData->angles.pitch               // 26 %.2f
             );
-    message[sizeof(message) - 1] = '\0';       
-    strcpy(formattedMessage, message);
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';       
+    strcpy(formattedMessage, this->messageBuffer);
     //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
 }
 
 //// GNSS for save on memory
 void FormattingMessage::formatGNSSMemoryMessage(char * formattedMessage, const GNSSData* GNSSInfo, 
  const IMUData_t * imuData, const BatteryData  * batteryStatus, char * trackerEvent) {
-    static char message[2048]; 
-    snprintf(message, sizeof(message), 
+
+    snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
     "GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         trackerEvent,                       // 1 %s
         GNSSInfo->latitude,                 // 2 %.6f
@@ -944,8 +858,8 @@ void FormattingMessage::formatGNSSMemoryMessage(char * formattedMessage, const G
         imuData->angles.roll,               // 16 %.2f
         imuData->angles.pitch               // 17 %.2f
             );
-    message[sizeof(message) - 1] = '\0';       
-    strcpy(formattedMessage, message);
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';       
+    strcpy(formattedMessage, this->messageBuffer);
     //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
 }
 
@@ -953,7 +867,6 @@ void FormattingMessage::formatGNSSMemoryMessage(char * formattedMessage, const G
 void FormattingMessage::formatMemoryMessage(char * formattedMessage, const IMUData_t * imuData,
 const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char message[2048];
     static char tempBuffer[250]; 
     size_t currentLen = 0;
 
@@ -964,7 +877,7 @@ const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatu
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only}
 
-    currentLen = snprintf(message, sizeof(message),
+    currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
         "IMU,%s,%s,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
         trackerEvent,       // 1 %s
         imuData->timestamp, // 2 %s
@@ -992,11 +905,11 @@ const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatu
                 sample->angles.roll,
                 sample->angles.pitch
             );
-            strncat(message, tempBuffer, sizeof(message) - strlen(message) - 1);
+            strncat(this->messageBuffer, tempBuffer, this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
 
             uartUSB.write ( tempBuffer,  strlen (tempBuffer) );  // debug only}
         }
     }
-    message[sizeof(message) - 1] = '\0';
-    strcpy(formattedMessage, message);
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+    strcpy(formattedMessage, this->messageBuffer);
 }

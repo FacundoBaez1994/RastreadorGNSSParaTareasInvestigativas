@@ -209,6 +209,9 @@ private:
     Tracker* tracker; ///< Pointer to tracker instance for state transitions and data access
     trackerStatus_t currentStatus; ///< Current tracker status
     JWTManager* jwt; ///< Pointer to JWT manager for token/signature management
+    
+    char* messageBuffer; ///<
+    int sizeOfMessageBuffer; ///< 
 };
 
 

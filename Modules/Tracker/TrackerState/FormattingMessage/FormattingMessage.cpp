@@ -539,7 +539,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         "\"YAW\":%.2f,"
         "\"ROLL\":%.2f,"
         "\"PTCH\":%.2f",
-        IMEI,                // 0
+        IMEI,                // -1
+        trackerEvent,                // 0
         GNSSInfo->latitude,            // 1
         GNSSInfo->longitude,           // 2
         GNSSInfo->hdop,                // 3
@@ -696,7 +697,7 @@ void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellIn
 
     int messageNumber = this->tracker->getLoraMessageNumber (); 
     snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
-    "LORALORA,%lld,%d,%s,%lld,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+    "LORALORA,%lld,%d,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         aCellInfo->IMEI,                     // 1 %lld
         messageNumber,                      // 2 %d  
         trackerEvent,                       // 2 %s

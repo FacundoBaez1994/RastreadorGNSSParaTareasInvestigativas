@@ -80,11 +80,12 @@ void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
 void FormattingMessage::formatMessage (char * formattedMessage, const CellInformation* aCellInfo,
     const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
     const IMUData_t * imuData, const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus) {
+    Watchdog &watchdog = Watchdog::get_instance(); // singletom
     char StringToSendUSB [50];
     char trackerEvent [20];
 
     this->tracker->getMovementEvent(trackerEvent);
-
+    watchdog.kick();
     switch (this->currentStatus ) {
         ///////////// MN Modem Messages //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK:
@@ -652,7 +653,7 @@ void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInf
 
   int messageNumber = this->tracker->getLoraMessageNumber ();
     snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
-    "LORAGNSS,%lld,%d,%s,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+    "LORAGNSS,%lld,%d,%s,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         aCellInfo->IMEI,                    // 1 %lld 
         messageNumber,                      // 2 %d  
         trackerEvent,                        // 2 %s  
@@ -697,19 +698,20 @@ void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellIn
 
     int messageNumber = this->tracker->getLoraMessageNumber (); 
     snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
-    "LORALORA,%lld,%d,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+    "LORALORA,%lld,%d,%s,%d,%d,%s,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         aCellInfo->IMEI,                     // 1 %lld
         messageNumber,                      // 2 %d  
-        trackerEvent,                       // 2 %s
-        batteryStatus->batteryChargeStatus, // 3 %d
-        batteryStatus->chargeLevel,         // 4 %d
-        imuData->status,                    // 5 %d
-        imuData->acceleration.ax,           // 6 %.2f
-        imuData->acceleration.ay,           // 7 %.2f
-        imuData->acceleration.az,           // 8 %.2f
-        imuData->angles.yaw,                // 9 %.2f
-        imuData->angles.roll,               // 10 %.2f
-        imuData->angles.pitch               // 11 %.2f
+        trackerEvent,                       // 3 %s
+        batteryStatus->batteryChargeStatus, // 4 %d
+        batteryStatus->chargeLevel,         // 5 %d
+        imuData->timestamp,                    // 6 %s
+        imuData->status,                    // 7 %d
+        imuData->acceleration.ax,           // 8 %.2f
+        imuData->acceleration.ay,           // 9 %.2f
+        imuData->acceleration.az,           // 10 %.2f
+        imuData->angles.yaw,                // 11 %.2f
+        imuData->angles.roll,               // 12 %.2f
+        imuData->angles.pitch               // 13 %.2f
             );
     this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';       
 

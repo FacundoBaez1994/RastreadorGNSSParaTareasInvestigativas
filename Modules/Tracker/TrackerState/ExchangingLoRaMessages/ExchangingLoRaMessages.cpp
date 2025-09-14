@@ -64,6 +64,7 @@ ExchangingLoRaMessages::~ExchangingLoRaMessages() {
 
 void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage ) {
     //char buffer [1024] = "helloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwF-16";
+    Watchdog &watchdog = Watchdog::get_instance(); // singletom
     char buffer [2248];
     static bool firstChunkSent = false;
     //static bool firstDelayPassed = false;
@@ -94,10 +95,12 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
 
     switch ( this->currentExchangingLoRaMessagesStatus) {
     case  INITIALIZE_TRANSCIEVER:
+        watchdog.kick();
         if (!LoRaModule->begin (915E6)) {
             uartUSB.write ("LoRa Module Failed to Start!", strlen ("LoRa Module Failed to Start"));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             // AGREGAR contandor si supera limite mandarlo a guardar el mensaje en la EEPROM
+            
             return;
         }
         strcpy(buffer, message);
@@ -107,6 +110,8 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
         break;   
 
     case  SENDING_MESSAGE:
+
+        watchdog.kick();
         if (this->backoffTime->read() || firstChunkSent == false) {
             firstChunkSent = true;
             this->backoffTime->write(FLY_TIME);
@@ -126,6 +131,7 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
 
             //LoRaModule->write((uint8_t*)(buffer), strlen (buffer));
             LoRaModule->endPacket();
+            watchdog.kick();
             stringIndex += chunkSize;
             if (stringIndex  > totalLength) {
                 uartUSB.write("\r\n", strlen("\r\n"));
@@ -147,6 +153,7 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
         break;
 
     case WAITING_FOR_ACK:
+    watchdog.kick();
     if (messageReceived  == false) {
         LoRaModule->enableInvertIQ();    
         int packetSize = LoRaModule->parsePacket();

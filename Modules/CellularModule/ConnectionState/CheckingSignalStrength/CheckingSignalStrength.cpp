@@ -53,6 +53,7 @@ CheckingSignalStrength::CheckingSignalStrength (CellularModule * mobileModule) {
 }
 
 CheckingSignalStrength::~CheckingSignalStrength () {
+    this->connectionAttemptsATResponse = 0; 
     this->mobileNetworkModule = nullptr;
 }
 
@@ -73,22 +74,17 @@ CellInformation * currentCellInformation) {
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
         this->readyToSend = false;
-        ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         refreshTime->restart();
-        ////   ////   ////   ////   ////   ////   
     }
 
     if ( this->signalLevelRetrived == false) {
         if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
-        
-            ////   ////   ////   ////   ////   ////
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////
             this->ATFirstResponseRead = true;
              refreshTime->restart();
             if (this->checkExpectedResponse (StringToBeRead)) {
@@ -100,12 +96,11 @@ CellInformation * currentCellInformation) {
     if (this->signalLevelRetrived == true) {
         if  (ATHandler->readATResponse ( StringToBeRead) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-                ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////        
+                uartUSB.write ( "\r\n",  3 );  // debug only     
                 if (this->signalLevel > LOWER_LIMIT_SIGNAL_LEVEL) {
                     currentCellInformation->signalLevel = this->signalLevel;
+                    this->connectionAttemptsATResponse = 0; 
                     this->mobileNetworkModule->changeConnectionState(new ConsultingIMEI(this->mobileNetworkModule));
                     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
                 } else {
@@ -113,6 +108,7 @@ CellInformation * currentCellInformation) {
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     connectionAttemptsSignal++;
                     if (this->connectionAttemptsSignal >= this->maxConnectionAttemptsSignal) {
+                        this->connectionAttemptsATResponse = 0; 
                         return CELLULAR_CONNECTION_STATUS_MODULE_DISCONNECTED;
                     }
                 }
@@ -125,6 +121,7 @@ CellInformation * currentCellInformation) {
         this->signalLevelRetrived = false;
         this->connectionAttemptsATResponse++;
         if (this->connectionAttemptsATResponse >= this->maxConnectionAttemptsATResponse) {
+            this->connectionAttemptsATResponse = 0; 
             return CELLULAR_CONNECTION_STATUS_MODULE_DISCONNECTED;
         }
     }

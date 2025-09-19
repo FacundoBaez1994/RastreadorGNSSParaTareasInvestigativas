@@ -49,7 +49,7 @@ void CloseSocket::enableTransceiver () {
 }
 
  CellularTransceiverStatus_t CloseSocket::exchangeMessages (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+    NonBlockingDelay * refreshTime, char * message, RemoteServerInformation* serverTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     char StringToBeSend [AT_CMD_CLOSE_SOCKET_LEN + 3];
     char StringToBeRead [BUFFER_LEN];

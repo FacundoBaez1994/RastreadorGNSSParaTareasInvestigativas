@@ -49,9 +49,9 @@ void TrackerBaseState::formatMessage (char * formattedMessage, const CellInforma
     return;
 }
 
-void TrackerBaseState::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
 
+void TrackerBaseState::exchangeMessages (CellularModule* cellularTransceiver,
+    char* message,  RemoteServerInformation* serverTargetted, char* receivedMessage ) {
     return;
 }
 

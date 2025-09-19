@@ -27,17 +27,11 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
-
 
 //=====[Implementations of private methods]===================================
 
-
 //=====[Implementations of public methods]===================================
-
 ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mobileModule) {
     this->mobileNetworkModule = mobileModule;
     this->operatorsInformationRetrived = false;
@@ -49,6 +43,7 @@ ConsultingAvailableOperators::ConsultingAvailableOperators (CellularModule * mob
 ConsultingAvailableOperators::~ConsultingAvailableOperators () {
     this->mobileNetworkModule = nullptr;
     this->currentOperator = nullptr;
+    this->connectionAttempts = 0; 
 }
 
 
@@ -99,7 +94,8 @@ CellInformation * currentCellInformation) {
                 currentCellInformation->mcc = this->mcc;
                 currentCellInformation->mnc = this->mnc;
                 currentCellInformation->channel = this->channel;
-                strcpy (currentCellInformation->band, this->band);             
+                strcpy (currentCellInformation->band, this->band);
+                this->connectionAttempts = 0;              
                 this->mobileNetworkModule->changeConnectionState (new RetrievingTimeAndDate (this->mobileNetworkModule));
                 return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
             }
@@ -110,6 +106,7 @@ CellInformation * currentCellInformation) {
         this->readyToSend = true;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            this->connectionAttempts = 0; 
             return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_RETRIV_OPERATORS_INFO;
         }
     }

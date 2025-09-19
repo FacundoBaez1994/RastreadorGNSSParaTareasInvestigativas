@@ -17,31 +17,17 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
-/** 
-* @brief
-* 
-* @param 
-*/
 ExchangingLoRaMessages::ExchangingLoRaMessages (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
@@ -49,18 +35,11 @@ ExchangingLoRaMessages::ExchangingLoRaMessages (Tracker * tracker, trackerStatus
     this->currentExchangingLoRaMessagesStatus = INITIALIZE_TRANSCIEVER;
 }
 
-
-/** 
-* @brief
-* 
-* @param 
-*/
 ExchangingLoRaMessages::~ExchangingLoRaMessages() {
      this->tracker = nullptr;
      delete this->backoffTime;
      this->backoffTime = nullptr;
 }
-
 
 void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage ) {
     //char buffer [1024] = "helloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwF-16";
@@ -72,7 +51,6 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
 
     char logMessage [100];
 
-
     static char receptionBuffer[2248] = {0};
     static char processedMessageReceived  [2248];
     static bool messageReceived = false; 
@@ -80,18 +58,6 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
     static std::string fullMessage;
     static int stringInsertCount = 0;
     static int timeoutCounter = 0;
-
-    /*
-    if (firstDelayPassed == false) {
-        if (this->backoffTime->read()) {
-            firstDelayPassed = true;
-            uartUSB.write("Backoff passed\r\n", strlen("Backoff passed\r\n"));
-        } else {
-            return;
-        }
-    }
-    */
-
 
     switch ( this->currentExchangingLoRaMessagesStatus) {
     case  INITIALIZE_TRANSCIEVER:
@@ -274,12 +240,14 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
         strcpy(buffer, message);
         this->currentExchangingLoRaMessagesStatus = SENDING_MESSAGE;
         timeoutCounter++;
-        if (timeoutCounter >= 3) {
+        if (timeoutCounter >= 5) {
             uartUSB.write ("LoRa Unavailable\r\n" , strlen ("LoRa Unavailable\r\n"));  // debug only
             if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA ){
+                timeoutCounter = 0;
                 this->tracker->changeState (new FormattingMessage (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE));
                 return;
             }
+            timeoutCounter = 0;
             this->tracker->changeState (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERING_INERTIAL_INFO));
             return;
         }

@@ -76,12 +76,14 @@ public:
 
     
     /**
-     * @copydoc TrackerState::exchangeMessages(CellularModule * cellularTransceiver,
-     *  char * message, TcpSocket * socketTargetted, char * receivedMessage)
-     * Default implementation: does nothing.
+     * @brief Exchanges messages with a remote server via the cellular transceiver.
+     * @param cellularTransceiver Pointer to the CellularModule instance.
+     * @param message Pointer to the message to send.
+     * @param serverTargetted a struct with infomation over the remote server
+     * @param receivedMessage Pointer to the buffer where the received message will be stored.
      */
-    virtual void exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage );
+    virtual void exchangeMessages (CellularModule* cellularTransceiver,
+    char* message,  RemoteServerInformation* serverTargetted, char* receivedMessage );
 
     /**
      * @copydoc TrackerState::exchangeMessages(LoRaClass * LoRaModule, char * message, 

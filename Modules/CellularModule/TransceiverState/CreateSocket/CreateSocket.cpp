@@ -68,7 +68,7 @@ void CreateSocket::enableTransceiver () {
 }
 
  CellularTransceiverStatus_t  CreateSocket::exchangeMessages (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+    NonBlockingDelay * refreshTime, char * message, RemoteServerInformation* serverTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     char StringToBeSend [IP_MAX_LEN + TCP_HEADER_LEN + 6 + AT_CMD_TCP_OPEN_SOCKET_FIRST_PART_LEN + 1 ];
     char StringToBeRead [BUFFER_LEN];
@@ -83,7 +83,7 @@ void CreateSocket::enableTransceiver () {
     int access_mode = 0; // buffer access mode
 
     int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d,%s,\"%s\",%d,%d", ATcommand, contextID,
-     connectID, protocol, socketTargetted->IpDirection , socketTargetted->TcpPort , access_mode);
+     connectID, protocol, serverTargetted->IpDirection , serverTargetted->TcpPort , access_mode);
     snprintf(ExpectedResponse, sizeof(ExpectedResponse), "+QIOPEN: %d,%d", connectID, noErrorCode);
 
     if (this->readyToSend == true) {
@@ -99,6 +99,7 @@ void CreateSocket::enableTransceiver () {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if ((strstr(StringToBeRead, ExpectedResponse) != nullptr) ) {  
+            this->connectionAttempts = 0;
             this->mobileNetworkModule->changeTransceiverState (new Sending (this->mobileNetworkModule));
         }
     }
@@ -107,6 +108,7 @@ void CreateSocket::enableTransceiver () {
         this->readyToSend = true;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            this->connectionAttempts = 0;
              this->mobileNetworkModule->changeTransceiverState (new CloseSocket (this->mobileNetworkModule, false));
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
         }

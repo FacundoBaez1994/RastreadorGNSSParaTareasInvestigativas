@@ -60,7 +60,7 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
     ATCommandHandler* ATHandler,
     NonBlockingDelay* refreshTime,
     char* message,
-    TcpSocket* socketTargetted,
+    RemoteServerInformation* serverTargetted,
     char* receivedMessage,
     bool* newDataAvailable) {
 
@@ -147,7 +147,7 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
             dataRetrieved = false;
             thereIsDataToRetrieve = false;
             attempts = 0;
-
+            
             this->mobileNetworkModule->changeTransceiverState(
                 new CloseSocket(this->mobileNetworkModule, true)
             );

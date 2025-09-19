@@ -55,8 +55,6 @@ Tracker::Tracker () {
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
 
 
-    this->urlPathChannel = new char [100]; 
-    strcpy (this->urlPathChannel, URL_PATH_CHANNEL);
     this->deviceIdentifier = new char [100];
     strcpy (this->deviceIdentifier, CURRENT_DEVICE_IDENTIFIER);
     this->prevChainHash = new char [100];
@@ -73,10 +71,9 @@ Tracker::Tracker () {
     , this->cellularTransceiver->getATHandler());
     //both share the same power manager and ATHandler (uart)
 
-    this->socketTargetted = new TcpSocket;
-    this->socketTargetted->IpDirection = new char[16]; // 
-    strcpy(this->socketTargetted->IpDirection, "186.19.62.251");
-    this->socketTargetted->TcpPort = 123;
+    this->serverTargetted = new RemoteServerInformation;
+    this->serverTargetted->url = new char[100]; // 
+    strcpy (this->serverTargetted->url, URL_PATH_CHANNEL);
 
     this->currentCellInformation = new CellInformation;
     this->currentCellInformation->timestamp  = new char [20];
@@ -109,6 +106,7 @@ Tracker::Tracker () {
      //this->decrypter = new Decrypter ();
     this->decrypterBase64 = new DecrypterBase64 ();
 
+    /// eliminate this lines on production
     while (! this->memory->clearAll()) {
         
     }
@@ -117,8 +115,12 @@ Tracker::Tracker () {
 }
 
 Tracker::~Tracker() {
-    delete [] this->urlPathChannel; 
-    this->urlPathChannel  = nullptr;
+    delete [] this->serverTargetted->url; 
+    this->serverTargetted->url  = nullptr;
+    delete this->serverTargetted; 
+    this->serverTargetted = nullptr;
+    delete this->latency;
+
     delete [] this->deviceIdentifier;
     this->deviceIdentifier  = nullptr;
     delete [] this->prevChainHash;
@@ -138,11 +140,7 @@ Tracker::~Tracker() {
     delete this->currentCellInformation;
     this->currentCellInformation = nullptr;
     delete this->currentGNSSdata;
-    delete[] this->socketTargetted->IpDirection; // Libera la memoria asignada a IpDirection
-    this->socketTargetted->IpDirection = nullptr;
-    delete this->socketTargetted; // Libera la memoria asignada al socketTargetted
-    this->socketTargetted = nullptr;
-    delete this->latency;
+
     this->latency = nullptr; 
     delete this->silentKeepAliveTimer;
     this->silentKeepAliveTimer = nullptr;
@@ -197,7 +195,7 @@ void Tracker::update () {
     this->currentState->formatMessage (formattedMessage, this->currentCellInformation,
     this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,
-    formattedMessage, this->socketTargetted, receivedMessage );
+    formattedMessage, this->serverTargetted, receivedMessage );
     this->currentState->exchangeMessages (this->LoRaTransciever, formattedMessage, receivedMessage);
     this->currentState->saveMessage(this->memory, formattedMessage);
     this->currentState->loadMessage(this->memory, this->currentCellInformation, this->currentGNSSdata,
@@ -389,11 +387,6 @@ tick_t newKeepAliveLatency = EXTREMELY_LOW_LATENCY_MS;
     uartUSB.write(buffer, strlen(buffer));
 }
 
-
-
-
-
-
 bool Tracker::encryptMessage (char * message, unsigned int messageSize) {
     this->encrypterBase64->setNextHandler(nullptr);
     if (this->encrypterBase64->handleMessage (message, messageSize) == MESSAGE_HANDLER_STATUS_PROCESSED) {
@@ -491,7 +484,7 @@ bool Tracker::checkMessageIntegrity ( char *messageReceived) {
 
 
 void Tracker::getUrlPathChannel ( char * urlPathChannel) {
-    strcpy (urlPathChannel, this->urlPathChannel);
+    strcpy (urlPathChannel, this->serverTargetted->url);
 }
 
  

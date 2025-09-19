@@ -40,8 +40,10 @@ void ExchangingMessages::updatePowerStatus (CellularModule * cellularTransceiver
     cellularTransceiver->startStopUpdate();
  }
 
-void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
-    char * message, TcpSocket * socketTargetted, char * receivedMessage ){
+
+void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
+    char* message,  RemoteServerInformation* serverTargetted, char* receivedMessage ) {
+
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
@@ -56,7 +58,7 @@ void ExchangingMessages::exchangeMessages (CellularModule * cellularTransceiver,
             cellularTransceiver->enableTransceiver();
             enableTransceiver = true; 
         }
-       currentTransmitionStatus = cellularTransceiver->exchangeMessages (message, socketTargetted,
+       currentTransmitionStatus = cellularTransceiver->exchangeMessages (message, serverTargetted,
        receivedMessage, &newDataAvailable);
 
         if (currentTransmitionStatus == CELLULAR_TRANSCEIVER_STATUS_SEND_OK) {

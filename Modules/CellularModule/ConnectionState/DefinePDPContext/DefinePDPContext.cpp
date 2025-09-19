@@ -76,22 +76,17 @@ CellInformation * currentCellInformation) {
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
         this->readyToSend  = false;
-        ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-        ////   ////   ////   ////   ////   ////   
     }
 
     if ( ATHandler->readATResponse ( StringToBeRead) == true) {
-         ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
-         ////   ////   ////   ////   ////   ////
 
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-            ////   ////   ////   ////   ////   ////        
             this->mobileNetworkModule->changeConnectionState (new ConnectedState (this->mobileNetworkModule));
             return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
         }
@@ -100,6 +95,7 @@ CellInformation * currentCellInformation) {
         this->readyToSend = true;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            this->connectionAttempts = 0;
             return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_SET_PDP_CONTEXT;
         }
     }

@@ -61,6 +61,7 @@ public:
     /**
      * @brief Check device motion stability.
      * Uses the IMU sensor manager to determine whether the device is stable or moving.
+     *  Not allowed in this state.
      * @param inertialSensor Pointer to the IMU sensor manager.
      * @param newMotionStatus Pointer to store the detected motion status.
      */

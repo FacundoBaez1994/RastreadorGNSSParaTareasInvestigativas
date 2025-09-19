@@ -67,6 +67,7 @@ ConfigurePDPForHTTP::ConfigurePDPForHTTP (CellularModule * mobileModule) {
 
 ConfigurePDPForHTTP::~ConfigurePDPForHTTP () {
     this->mobileNetworkModule = nullptr;
+    this->Attempts = 0; 
 }
 
 void ConfigurePDPForHTTP::enableTransceiver () {
@@ -74,7 +75,7 @@ void ConfigurePDPForHTTP::enableTransceiver () {
 }
 
 CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+    NonBlockingDelay * refreshTime, char * message, RemoteServerInformation* serverTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [AT_CMD_GENERIC_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_GENERIC_EXPECTED_RESPONSE;
@@ -206,6 +207,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                     
                     this->currentStatus = ACTIVATING_PDP_CONTEXT;
                     //this->currentStatus =  PING_SERVER_DNS;
+                    this->Attempts = 0; 
                     this->mobileNetworkModule->changeTransceiverState(new ConfigureSSL(this->mobileNetworkModule));
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
@@ -247,6 +249,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
         this->readyToSend = true;
         this->Attempts++;
         if (this->Attempts >= this->maxAttempts) {
+            this->Attempts = 0; 
             return CELLULAR_TRANSCEIVER_STATUS_FAIL_TO_ACTIVATE_PDP;
         }
     }

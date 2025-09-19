@@ -66,22 +66,17 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
         this->readyToSend = false;
-        ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         refreshTime->restart();
-        ////   ////   ////   ////   ////   //// 
     }
 
     if ( this->timeAndDateRetrived == false) {
         if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
-        
-            ////   ////   ////   ////   ////   ////
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////
              refreshTime->restart();
            if (this->retrieveNetworkTime (StringToBeRead)) {
                 this->timeAndDateRetrived = true;
@@ -92,19 +87,13 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
     if (this->timeAndDateRetrived  == true) {
         if  (ATHandler->readATResponse ( StringToBeRead) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-                ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////     
-                char StringToSendUSB [40] = "Cambiando de estado 6";
-                uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-                uartUSB.write ( "\r\n",  3 );  // debug only
-                ////   ////   ////   ////   ////   ////            
+                uartUSB.write ( "\r\n",  3 );  // debug only      
                 strcpy(currentCellInformation->timestamp, this->date);
                 strcat(currentCellInformation->timestamp, this->time);
 
                 set_time(timestampToEpoch (currentCellInformation->timestamp));  // save the epoch into RTC
-                
+                this->connectionAttempts = 0;
                 this->mobileNetworkModule->changeConnectionState 
                 (new AttachingToPacketService (this->mobileNetworkModule) );
                 return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
@@ -116,6 +105,7 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
         this->readyToSend = true;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            this->connectionAttempts = 0;
             return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_RETRIV_DATETIME;
         }
     }

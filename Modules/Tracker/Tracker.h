@@ -43,8 +43,6 @@
 
 
 //=====[Declaration of public defines]=========================================
-
-
 /**
  * @brief Enumeration representing latency levels for tracker operations.
  */
@@ -278,16 +276,15 @@ public:
 private:
     TrackerState* currentState;            /**< Current operational state */
     NonBlockingDelay* latency;             /**< Latency timer */
-    NonBlockingDelay* silentKeepAliveTimer;         /**< Silent mode timer */
-    LatencyLevel_t latencyLevel;
+    NonBlockingDelay* silentKeepAliveTimer;  /**< Silent mode timer */
+    LatencyLevel_t latencyLevel;             /**< latency level */
     OperationMode_t currentOperationMode;   /**< Current mode of operation */
 
-    int sequenceMessageNumber = 0;
-    char* urlPathChannel;
-    char* deviceIdentifier;
-    char* prevChainHash;
-    char* currChainHash;
-
+    // MetaData
+    int sequenceMessageNumber = 0;  /**< counter of the sequence of messages succefully sent to the remote server from this tracker */
+    char* deviceIdentifier; /**< a string that identifies this particular tracker from others of the same type */
+    char* prevChainHash;    /**< a string containing a hash of the message that was sent before the current one*/
+    char* currChainHash;     /**< a string containing a hash of the message that is about to be sent or was recently sent*/
 
     deviceMotionStatus_t newMotionStatus = DEVICE_ON_MOTION;        /**< Latest motion status */
     deviceMotionStatus_t currentMotionStatus = DEVICE_ON_MOTION;    /**< Current motion status */
@@ -298,15 +295,16 @@ private:
     IMUData_t* imuData;                         /**< Latest IMU data */
     std::vector<IMUData_t*> IMUDataSamples;      /**< Sampled IMU data */
 
-    EEPROMManager* memory;                     /**< EEPROM storage manager */
-
      // IMU 
     int loraMessageNumber = 1;      /**< interger counting the number of messages sent by LoRa */
     LoRaClass * LoRaTransciever;    /**< LoRa Module transceiver */
-    
+
+    // EEPROM
+    EEPROMManager* memory;                     /**< EEPROM storage manager */
+
     // MN Module 
     CellularModule* cellularTransceiver;        /**< Cellular transceiver */
-    TcpSocket* socketTargetted;                 /**< Target TCP socket */
+    RemoteServerInformation* serverTargetted;  /**< contains information of the server Target  */
     CellInformation* currentCellInformation;   /**< Current cell information */
     std::vector<CellInformation*> neighborsCellInformation;    /**< Neighbor cell data */
 

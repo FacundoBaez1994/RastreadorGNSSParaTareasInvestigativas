@@ -69,7 +69,7 @@ public:
     virtual void awake (CellularModule * cellularTransceiver, NonBlockingDelay * latency,
     NonBlockingDelay * silentKeepAliveTimer);
 private:
-    Tracker * tracker;
+    Tracker * tracker;  /**< Pointer to the Tracker context instance. */
   
 
 //=====[Declaration of privates atributes]=========================================

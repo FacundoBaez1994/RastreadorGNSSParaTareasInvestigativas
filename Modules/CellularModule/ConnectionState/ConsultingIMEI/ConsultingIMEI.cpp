@@ -44,6 +44,7 @@ ConsultingIMEI::ConsultingIMEI (CellularModule * mobileModule) {
 
 ConsultingIMEI::~ConsultingIMEI () {
     this->mobileNetworkModule = nullptr;
+    this->connectionAttempts = 0; 
 }
 
 void ConsultingIMEI::enableConnection () {
@@ -98,6 +99,7 @@ CellInformation * currentCellInformation) {
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 ////   ////   ////   ////   ////   //// 
                 currentCellInformation->IMEI = this->IMEI;      
+                this->connectionAttempts = 0; 
                 this->mobileNetworkModule->changeConnectionState (new ConsultingSIMCardStatus (this->mobileNetworkModule) );
                 return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
             }
@@ -109,6 +111,7 @@ CellInformation * currentCellInformation) {
         this->IMEIRetrived= false;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            this->connectionAttempts = 0; 
             return CELLULAR_CONNECTION_STATUS_MODULE_DISCONNECTED;
         }
     }

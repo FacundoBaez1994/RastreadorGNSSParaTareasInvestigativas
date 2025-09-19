@@ -22,7 +22,6 @@
 #define LOG_MESSAGE "Retriving Neighboor Cells Data\r\n"
 #define LOG_MESSAGE_LEN 40
 
-
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -32,7 +31,6 @@
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
-
 
 //=====[Declarations (prototypes) of private functions]========================
 

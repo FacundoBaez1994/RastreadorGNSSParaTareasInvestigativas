@@ -50,6 +50,7 @@ ConsultingNetworkStatus::ConsultingNetworkStatus (CellularModule * mobileModule)
 
 ConsultingNetworkStatus::~ConsultingNetworkStatus () {
     this->mobileNetworkModule = nullptr;
+    this->connectionAttempts = 0; 
 }
 
 void ConsultingNetworkStatus::enableConnection () {
@@ -70,7 +71,6 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
         this->readyToSend = false;
-        ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         uartUSB.write (StringToSend  , strlen (StringToSend  ));  // debug only
@@ -79,16 +79,12 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
         uartUSB.write (StringToSend2  , strlen (StringToSend2  ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         refreshTime->restart();
-        ////   ////   ////   ////   ////   ////   
     }
 
     if ( this->cellDataRetrived == false) {
         if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
-        
-            ////   ////   ////   ////   ////   ////
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
-            ////   ////   ////   ////   ////   ////
              refreshTime->restart();
              if (this->retrivIdCellData (StringToBeRead)) {
                 this->cellDataRetrived = true;
@@ -100,16 +96,15 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
     if (this->cellDataRetrived == true) {
         if  (ATHandler->readATResponse ( StringToBeRead) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
-                ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
-
                 currentCellInformation->cellId = this->cellId;
                 currentCellInformation->lac = this->lac;
                 currentCellInformation->accessTechnology = this->accessTechnology;
                 currentCellInformation->registrationStatus = this->registrationStatus;
                 if (this->registrationStatus == MODEM_REGISTERED_LOCALY ||
                  this->registrationStatus == MODEM_REGISTERED_ROAMING) {
+                    this->connectionAttempts = 0; 
                     this->mobileNetworkModule->changeConnectionState
                      (new ConsultingAvailableOperators (this->mobileNetworkModule) );
                     return CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT;
@@ -123,6 +118,7 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
         this->cellDataRetrived = false;
         this->connectionAttempts++;
         if (this->connectionAttempts >= this->maxConnectionAttempts) {
+            this->connectionAttempts = 0; 
             return CELLULAR_CONNECTION_STATUS_UNAVAIBLE_TO_REGISTER;
         }
     }

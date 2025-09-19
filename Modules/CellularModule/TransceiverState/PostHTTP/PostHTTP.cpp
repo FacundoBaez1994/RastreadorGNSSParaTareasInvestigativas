@@ -77,6 +77,7 @@ PostHTTP::PostHTTP (CellularModule * mobileModule) {
 }
 
 PostHTTP::~PostHTTP () {
+    this->Attempts = 0; 
     this->mobileNetworkModule = nullptr;
     delete this->jwt;
     this->jwt = nullptr;
@@ -87,7 +88,7 @@ void PostHTTP::enableTransceiver () {
 }
 
 CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+    NonBlockingDelay * refreshTime, char * message, RemoteServerInformation* serverTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     static char StringToBeRead [BUFFER_LEN];
     static int dataLen;
@@ -277,11 +278,13 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
         this->Attempts++;
         if (this->Attempts >= this->maxAttempts && watingForResponse == false) {
             this->currentStatus = SETTING_URL;
+            this->Attempts = 0; 
              this->mobileNetworkModule->changeTransceiverState  (new DeactivatePDP (this->mobileNetworkModule, false) );
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
         }
         if (this->Attempts >= this->maxAttempts && watingForResponse == true) {
             this->currentStatus = SETTING_URL;
+            this->Attempts = 0; 
              this->mobileNetworkModule->changeTransceiverState  (new DeactivatePDP (this->mobileNetworkModule, true) );
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
         }

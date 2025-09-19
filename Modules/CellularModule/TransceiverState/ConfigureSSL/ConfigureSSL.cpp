@@ -70,7 +70,7 @@ void ConfigureSSL::enableTransceiver () {
 }
 
 CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+    NonBlockingDelay * refreshTime, char * message, RemoteServerInformation* serverTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [AT_CMD_GENERIC_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_GENERIC_EXPECTED_RESPONSE;
@@ -177,6 +177,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                     ////   ////   ////   ////   ////   ////     
                     this->currentStatus = SETTING_SSL_CONTEXT;
                     this->readyToSend  = true;
+                    this->Attempts = 0; 
                     this->mobileNetworkModule->changeTransceiverState(new PostHTTP(this->mobileNetworkModule));
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
@@ -193,6 +194,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
         this->readyToSend = true;
         this->Attempts++;
         if (this->Attempts >= this->maxAttempts) {
+            this->Attempts = 0; 
             return CELLULAR_TRANSCEIVER_STATUS_FAIL_TO_ACTIVATE_PDP;
         }
     }

@@ -45,7 +45,7 @@ void DeactivatePDP::enableTransceiver () {
 }
 
 CellularTransceiverStatus_t DeactivatePDP::exchangeMessages (ATCommandHandler * ATHandler,
-    NonBlockingDelay * refreshTime, char * message, TcpSocket * socketTargetted,
+    NonBlockingDelay * refreshTime, char * message, RemoteServerInformation* serverTargetted,
      char * receivedMessage, bool * newDataAvailable) {
     char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [AT_CMD_DEACTIVATE_PDP_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_DEACTIVATE_PDP_EXPECTED_RESPONSE;

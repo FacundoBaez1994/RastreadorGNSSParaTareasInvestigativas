@@ -27,8 +27,10 @@
 
 //=====[Implementations of public methods]===================================
 ExchangingMessages::ExchangingMessages (Tracker * tracker, trackerStatus_t trackerStatus) {
+    uartUSB.write ("CONSTRUCTOR 1 ExchangingMessages\r\n" , strlen ("CONSTRUCTOR 1 ExchangingMessages\r\n"));  // debug only
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
+    uartUSB.write ("CONSTRUCTOR 2 ExchangingMessages\r\n", strlen ("CONSTRUCTOR 2 ExchangingMessages\r\n"));  // debug only
 }
 
 ExchangingMessages::~ExchangingMessages () {
@@ -48,6 +50,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
     char logMessage [100];
+    char payloadRetrieved [256];
     
     // if conected to mobile network send the message throght LTE Modem
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
@@ -70,6 +73,29 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
 
             //////////////////   MESSAGE INTERPRETATION ////////////////
             ////////////////////////////////////////////////////////////////
+            if (this->tracker->decodeJWT(receivedMessage, payloadRetrieved) == false) {
+                snprintf(logMessage, sizeof(logMessage), "error decoding JWT\r\n");
+                uartUSB.write(logMessage, strlen(logMessage));
+
+                newDataAvailable = false;
+                enableTransceiver = false;
+                if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE;
+                }
+                if (this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE) {
+                    this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE;
+                }
+                // new state formatting Message in order to be saved in memory
+              
+                this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
+                return;
+
+            }
+            strcpy (receivedMessage, payloadRetrieved);
+
             newDataAvailable = false;
             enableTransceiver = false;
 
@@ -211,6 +237,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
                 this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE;
             }
             // new state formatting Message in order to be saved in memory
+            //this->tracker->changeState (new LoadingMessage (this->tracker)); // ELIMINAR
             this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
             return;
         }

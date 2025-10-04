@@ -55,7 +55,8 @@ public:
      */
     virtual void loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatuss);
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatus,
+    char * buffer);
 private:
 //=====[Declaration of privates atributes]=========================================
     Tracker * tracker;  /**< Pointer to tracker context object */

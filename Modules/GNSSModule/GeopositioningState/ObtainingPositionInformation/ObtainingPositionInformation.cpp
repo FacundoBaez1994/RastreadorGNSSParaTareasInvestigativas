@@ -6,7 +6,7 @@
 #include "TurningOffGNSS.h"
 
 //=====[Declaration of private defines]========================================
-#define MAXRETRIES  60
+#define MAXRETRIES  2
 
 #define LOG_MESSAGE "Obtaining GNSS Position\r\n"
 #define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)

@@ -61,8 +61,8 @@ void JWTManager::encodeJWT(char * payloadToJWT, char * jwtEncoded) {
     uartUSB.write(logMessage , strlen(logMessage ));;
     printData(this->jwt->out, this->jwt->outputLength);
 
-    strcpy (jwtEncoded, this->jwt->out);
-    jwtEncoded [this->jwt->outputLength] = '\0';
+    strncpy(jwtEncoded, this->jwt->out, this->jwt->outputLength);
+    jwtEncoded[this->jwt->outputLength] = '\0';
     this->jwt->clear();
 }
 
@@ -98,7 +98,8 @@ bool JWTManager::decodeJWT (char * jwtToDecode, char * payloadRetrived) {
     uartUSB.write(logMessage , strlen(logMessage ));
     printData(this->jwt->signature, this->jwt->signatureLength);
     
-    strcpy (payloadRetrived, this->jwt->payload);
+
+    strncpy(payloadRetrived, this->jwt->payload, this->jwt->payloadLength);
     this->jwt->clear();
     return true;
 }

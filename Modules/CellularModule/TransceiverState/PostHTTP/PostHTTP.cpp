@@ -63,7 +63,7 @@ PostHTTP::PostHTTP () {
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
     this->currentStatus = SETTING_URL;
-    this->jwt = new JWTManager ();
+    //this->jwt = new JWTManager ();
 }
 
 
@@ -73,14 +73,14 @@ PostHTTP::PostHTTP (CellularModule * mobileModule) {
     this->Attempts = 0; 
     this->maxAttempts = MAXATTEMPTS; 
     this->currentStatus = SETTING_URL;
-    this->jwt = new JWTManager ();
+    //this->jwt = new JWTManager ();
 }
 
 PostHTTP::~PostHTTP () {
     this->Attempts = 0; 
     this->mobileNetworkModule = nullptr;
-    delete this->jwt;
-    this->jwt = nullptr;
+    //delete this->jwt;
+    //this->jwt = nullptr;
 }
 
 void PostHTTP::enableTransceiver () {
@@ -251,8 +251,8 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
 
             break;
         case DECODING_DATA:
-            char  payloadRetrived [BUFFER_LEN];
-            if (this->jwt->decodeJWT(StringToBeRead , payloadRetrived) == false) {
+            if (strlen (StringToBeRead) > 256 || strlen (StringToBeRead) <= 0) {
+            //if (this->jwt->decodeJWT(StringToBeRead , payloadRetrived) == false) {
                 uartUSB.write (LOG_ERROR_MESSAGE , strlen (LOG_ERROR_MESSAGE ));  // debug only
                 this->readyToSend  = true;
                 this->currentStatus = READING_DATA;
@@ -260,7 +260,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 break;
             }
             *newDataAvailable = true;
-            strcpy (receivedMessage, payloadRetrived);
+            strcpy (receivedMessage, StringToBeRead);
             uartUSB.write (receivedMessage , strlen (receivedMessage ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             this->currentStatus = SETTING_URL;

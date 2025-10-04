@@ -5,7 +5,7 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define MAX_CELLS_ON_VECTOR 14
+#define MAX_CELLS_ON_VECTOR 13
 #define MAX_ROWS_TO_READ 30
 #define MAX_LENGTH_CELL_INFO_STRING 128
 

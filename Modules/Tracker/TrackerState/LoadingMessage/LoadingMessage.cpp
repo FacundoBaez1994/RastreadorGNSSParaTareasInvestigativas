@@ -37,26 +37,26 @@ LoadingMessage::~LoadingMessage  () {
 
 void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples,  BatteryData  * batteryStatus) {
-    static char  poppedString [2248] = {0};
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples,  BatteryData  * batteryStatus, char * buffer) {
+    //static char  poppedString [2248] = {0};
     char  log [50];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;
     static bool init = false;
 
     if (init == false) {
-        memset(poppedString, 0, sizeof(poppedString));
+        memset(buffer, 0, 2248);
         init = true;
     }
     
     EEPROMStatus state;
     if (popProcessFinished  == false) {
         //state = memory->popStringFromEEPROM( this->poppedString, this->sizeOfPoppedString);
-        state = memory->popStringFromEEPROM( poppedString, sizeof (poppedString));
+        state = memory->popStringFromEEPROM( buffer, 2248);
         if (state == EEPROMStatus::POPPEDSTRINGOK) {
             snprintf(log, sizeof(log), "popped string From Memory\n\r");
             uartUSB.write(log, strlen(log));
-            uartUSB.write(poppedString, strlen(poppedString));
+            uartUSB.write(buffer, strlen(buffer));
             uartUSB.write("\n\r", strlen("\n\r"));
 
             popProcessFinished = true;
@@ -70,13 +70,13 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             return;
         }
     } else {
-        if (this->tracker->decryptMessage(poppedString, sizeof (poppedString)) == true) {
+        if (this->tracker->decryptMessage(buffer, 2248) == true) {
             snprintf(log, sizeof(log), "\n\rultimo string descifrado:\n\r");
             uartUSB.write(log, strlen(log));
-            uartUSB.write(poppedString, strlen(poppedString));
+            uartUSB.write(buffer, strlen(buffer));
             uartUSB.write("\n\r", strlen("\n\r"));
             trackerStatus_t currentStatus;
-            currentStatus = this->parseDecryptedMessage(poppedString, aCellInfo, GNSSInfo, 
+            currentStatus = this->parseDecryptedMessage(buffer, aCellInfo, GNSSInfo, 
             neighborsCellInformation, imuData, IMUDataSamples, batteryStatus);
             if ( currentStatus == TRACKER_STATUS_PARSE_ERROR) {
                 snprintf(log, sizeof(log), "\n\rparse error:\n\r");

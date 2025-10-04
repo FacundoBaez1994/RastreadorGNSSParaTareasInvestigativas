@@ -56,18 +56,18 @@ bool hash_and_base64(const char *input, char *output, size_t output_size) {
 FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
-    this->jwt = new JWTManager ();
-    this->sizeOfMessageBuffer = 2248;
-    this->messageBuffer = new char [this->sizeOfMessageBuffer];
+    //this->jwt = new JWTManager ();
+    //this->sizeOfMessageBuffer = 2248;
+    //this->messageBuffer = new char [this->sizeOfMessageBuffer];
 }
 
 FormattingMessage::~FormattingMessage () {
     this->tracker = nullptr;
-    delete this->jwt;
-    this->jwt = nullptr;
+   //delete this->jwt;
+    //this->jwt = nullptr;
 
-    delete [] this->messageBuffer;
-    this->messageBuffer = nullptr;
+    //delete [] this->messageBuffer;
+   // this->messageBuffer = nullptr;
 
 }
 
@@ -242,27 +242,24 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     int sizeOfBuffer = this->sizeOfMessageBuffer;
     int sizeOfTimeStamp = 20;
     int sizeOfHash = 100;
-    char * workBuffer;   // buffer auxiliar único y reutilizable
-    workBuffer = new char [sizeOfBuffer];
-    char * hashCanonicData;
-    hashCanonicData = new char [sizeOfHash];
-    char * hashCurrentJson;
-    hashCurrentJson = new char [sizeOfHash];
-    char * urlPathChannel;
-    urlPathChannel = new char [sizeOfHash];
-    char * deviceIdentifier;
-    deviceIdentifier = new char [sizeOfHash];
-    char * hashPrevJson;
-    hashPrevJson = new char [sizeOfHash];
-    char * timestampJson = new char [sizeOfTimeStamp];
-    char * timestampJsonExpiration = new char [sizeOfTimeStamp];
 
+    /////
+    char hashCanonicData [sizeOfHash];
+    char hashCurrentJson [sizeOfHash];
+    char  timestampJson [sizeOfTimeStamp];
+    char timestampJsonExpiration [sizeOfTimeStamp];
 
+    ////////////////////
+    //char * urlPathChannel;
+    //urlPathChannel = new char [sizeOfHash];
+    //char * hashPrevJson;
+    //hashPrevJson = new char [sizeOfHash];
+    //char * deviceIdentifier;
+    ////////////////
 
-    int currentSequenceNumber = this->tracker->getSequenceNumber();
-    this->tracker->getUrlPathChannel(urlPathChannel);
-    this->tracker->getDeviceIdentifier(deviceIdentifier);
-    this->tracker->getPrevHashChain(hashPrevJson);
+   // this->tracker->getUrlPathChannel(urlPathChannel);
+   // this->tracker->getDeviceIdentifier(deviceIdentifier);
+   // this->tracker->getPrevHashChain(hashPrevJson);
 
     // Calcular hash del payload base
     hash_and_base64(messageToAddMetaData, hashCanonicData, sizeOfHash);
@@ -276,7 +273,7 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     epochToTimestamp(secondsToExpire, timestampJsonExpiration, sizeOfTimeStamp);
 
     // Armar JSON intermedio en workBuffer
-    int written = snprintf(workBuffer, sizeOfBuffer,
+    int written = snprintf(this->messageBuffer, sizeOfBuffer,
         "{\"iss\":\"%s\","
         "\"aud\":\"%s\","
         "\"ias\":\"%s\","
@@ -285,35 +282,35 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
         "\"seq\":%d,"
         "\"prev\":\"%s\","
         "%s}",
-        deviceIdentifier,        // iss
-        urlPathChannel,          // aud
+        this->tracker->getDeviceIdentifier(),        // iss
+        this->tracker->getUrlPathChannel (),  // aud
         timestampJson,           // ias
         timestampJsonExpiration, // exp
         hashCanonicData,         // d
-        currentSequenceNumber,   // seq
-        hashPrevJson,            // prev
+        this->tracker->getSequenceNumber(),   // seq
+         this->tracker->getPrevHashChain(),            // prev
         messageToAddMetaData                  // payload original
     );
 
     if (written < 0 || (size_t)written >= sizeOfBuffer) {
-        workBuffer[sizeOfBuffer - 1] = '\0'; // protección
+        this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0'; // protección
     }
 
     // Calcular hash del JSON completo
-    hash_and_base64(workBuffer, hashCurrentJson, sizeOfHash);
+    hash_and_base64(this->messageBuffer, hashCurrentJson, sizeOfHash);
 
     // Quitar llaves externas { }
-    size_t len = strlen(workBuffer);
-    if (len > 2 && workBuffer[0] == '{' && workBuffer[len - 1] == '}') {
-        workBuffer[len - 1] = '\0';                 // saco '}'
-        memmove(workBuffer, workBuffer + 1, len-1); // corro eliminando '{'
+    size_t len = strlen(this->messageBuffer);
+    if (len > 2 && this->messageBuffer[0] == '{' && this->messageBuffer[len - 1] == '}') {
+        this->messageBuffer[len - 1] = '\0';                 // saco '}'
+        memmove(this->messageBuffer, this->messageBuffer + 1, len-1); // corro eliminando '{'
     }
 
     // JSON final se escribe directo en message
     written = snprintf(messageToAddMetaData, sizeOfBuffer,
         "{\"curr\":\"%s\",%s}",
         hashCurrentJson,
-        workBuffer
+        this->messageBuffer
     );
 
     if (written < 0 || (size_t)written >= sizeOfBuffer) {
@@ -321,30 +318,6 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     }
 
     this->tracker->setCurrentHashChain(hashCurrentJson);
-    
-    delete [] workBuffer;
-    workBuffer = nullptr;
-
-    delete [] hashCanonicData;
-    hashCanonicData = nullptr;
-
-    delete [] urlPathChannel;
-    urlPathChannel = nullptr;
-
-    delete [] hashCurrentJson;
-    hashCurrentJson = nullptr;
-
-    delete [] deviceIdentifier;
-    deviceIdentifier = nullptr;
-
-    delete [] hashPrevJson;
-    hashPrevJson = nullptr;
-    
-    delete [] timestampJson;
-    timestampJson = nullptr;
-
-    delete [] timestampJsonExpiration;
-    timestampJsonExpiration = nullptr;
 }
 
 //////////////////////// MN messages /// 
@@ -431,11 +404,15 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
 
    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-    this->addMetaData(this->messageBuffer);
+   strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
 
-    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
+    this->addMetaData(formattedMessage);
 
-     strcat(formattedMessage, "\n");
+    strncpy (this->messageBuffer, formattedMessage, this->sizeOfMessageBuffer);
+
+    this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
+
+    strcat(formattedMessage, "\n");
 }
 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo,
@@ -501,11 +478,15 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         imuData->angles.roll,        // 27
         imuData->angles.pitch        // 28
     );
-    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+   this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-    this->addMetaData(this->messageBuffer);
-    //strcpy(formattedMessage, message);
-    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
+   strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+
+    this->addMetaData(formattedMessage);
+
+    strncpy (this->messageBuffer, formattedMessage, this->sizeOfMessageBuffer);
+
+    this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
 
@@ -559,12 +540,15 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         imuData->angles.roll,                // 15
         imuData->angles.pitch                // 16
     );
-    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+   this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-    //strcpy(formattedMessage, message);
-    this->addMetaData(this->messageBuffer);
+   strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
 
-    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
+    this->addMetaData(formattedMessage);
+
+    strncpy (this->messageBuffer, formattedMessage, this->sizeOfMessageBuffer);
+
+    this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
 
@@ -634,14 +618,15 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
         strncat(this->messageBuffer, "]", this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
     }
 
-   // strncat(message, "}\n", sizeof(message) - strlen(message) - 1);
+   this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+   strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
 
-    this->addMetaData(this->messageBuffer);
-    //strcpy(formattedMessage, message);
-    this->jwt->encodeJWT (this->messageBuffer, formattedMessage);
+    this->addMetaData(formattedMessage);
 
+    strncpy (this->messageBuffer, formattedMessage, this->sizeOfMessageBuffer);
+
+    this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
 }

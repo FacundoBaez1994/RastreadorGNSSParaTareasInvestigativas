@@ -35,6 +35,8 @@
 #define URL_PATH_CHANNEL "https://intent-lion-loudly.ngrok-free.app/api/canal/envio"
 #define CURRENT_DEVICE_IDENTIFIER "device/tracker-001"
 
+#define ENABLE_UART_USB_LOG
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -49,11 +51,16 @@
 
 //=====[Implementations of public methods]===================================
 Tracker::Tracker () {
+    #ifdef ENABLE_UART_USB_LOG
+        uartUSB.enable();
+    #else
+        uartUSB.disable();
+    #endif
+
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_WATCHDOG_TIMER_MS);
     char StringToSendUSB [50] = "Tracker initialization";
     uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-
 
     this->deviceIdentifier = new char [100];
     strcpy (this->deviceIdentifier, CURRENT_DEVICE_IDENTIFIER);
@@ -106,12 +113,14 @@ Tracker::Tracker () {
      //this->decrypter = new Decrypter ();
     this->decrypterBase64 = new DecrypterBase64 ();
 
+    this->jwt = new JWTManager ();
+
     /// eliminate this lines on production
-    while (! this->memory->clearAll()) {
+   //while (! this->memory->clearAll()) {
         
-    }
-    snprintf(StringToSendUSB, sizeof(StringToSendUSB), "STRINGS LIMPIADAS\n\r");
-    uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
+   // }
+    //snprintf(StringToSendUSB, sizeof(StringToSendUSB), "STRINGS LIMPIADAS\n\r");
+    //uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
 }
 
 Tracker::~Tracker() {
@@ -173,11 +182,16 @@ Tracker::~Tracker() {
     //this->decrypter = nullptr;
     delete this->decrypterBase64;
     this->decrypterBase64 = nullptr;
+
+
+    delete this->jwt;
+    this->jwt = nullptr;
+
 }
 
 void Tracker::update () {
     static char formattedMessage [2248];
-    static char receivedMessage [2248];
+    static char receivedMessage [512];
 
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singleton
@@ -199,7 +213,7 @@ void Tracker::update () {
     this->currentState->exchangeMessages (this->LoRaTransciever, formattedMessage, receivedMessage);
     this->currentState->saveMessage(this->memory, formattedMessage);
     this->currentState->loadMessage(this->memory, this->currentCellInformation, this->currentGNSSdata,
-     this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus);
+     this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus, formattedMessage);
     this->currentState->goToSleep (this->cellularTransceiver);
     watchdog.kick();
     
@@ -483,13 +497,13 @@ bool Tracker::checkMessageIntegrity ( char *messageReceived) {
  }
 
 
-void Tracker::getUrlPathChannel ( char * urlPathChannel) {
-    strcpy (urlPathChannel, this->serverTargetted->url);
+char* Tracker::getUrlPathChannel ( ) {
+    return this->serverTargetted->url;
 }
 
  
-void Tracker::getDeviceIdentifier ( char * deviceId) {
-    strcpy (deviceId, this->deviceIdentifier);
+char* Tracker::getDeviceIdentifier ( ) {
+    return this->deviceIdentifier;
 }
 
 int Tracker::getSequenceNumber () {
@@ -505,16 +519,24 @@ void Tracker::progressOnHashChain () {
     strcpy (this->prevChainHash, this->currChainHash);
 }
 
-void Tracker::setCurrentHashChain (char * hashChain) {
+void Tracker::setCurrentHashChain (const char * hashChain) {
     strcpy (this->currChainHash, hashChain );
 }
 
 
-void Tracker::getPrevHashChain (char * hashChain) {
-    strcpy (hashChain, this->prevChainHash);
+char* Tracker::getPrevHashChain ( ) {
+    return this->prevChainHash;
 }
 
 
+
+void Tracker::encodeJWT(char * payloadToJWT, char * jwtEncoded)  {
+    this->jwt->encodeJWT (payloadToJWT, jwtEncoded);
+}
+
+bool Tracker::decodeJWT(char * jwtToDecode, char * payloadRetrived) {
+    return this->jwt->decodeJWT(jwtToDecode, payloadRetrived);
+}
 
 
 

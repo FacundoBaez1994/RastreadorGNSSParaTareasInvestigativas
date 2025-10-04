@@ -98,7 +98,7 @@ private:
     int Attempts;                          ///< Counter for retry attempts.
     int maxAttempts;                       ///< Maximum number of retry attempts.
     PostStatus_t currentStatus;            ///< Current internal status of the HTTP POST state machine.
-    JWTManager * jwt;                      ///< Pointer to the JWT decoder utility.
+   // JWTManager * jwt;                      ///< Pointer to the JWT decoder utility.
 
 //=====[Declaration of privates methods]=========================================
     /**

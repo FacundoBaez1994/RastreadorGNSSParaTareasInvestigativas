@@ -234,15 +234,15 @@ public:
 
     /**
      * @brief obtain the url path to the server
-     * @param urlPathChannel Pointer to a string to store the path.
+     * @return urlPathChannel Pointer to a string to store the path.
      */
-    void getUrlPathChannel ( char * urlPathChannel);
+    char* getUrlPathChannel ( );
 
     /**
      * @brief obtain the identifier of this device
-     * @param deviceId Pointer to a string to store the identifier.
+     * @return deviceId Pointer to a string to store the identifier.
      */
-    void getDeviceIdentifier ( char * deviceId);
+    char* getDeviceIdentifier ( );
 
     /**
      * @brief obtain the current Sequence number
@@ -264,14 +264,18 @@ public:
      * @brief set a hash chain as the current one
      * @param hashChain a valid hash Chain
      */
-    void setCurrentHashChain (char * hashChain);
+    void setCurrentHashChain (const char * hashChain);
 
     /**
      * @brief get the prev hash chain
-     * @param hashChain a valid hash Chain
+     * @return hashChain a valid hash Chain
     */
-    void getPrevHashChain (char * hashChain);
+    char* getPrevHashChain ( );
 
+    
+    void encodeJWT (char * payloadToJWT, char * jwtEncoded);
+
+    bool decodeJWT (char * jwtToDecode, char * payloadRetrived);
     
 private:
     TrackerState* currentState;            /**< Current operational state */
@@ -324,6 +328,8 @@ private:
     MessageHandler* authVer;           /**< Authentication verifier */
     //MessageHandler* decrypter;         /**< Decryption handler */
     MessageHandler* decrypterBase64;   /**< Base64 decryption handler */
+
+    JWTManager* jwt; ///< Pointer to JWT manager for token/signature management
 
 };
 

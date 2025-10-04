@@ -83,7 +83,7 @@ void TrackerBaseState::saveMessage (EEPROMManager * memory, char * message) {
 
 void TrackerBaseState::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
-    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatus) {
+    IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples, BatteryData  * batteryStatus, char * buffer) {
     return;
 }
 

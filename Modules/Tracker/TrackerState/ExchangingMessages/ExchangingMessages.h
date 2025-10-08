@@ -8,6 +8,7 @@
 #include "TrackerBaseState.h"
 #include "Tracker.h"
 #include "JWTManager.h"
+#include "BufferSizes.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; ///< Forward declaration due to circular dependency

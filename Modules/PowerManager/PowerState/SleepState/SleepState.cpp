@@ -22,7 +22,7 @@
 #define LOG_MESSAGE_DEVICE_TURNING_DOWN "TURNING DOWN\r\n"
 #define LOG_MESSAGE_DEVICE_TURNING_DOWN_LEN (sizeof(LOG_MESSAGE_DEVICE_TURNING_DOWN ) - 1)
 
-#define BUFFER 128
+#define BUFFER_LEN 128
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -95,7 +95,7 @@ bool SleepState::turnOff (ATCommandHandler* AThandler, NonBlockingDelay* powerCh
     static bool hardPowerOffUnderProcess = false;
     static int retryCounter = 0;
     char StringToSend [AT_CMD_POWER_DOWN_LEN + 1] = AT_CMD_POWER_DOWN;
-    char StringToBeRead [BUFFER];
+    char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [ AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE_LEN + 1] =  AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE;
     char StringToSendUSB [LOG_MESSAGE_DEVICE_TURNING_DOWN_LEN + 1] = LOG_MESSAGE_DEVICE_TURNING_DOWN;
 
@@ -107,7 +107,7 @@ bool SleepState::turnOff (ATCommandHandler* AThandler, NonBlockingDelay* powerCh
     }
 
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
          ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only

@@ -41,6 +41,8 @@
 #include "DecrypterBase64.h"
 #include "EncrypterBase64.h"
 
+#include "BufferSizes.h"
+
 
 //=====[Declaration of public defines]=========================================
 /**
@@ -278,6 +280,9 @@ public:
     bool decodeJWT (char * jwtToDecode, char * payloadRetrived);
     
 private:
+    char * formattedMessage;
+    char * receivedMessage;
+
     TrackerState* currentState;            /**< Current operational state */
     NonBlockingDelay* latency;             /**< Latency timer */
     NonBlockingDelay* silentKeepAliveTimer;  /**< Silent mode timer */

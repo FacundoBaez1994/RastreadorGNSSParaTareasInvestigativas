@@ -35,6 +35,55 @@
 #define URL_PATH_CHANNEL "https://intent-lion-loudly.ngrok-free.app/api/canal/envio"
 #define CURRENT_DEVICE_IDENTIFIER "device/tracker-001"
 
+#define MOVEMENT_EVENT_STRING_MOVING "MOVE"
+#define MOVEMENT_EVENT_STRING_PARKING "PARK"
+#define MOVEMENT_EVENT_STRING_STOPPED "STOP"
+#define MOVEMENT_EVENT_STRING_MOVEMENT_RESTARTED "MVRS"
+
+#define ACK_VALID_1 "ACK"
+#define ACK_VALID_2 "ACK\r"
+#define ACK_VALID_3 "ACK\r\n"
+
+
+//=====[Log Message Definitions]==============================================
+#define LOG_MESSAGE_TRACKER_INIT                   "Tracker initialization\r\n"
+#define LOG_MESSAGE_TRACKER_INIT_LEN               (sizeof(LOG_MESSAGE_TRACKER_INIT) - 1)
+
+#define LOG_MESSAGE_MOVEMENT_RESTARTED             "\n\rUpdate movement event: MOVEMENT_RESTARTED\n\r"
+#define LOG_MESSAGE_MOVEMENT_RESTARTED_LEN         (sizeof(LOG_MESSAGE_MOVEMENT_RESTARTED) - 1)
+
+#define LOG_MESSAGE_PARKING                        "\n\rUpdate movement event: PARKING\n\r"
+#define LOG_MESSAGE_PARKING_LEN                    (sizeof(LOG_MESSAGE_PARKING) - 1)
+
+#define LOG_MESSAGE_MOVING                         "\n\rUpdate movement event: MOVING\n\r"
+#define LOG_MESSAGE_MOVING_LEN                     (sizeof(LOG_MESSAGE_MOVING) - 1)
+
+#define LOG_MESSAGE_STOPPED                        "\n\rUpdate movement event: STOPPED\n\r"
+#define LOG_MESSAGE_STOPPED_LEN                    (sizeof(LOG_MESSAGE_STOPPED) - 1)
+
+#define LOG_MESSAGE_NEW_LATENCY                    "\n\rNew latency set: "
+#define LOG_MESSAGE_NEW_LATENCY_LEN                (sizeof(LOG_MESSAGE_NEW_LATENCY) - 1)
+
+#define LOG_MESSAGE_NEW_KEEPALIVE_LATENCY          "\n\rNew keep alive latency set: "
+#define LOG_MESSAGE_NEW_KEEPALIVE_LATENCY_LEN      (sizeof(LOG_MESSAGE_NEW_KEEPALIVE_LATENCY) - 1)
+
+#define LOG_MESSAGE_ACK_OK                         "OK\r\n"
+#define LOG_MESSAGE_ACK_OK_LEN                     (sizeof(LOG_MESSAGE_ACK_OK) - 1)
+
+#define LOG_MESSAGE_ACK_INVALID                    "ACK invalid\r\n"
+#define LOG_MESSAGE_ACK_INVALID_LEN                (sizeof(LOG_MESSAGE_ACK_INVALID) - 1)
+
+
+#define LOG_MESSAGE_DEVICE_ID_RECEIVED_PREFIX     "Device ID Received: %lld\r\n"
+#define LOG_MESSAGE_DEVICE_ID_RECEIVED_LEN        (sizeof(LOG_MESSAGE_DEVICE_ID_RECEIVED_PREFIX) - 1)
+
+#define LOG_MESSAGE_MESSAGE_NUMBER_RECEIVED_PREFIX "Message Number Received: %d\r\n"
+#define LOG_MESSAGE_MESSAGE_NUMBER_RECEIVED_LEN    (sizeof(LOG_MESSAGE_MESSAGE_NUMBER_RECEIVED_PREFIX) - 1)
+
+#define LOG_MESSAGE_PAYLOAD_RECEIVED_PREFIX       "Payload Received: %s\r\n"
+#define LOG_MESSAGE_PAYLOAD_RECEIVED_PREFIX_LEN          (sizeof(LOG_MESSAGE_PAYLOAD_RECEIVED_PREFIX) - 1)
+
+//=====[Enableing]=====================================
 #define ENABLE_UART_USB_LOG
 
 //=====[Declaration of private data types]=====================================
@@ -57,17 +106,20 @@ Tracker::Tracker () {
         uartUSB.disable();
     #endif
 
+    this->formattedMessage = new char [MESSAGE_BUFFER_SIZE]; 
+    this->receivedMessage = new char [MESSAGE_LORA_RECEPTION_BUFFER_SIZE];
+
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
     watchdog.start(TIMEOUT_WATCHDOG_TIMER_MS);
-    char StringToSendUSB [50] = "Tracker initialization";
-    uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
 
-    this->deviceIdentifier = new char [100];
-    strcpy (this->deviceIdentifier, CURRENT_DEVICE_IDENTIFIER);
-    this->prevChainHash = new char [100];
-    strcpy (this->prevChainHash, "-");
-    this->currChainHash = new char [100];
-    strcpy (this->currChainHash, "-");
+    uartUSB.write (LOG_MESSAGE_TRACKER_INIT, LOG_MESSAGE_TRACKER_INIT_LEN );  // debug only
+
+    this->deviceIdentifier = new char [HASH_BASE_64_BUFFER_SIZE];
+    strncpy (this->deviceIdentifier, CURRENT_DEVICE_IDENTIFIER, 100);
+    this->prevChainHash = new char [HASH_BASE_64_BUFFER_SIZE];
+    strncpy (this->prevChainHash, "-", HASH_BASE_64_BUFFER_SIZE);
+    this->currChainHash = new char [HASH_BASE_64_BUFFER_SIZE];
+    strncpy (this->currChainHash, "-", HASH_BASE_64_BUFFER_SIZE);
 
     this->currentOperationMode = NORMAL_OPERATION_MODE;
     //this->currentOperationMode = PERSUIT_OPERATION_MODE;
@@ -79,18 +131,18 @@ Tracker::Tracker () {
     //both share the same power manager and ATHandler (uart)
 
     this->serverTargetted = new RemoteServerInformation;
-    this->serverTargetted->url = new char[100]; // 
-    strcpy (this->serverTargetted->url, URL_PATH_CHANNEL);
+    this->serverTargetted->url = new char[HASH_BASE_64_BUFFER_SIZE]; // 
+    strncpy (this->serverTargetted->url, URL_PATH_CHANNEL, HASH_BASE_64_BUFFER_SIZE);
 
     this->currentCellInformation = new CellInformation;
-    this->currentCellInformation->timestamp  = new char [20];
-    this->currentCellInformation->band = new char [20];
+    this->currentCellInformation->timestamp  = new char [TIMESTAMP_BUFFER_SIZE];
+    this->currentCellInformation->band = new char [BAND_STRING_BUFFER_SIZE];
 
     this->currentGNSSdata = new GNSSData;
     this->batteryStatus = new BatteryData;
 
     this->imuData = new IMUData_t;
-    this->imuData->timestamp = new char [20];
+    this->imuData->timestamp = new char [TIMESTAMP_BUFFER_SIZE];
     this->imuData->timeBetweenSamples = TIME_BETWEEN_IMU_SAMPLES;
 
     this->inertialSensor = new IMUManager (); 
@@ -124,6 +176,11 @@ Tracker::Tracker () {
 }
 
 Tracker::~Tracker() {
+    delete [] this->formattedMessage;
+    this->formattedMessage = nullptr;
+    delete [] this->receivedMessage;
+    this->receivedMessage = nullptr;
+
     delete [] this->serverTargetted->url; 
     this->serverTargetted->url  = nullptr;
     delete this->serverTargetted; 
@@ -190,9 +247,6 @@ Tracker::~Tracker() {
 }
 
 void Tracker::update () {
-    static char formattedMessage [2248];
-    static char receivedMessage [512];
-
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singleton
     watchdog.kick();
@@ -228,33 +282,33 @@ void Tracker::changeState  (TrackerState * newTrackerState) {
 
 void Tracker::getMovementEvent (char * movementEventString) {
     if (this->currentMovementEvent == MOVING) {
-        strcpy (movementEventString, "MOVE");
+        strcpy (movementEventString, MOVEMENT_EVENT_STRING_MOVING);
     }
     if (this->currentMovementEvent == PARKING) {
-        strcpy (movementEventString, "PARK");
+        strcpy (movementEventString, MOVEMENT_EVENT_STRING_PARKING);
     }
     if (this->currentMovementEvent == STOPPED) {
-        strcpy (movementEventString, "STOP");
+        strcpy (movementEventString, MOVEMENT_EVENT_STRING_STOPPED);
     }
     if (this->currentMovementEvent == MOVEMENT_RESTARTED) {
-        strcpy (movementEventString, "MVRS");
+        strcpy (movementEventString, MOVEMENT_EVENT_STRING_MOVEMENT_RESTARTED);
     }
 }
 
 void Tracker::setMovementEvent (char * movementEventString) {
-    if (strcmp (movementEventString,"MOVE") == 0) {
+    if (strcmp (movementEventString, MOVEMENT_EVENT_STRING_MOVING) == 0) {
         this->currentMovementEvent = MOVING;
         return;
     }
-    if (strcmp (movementEventString,"PARK") == 0) {
+    if (strcmp (movementEventString, MOVEMENT_EVENT_STRING_PARKING) == 0) {
         this->currentMovementEvent = PARKING;
         return;
     }
-    if (strcmp (movementEventString,"STOP") == 0) {
+    if (strcmp (movementEventString, MOVEMENT_EVENT_STRING_STOPPED) == 0) {
         this->currentMovementEvent = STOPPED;
         return;
     }
-    if (strcmp (movementEventString,"MVRS") == 0) {
+    if (strcmp (movementEventString, MOVEMENT_EVENT_STRING_MOVEMENT_RESTARTED) == 0) {
         this->currentMovementEvent = MOVEMENT_RESTARTED;
         return;
     }
@@ -271,38 +325,33 @@ OperationMode_t  Tracker::getOperationMode () {
 }
 
 void Tracker::updateMovementEvent () {
-    char buffer[100];
     MovementEvent_t newMovementEvent;
 
     if (this->newMotionStatus == DEVICE_ON_MOTION && this->currentMotionStatus == DEVICE_STATIONARY) {
         newMovementEvent = MOVEMENT_RESTARTED;
         if (newMovementEvent != this->currentMovementEvent) {
-            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: MOVEMENT_RESTARTED\n\r");
-            uartUSB.write(buffer, strlen(buffer));
+            uartUSB.write(LOG_MESSAGE_MOVEMENT_RESTARTED, LOG_MESSAGE_MOVEMENT_RESTARTED_LEN);
         }
         this->currentMovementEvent = newMovementEvent;
     }
     else if (this->newMotionStatus == DEVICE_STATIONARY && this->currentMotionStatus == DEVICE_ON_MOTION) {
         newMovementEvent = PARKING;
         if (newMovementEvent != this->currentMovementEvent) {
-            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: PARKING\n\r");
-            uartUSB.write(buffer, strlen(buffer));
+            uartUSB.write(LOG_MESSAGE_PARKING, LOG_MESSAGE_PARKING_LEN);
         }
         this->currentMovementEvent = newMovementEvent;
     }
     else if (this->newMotionStatus == DEVICE_ON_MOTION && this->currentMotionStatus == DEVICE_ON_MOTION) {
         newMovementEvent = MOVING;
         if (newMovementEvent != this->currentMovementEvent) {
-            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: MOVING\n\r");
-            uartUSB.write(buffer, strlen(buffer));
+            uartUSB.write(LOG_MESSAGE_MOVING, LOG_MESSAGE_MOVING_LEN);
         }
         this->currentMovementEvent = newMovementEvent;
     }
     else if (this->newMotionStatus == DEVICE_STATIONARY && this->currentMotionStatus == DEVICE_STATIONARY) {
         newMovementEvent = STOPPED;
         if (newMovementEvent != this->currentMovementEvent) {
-            snprintf(buffer, sizeof(buffer), "\n\rUpdate movement event: STOPPED\n\r");
-            uartUSB.write(buffer, strlen(buffer));
+            uartUSB.write(LOG_MESSAGE_STOPPED, LOG_MESSAGE_STOPPED_LEN);
         }
         this->currentMovementEvent = newMovementEvent;
     }
@@ -357,8 +406,8 @@ void Tracker::setLatency(LatencyLevel_t level) {
     this->latency->write(newLatency);
     this->latency->restart();
 
-    char buffer[100];
-    snprintf(buffer, sizeof(buffer), "\n\rNew latency set: %llu ms\n\r", newLatency);
+    char buffer[LOG_MESSAGE_NEW_LATENCY_LEN + 20];
+    snprintf(buffer, sizeof(buffer), "%s %llu ms\n\r",LOG_MESSAGE_NEW_LATENCY , newLatency);
     uartUSB.write(buffer, strlen(buffer));
 }
 
@@ -396,8 +445,8 @@ tick_t newKeepAliveLatency = EXTREMELY_LOW_LATENCY_MS;
     this->silentKeepAliveTimer->write(newKeepAliveLatency);
     this->silentKeepAliveTimer->restart();
 
-    char buffer[100];
-    snprintf(buffer, sizeof(buffer), "\n\rNew keep alive latency set: %llu ms\n\r", newKeepAliveLatency);
+    char buffer[LOG_MESSAGE_NEW_KEEPALIVE_LATENCY_LEN + 20];
+    snprintf(buffer, sizeof(buffer), "%s %llu ms\n\r",LOG_MESSAGE_NEW_KEEPALIVE_LATENCY, newKeepAliveLatency);
     uartUSB.write(buffer, strlen(buffer));
 }
 
@@ -451,47 +500,45 @@ void Tracker::increaseLoraMessageNumber () {
     return;
 }
 
-
 bool Tracker::checkMessageIntegrity ( char *messageReceived) {
-    char logMessage [60];
+    char logMessage [LOG_MESSAGE_PAYLOAD_RECEIVED_PREFIX_LEN + 20];
 
-    char payload [60];
     long long int deviceIdReceived;
     int messageNumberReceived; 
-    char payloadReceived [60];
+    char payloadReceived [ACK_BUFFER_SIZE];
 
     if (sscanf(messageReceived, "%lld,%d,%s", &deviceIdReceived, &messageNumberReceived, payloadReceived) == 3) {
         bool messageCorrect = false;
         uartUSB.write ("\r\n", strlen("\r\n"));
-        snprintf(logMessage, sizeof(logMessage), "Device ID Received: %lld\r\n", deviceIdReceived);
+        snprintf(logMessage, sizeof(logMessage),  LOG_MESSAGE_DEVICE_ID_RECEIVED_PREFIX, deviceIdReceived);
         uartUSB.write(logMessage, strlen(logMessage));
         if (deviceIdReceived == this->currentCellInformation->IMEI) {
-            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+            uartUSB.write(LOG_MESSAGE_ACK_OK, LOG_MESSAGE_ACK_OK_LEN);
         } else {
-            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            uartUSB.write(LOG_MESSAGE_ACK_INVALID, LOG_MESSAGE_ACK_INVALID_LEN);
             return false;
         }
-        snprintf(logMessage, sizeof(logMessage), "Message Number Received: %d\r\n", messageNumberReceived);
+        snprintf(logMessage, sizeof(logMessage), LOG_MESSAGE_MESSAGE_NUMBER_RECEIVED_PREFIX, messageNumberReceived);
         uartUSB.write(logMessage, strlen(logMessage));
         if (messageNumberReceived == this->loraMessageNumber) {
-            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+            uartUSB.write(LOG_MESSAGE_ACK_OK, LOG_MESSAGE_ACK_OK_LEN);
         } else {
-            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            uartUSB.write(LOG_MESSAGE_ACK_INVALID, LOG_MESSAGE_ACK_INVALID_LEN);
             return false;
         }
-        snprintf(logMessage, sizeof(logMessage), "Payload Received: %s\r\n", payloadReceived);
+        snprintf(logMessage, sizeof(logMessage), LOG_MESSAGE_PAYLOAD_RECEIVED_PREFIX, payloadReceived);
         uartUSB.write(logMessage, strlen(logMessage));
-        if (strcmp (payloadReceived, "ACK") == 0 || strcmp (payloadReceived, "ACK\r") == 0 ||
-         strcmp (payloadReceived, "ACK\r\n") == 0 ) {
-            uartUSB.write("OK\r\n", strlen("OK\r\n"));
+        if (strcmp (payloadReceived, ACK_VALID_1) == 0 || strcmp (payloadReceived, ACK_VALID_2) == 0 ||
+         strcmp (payloadReceived, ACK_VALID_3) == 0 ) {
+            uartUSB.write(LOG_MESSAGE_ACK_OK, LOG_MESSAGE_ACK_OK_LEN);
         } else {
-            uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+            uartUSB.write(LOG_MESSAGE_ACK_INVALID, LOG_MESSAGE_ACK_INVALID_LEN);
             return false;
         }
         this->increaseLoraMessageNumber ();
         return true;
     } else {
-        uartUSB.write("ACK invalido\r\n", strlen("ACK invalido\r\n"));
+        uartUSB.write(LOG_MESSAGE_ACK_INVALID, LOG_MESSAGE_ACK_INVALID_LEN);
         return false;
     }
  }
@@ -516,11 +563,11 @@ void Tracker::increaseSequenceNumber () {
 }
 
 void Tracker::progressOnHashChain () {
-    strcpy (this->prevChainHash, this->currChainHash);
+    strncpy (this->prevChainHash, this->currChainHash, HASH_BASE_64_BUFFER_SIZE);
 }
 
 void Tracker::setCurrentHashChain (const char * hashChain) {
-    strcpy (this->currChainHash, hashChain );
+    strncpy (this->currChainHash, hashChain, HASH_BASE_64_BUFFER_SIZE );
 }
 
 

@@ -6,7 +6,7 @@
 #include "TurningOffGNSS.h"
 
 //=====[Declaration of private defines]========================================
-#define MAXRETRIES  2
+#define MAXRETRIES  30
 
 #define LOG_MESSAGE "Obtaining GNSS Position\r\n"
 #define LOG_MESSAGE_LEN (sizeof(LOG_MESSAGE) - 1)
@@ -97,7 +97,7 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
         ////   ////   ////   ////   ////   ////   
     }
 
-    if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+    if ( ATHandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
          ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only

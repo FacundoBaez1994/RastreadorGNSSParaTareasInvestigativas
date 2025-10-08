@@ -8,6 +8,7 @@
 #include "TrackerBaseState.h"
 #include "Tracker.h"
 #include "JWTManager.h"
+#include "BufferSizes.h"
 
 #include "mbedtls/sha256.h"
 #include "mbedtls/base64.h"
@@ -210,8 +211,8 @@ private:
     trackerStatus_t currentStatus; ///< Current tracker status
     JWTManager* jwt; ///< Pointer to JWT manager for token/signature management
     
-    char messageBuffer [2248]; ///< intermediate buffer to allow message formating, works with dinamic memory.
-    int sizeOfMessageBuffer = 2248; ///< size of the intermediate buffer
+    char messageBuffer [MESSAGE_BUFFER_SIZE]; ///< intermediate buffer to allow message formating, works with dinamic memory.
+    int sizeOfMessageBuffer = MESSAGE_BUFFER_SIZE; ///< size of the intermediate buffer
 };
 
 

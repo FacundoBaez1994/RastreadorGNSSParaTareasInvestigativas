@@ -95,7 +95,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 refreshTime->restart();
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -119,7 +119,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 ////   ////   ////   ////   ////   ////  
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -145,7 +145,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 ////   ////   ////   ////   ////   ////  
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -168,7 +168,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 uartUSB.write ( "\r\n",  3 );  // debug only 
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
 

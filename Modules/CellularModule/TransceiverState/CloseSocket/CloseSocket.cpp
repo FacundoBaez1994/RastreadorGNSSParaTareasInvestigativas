@@ -71,7 +71,7 @@ void CloseSocket::enableTransceiver () {
     }
 
 
-    if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+    if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if ((strcmp (StringToBeRead, ExpectedResponse) == 0) ) {

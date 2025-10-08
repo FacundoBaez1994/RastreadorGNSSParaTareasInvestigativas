@@ -13,6 +13,9 @@
 #define MAX_CHUNK_SIZE     255
 #define FLY_TIME           800
 #define TIMEOUT          5000
+
+
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -42,17 +45,14 @@ ExchangingLoRaMessages::~ExchangingLoRaMessages() {
 }
 
 void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage ) {
-    //char buffer [1024] = "helloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwF-16";
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
-    char buffer [2248];
+    char buffer [MESSAGE_BUFFER_SIZE];
     static bool firstChunkSent = false;
-    //static bool firstDelayPassed = false;
     static size_t stringIndex = 0;
 
     char logMessage [100];
 
-    static char receptionBuffer[2248] = {0};
-    static char processedMessageReceived  [2248];
+    static char processedMessageReceived  [MESSAGE_BUFFER_SIZE];
     static bool messageReceived = false; 
     static std::vector<char> accumulatedBuffer; // Acumulador de fragmentos
     static std::string fullMessage;

@@ -8,6 +8,7 @@
 #include "TrackerBaseState.h"
 #include "Tracker.h"
 #include "string.h"
+#include "BufferSizes.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; /**< Forward declaration to avoid circular dependencies */

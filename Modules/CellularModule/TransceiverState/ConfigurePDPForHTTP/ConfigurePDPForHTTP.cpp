@@ -104,7 +104,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                 refreshTime->restart();
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -127,7 +127,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                 ////   ////   ////   ////   ////   ////   
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -150,7 +150,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                 ////   ////   ////   ////   ////   ////   
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -174,7 +174,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                 ////   ////   ////   ////   ////   ////   
             }
                             
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {  // shows IP
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {  // shows IP
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only 
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -197,7 +197,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                 ////   ////   ////   ////   ////   ////   
             }
                             
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {  // shows IP
+            if ( ATHandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {  // shows IP
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only 
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 
@@ -224,7 +224,7 @@ CellularTransceiverStatus_t ConfigurePDPForHTTP::exchangeMessages (ATCommandHand
                 ////   ////   ////   ////   ////   ////   
             }
                             
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {  // shows IP
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {  // shows IP
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only 
                 uartUSB.write ( "\r\n",  3 );  // debug only
                 

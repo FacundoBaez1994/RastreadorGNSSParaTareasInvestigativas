@@ -72,7 +72,7 @@ CellInformation * currentCellInformation) {
     }
 
     if ( this->operatorsInformationRetrived == false) {
-        if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
+        if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true ) {
         
             ////   ////   ////   ////   ////   ////
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
@@ -86,7 +86,7 @@ CellInformation * currentCellInformation) {
     } 
 
     if (this->operatorsInformationRetrived  == true) {
-        if  (ATHandler->readATResponse ( StringToBeRead) == true) {
+        if  (ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only

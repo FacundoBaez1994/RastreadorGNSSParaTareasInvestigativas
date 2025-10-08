@@ -11,6 +11,7 @@
 #include "Tracker.h"
 #include "Non_Blocking_Delay.h"
 #include "timeStampTools.h"
+#include "BufferSizes.h"
 
 //=====[Declaration of public data types]======================================
 class Tracker; //debido a declaracion adelantada

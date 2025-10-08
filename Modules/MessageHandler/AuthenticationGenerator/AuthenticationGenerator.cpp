@@ -3,7 +3,17 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
+#define LOG_MESSAGE_HMAC_HEADER                    "HMAC:\r\n"
+#define LOG_MESSAGE_HMAC_HEADER_LEN                (sizeof(LOG_MESSAGE_HMAC_HEADER) - 1)
 
+#define LOG_MESSAGE_NEWLINE                        "\r\n"
+#define LOG_MESSAGE_NEWLINE_LEN                    (sizeof(LOG_MESSAGE_NEWLINE) - 1)
+
+#define LOG_MESSAGE_ENCRYPTED_WITH_HMAC            "Encrypted message with HMAC:\r\n"
+#define LOG_MESSAGE_ENCRYPTED_WITH_HMAC_LEN        (sizeof(LOG_MESSAGE_ENCRYPTED_WITH_HMAC) - 1)
+
+#define HMAC_KEY_VALUE              "KURRRVWWWWAAAAA"
+#define HMAC_KEY_VALUE_LEN          (sizeof(HMAC_KEY_VALUE) - 1)
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -30,13 +40,13 @@ AuthenticationGenerator::~AuthenticationGenerator () {
 }
 
 MessageHandlerStatus_t AuthenticationGenerator::handleMessage(char* message, unsigned int sizeOfMessage) {
-    unsigned char keyhmac[] = "KURRRVWWWWAAAAA";
+    unsigned char keyhmac[] = HMAC_KEY_VALUE;
     unsigned char hmac[32]; 
     size_t message_len = strlen(message); 
     
     generate_hmac(keyhmac, strlen((char*)keyhmac), (unsigned char*)message, message_len, hmac);
 
-    uartUSB.write ("HMAC:\r\n", strlen ("HMAC:\r\n"));  // debug only
+    uartUSB.write (LOG_MESSAGE_HMAC_HEADER, LOG_MESSAGE_HMAC_HEADER_LEN);  // debug only
     uartUSB.write (hmac, sizeof (hmac));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only
 
@@ -59,7 +69,7 @@ MessageHandlerStatus_t AuthenticationGenerator::handleMessage(char* message, uns
 
     message[ total_len] = '\0';
 
-    uartUSB.write("Encrypted message with HMAC:\r\n", strlen("Encrypted message with HMAC:\r\n"));  // debug only
+    uartUSB.write(LOG_MESSAGE_ENCRYPTED_WITH_HMAC, LOG_MESSAGE_ENCRYPTED_WITH_HMAC_LEN);  // debug only
     uartUSB.write(message, total_len);  // debug only
     uartUSB.write("\r\n", 3);  // debug only
     if (this->nextHandler == nullptr) {

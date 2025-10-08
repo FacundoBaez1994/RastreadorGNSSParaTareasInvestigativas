@@ -11,6 +11,94 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+#define LOG_MESSAGE_BUFFER_SIZE 100  
+#define JSON_HEADER_MAX_BUFFER 30
+
+#define LOG_MESSAGE_SEND_OK                         "The message was sent with success\r\n"
+#define LOG_MESSAGE_SEND_OK_LEN                     (sizeof(LOG_MESSAGE_SEND_OK) - 1)
+
+#define LOG_MESSAGE_ERROR_DECODING_JWT              "error decoding JWT\r\n"
+#define LOG_MESSAGE_ERROR_DECODING_JWT_LEN          (sizeof(LOG_MESSAGE_ERROR_DECODING_JWT) - 1)
+
+#define LOG_MESSAGE_CORRUPTED_SERVER_MESSAGE        "Corrupted Server Message\r\n"
+#define LOG_MESSAGE_CORRUPTED_SERVER_MESSAGE_LEN    (sizeof(LOG_MESSAGE_CORRUPTED_SERVER_MESSAGE) - 1)
+
+#define LOG_MESSAGE_SERVER_RETURN_ERROR             "Server returns error\r\n"
+#define LOG_MESSAGE_SERVER_RETURN_ERROR_LEN         (sizeof(LOG_MESSAGE_SERVER_RETURN_ERROR) - 1)
+
+#define LOG_MESSAGE_NO_MESSAGES_RECEIVED            "No Messages received\r\n"
+#define LOG_MESSAGE_NO_MESSAGES_RECEIVED_LEN        (sizeof(LOG_MESSAGE_NO_MESSAGES_RECEIVED) - 1)
+
+#define LOG_MESSAGE_MESSAGE_COULD_NOT_BE_SENT       "The message couldn't be sent\r\n"
+#define LOG_MESSAGE_MESSAGE_COULD_NOT_BE_SENT_LEN   (sizeof(LOG_MESSAGE_MESSAGE_COULD_NOT_BE_SENT) - 1)
+
+#define LOG_MESSAGE_REDIRECT_TO_LORA                "Redirect to LoRa Sending\r\n"
+#define LOG_MESSAGE_REDIRECT_TO_LORA_LEN            (sizeof(LOG_MESSAGE_REDIRECT_TO_LORA) - 1)
+
+#define LOG_MESSAGE_LATENCY_PREFIX                  "LATENCY: "
+#define LOG_MESSAGE_LATENCY_PREFIX_LEN              (sizeof(LOG_MESSAGE_LATENCY_PREFIX) - 1)
+
+#define LOG_MESSAGE_SUCCESS_PREFIX                  "SUCCESS: "
+#define LOG_MESSAGE_SUCCESS_PREFIX_LEN              (sizeof(LOG_MESSAGE_SUCCESS_PREFIX) - 1)
+
+#define LOG_MESSAGE_MODE_PREFIX                     "MODE: "
+#define LOG_MESSAGE_MODE_PREFIX_LEN                 (sizeof(LOG_MESSAGE_MODE_PREFIX) - 1)
+
+#define LOG_MESSAGE_SILENT_MODE_PREFIX              "Setted Silent mode of "
+#define LOG_MESSAGE_SILENT_MODE_PREFIX_LEN          (sizeof(LOG_MESSAGE_SILENT_MODE_PREFIX) - 1)
+#define LOG_MESSAGE_SILENT_MODE_SUFFIX              " hours\r\n"
+#define LOG_MESSAGE_SILENT_MODE_SUFFIX_LEN          (sizeof(LOG_MESSAGE_SILENT_MODE_SUFFIX) - 1)
+
+#define LOG_MESSAGE_LATENCY_EXTREMELY_LOW           "\r\nLatency level: EXTREMELY_LOW_LATENCY\r\n"
+#define LOG_MESSAGE_LATENCY_EXTREMELY_LOW_LEN       (sizeof(LOG_MESSAGE_LATENCY_EXTREMELY_LOW) - 1)
+
+#define LOG_MESSAGE_LATENCY_VERY_LOW                "\r\nLatency level: VERY_LOW_LATENCY\r\n"
+#define LOG_MESSAGE_LATENCY_VERY_LOW_LEN            (sizeof(LOG_MESSAGE_LATENCY_VERY_LOW) - 1)
+
+#define LOG_MESSAGE_LATENCY_LOW                     "\r\nLatency level: LOW_LATENCY\r\n"
+#define LOG_MESSAGE_LATENCY_LOW_LEN                 (sizeof(LOG_MESSAGE_LATENCY_LOW) - 1)
+
+#define LOG_MESSAGE_LATENCY_MEDIUM                  "\r\nLatency level: MEDIUM_LATENCY\r\n"
+#define LOG_MESSAGE_LATENCY_MEDIUM_LEN              (sizeof(LOG_MESSAGE_LATENCY_MEDIUM) - 1)
+
+#define LOG_MESSAGE_LATENCY_HIGH                    "\r\nLatency level: HIGH_LATENCY\r\n"
+#define LOG_MESSAGE_LATENCY_HIGH_LEN                (sizeof(LOG_MESSAGE_LATENCY_HIGH) - 1)
+
+#define LOG_MESSAGE_LATENCY_VERY_HIGH               "\r\nLatency level: VERY_HIGH_LATENCY\r\n"
+#define LOG_MESSAGE_LATENCY_VERY_HIGH_LEN           (sizeof(LOG_MESSAGE_LATENCY_VERY_HIGH) - 1)
+
+#define LOG_MESSAGE_LATENCY_EXTREMELY_HIGH          "\r\nLatency level: EXTREMELY_HIGH_LATENCY\r\n"
+#define LOG_MESSAGE_LATENCY_EXTREMELY_HIGH_LEN      (sizeof(LOG_MESSAGE_LATENCY_EXTREMELY_HIGH) - 1)
+
+#define LOG_MESSAGE_OPERATION_MODE_NORMAL           "\r\nOperation Mode: NORMAL_OPERATION_MODE\r\n"
+#define LOG_MESSAGE_OPERATION_MODE_NORMAL_LEN       (sizeof(LOG_MESSAGE_OPERATION_MODE_NORMAL) - 1)
+
+#define LOG_MESSAGE_OPERATION_MODE_PURSUIT          "\r\nOperation Mode: PURSUIT_OPERATION_MODE\r\n"
+#define LOG_MESSAGE_OPERATION_MODE_PURSUIT_LEN      (sizeof(LOG_MESSAGE_OPERATION_MODE_PURSUIT) - 1)
+
+#define LOG_MESSAGE_OPERATION_MODE_SILENT           "\r\nOperation Mode: SILENT_OPERATION_MODE\r\n"
+#define LOG_MESSAGE_OPERATION_MODE_SILENT_LEN       (sizeof(LOG_MESSAGE_OPERATION_MODE_SILENT) - 1)
+
+
+#define JSON_MESSAGE_FIELD_EXCHANGE_SUCCESS "\"SUCS\""
+#define JSON_MESSAGE_FIELD_LATENCY "\"LTCY\""
+#define JSON_MESSAGE_FIELD_OPERATION_MODE "\"MODE\""
+#define JSON_MESSAGE_FIELD_TIME_SILENT "\"TSOP\""
+
+#define JSON_SUCCESS_OK_1               "true"
+#define JSON_SUCCESS_OK_2               "TRUE"
+
+#define JSON_LATENCY_EXTREMELY_LOW                  "ELL"
+#define JSON_LATENCY_VERY_LOW                       "VLL"
+#define JSON_LATENCY_LOW                            "LL"
+#define JSON_LATENCY_MEDIUM                         "ML"
+#define JSON_LATENCY_HIGH                           "HL"
+#define JSON_LATENCY_VERY_HIGH                      "VHL"
+#define JSON_LATENCY_EXTREMELY_HIGH                 "EHL"
+
+#define JSON_OPERATION_MODE_NORMAL_OPERATION        "NOPM"
+#define JSON_OPERATION_MODE_PURSUIT_OPERATION       "POPM"
+#define JSON_OPERATION_MODE_SILENT_OPERATION        "SOPM"
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -27,10 +115,8 @@
 
 //=====[Implementations of public methods]===================================
 ExchangingMessages::ExchangingMessages (Tracker * tracker, trackerStatus_t trackerStatus) {
-    uartUSB.write ("CONSTRUCTOR 1 ExchangingMessages\r\n" , strlen ("CONSTRUCTOR 1 ExchangingMessages\r\n"));  // debug only
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
-    uartUSB.write ("CONSTRUCTOR 2 ExchangingMessages\r\n", strlen ("CONSTRUCTOR 2 ExchangingMessages\r\n"));  // debug only
 }
 
 ExchangingMessages::~ExchangingMessages () {
@@ -49,8 +135,8 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
-    char logMessage [100];
-    char payloadRetrieved [256];
+    char logMessage [LOG_MESSAGE_BUFFER_SIZE];
+    char payloadRetrieved [RECEPTION_MN_BUFFER_SIZE];
     
     // if conected to mobile network send the message throght LTE Modem
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
@@ -65,17 +151,14 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
        receivedMessage, &newDataAvailable);
 
         if (currentTransmitionStatus == CELLULAR_TRANSCEIVER_STATUS_SEND_OK) {
-            snprintf(logMessage, sizeof(logMessage), "The message was send with success");
-            uartUSB.write (logMessage , strlen (logMessage));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_MESSAGE_SEND_OK , LOG_MESSAGE_SEND_OK_LEN);  // debug only
 
         if (newDataAvailable == true) {
 
             //////////////////   MESSAGE INTERPRETATION ////////////////
             ////////////////////////////////////////////////////////////////
             if (this->tracker->decodeJWT(receivedMessage, payloadRetrieved) == false) {
-                snprintf(logMessage, sizeof(logMessage), "error decoding JWT\r\n");
-                uartUSB.write(logMessage, strlen(logMessage));
+                uartUSB.write(LOG_MESSAGE_ERROR_DECODING_JWT, LOG_MESSAGE_ERROR_DECODING_JWT_LEN);
 
                 newDataAvailable = false;
                 enableTransceiver = false;
@@ -99,15 +182,14 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
             newDataAvailable = false;
             enableTransceiver = false;
 
-            char success[30];
-            char latency[30];
-            char mode[30];
-            char timeSilentString [30];
+            char success[JSON_HEADER_MAX_BUFFER];
+            char latency[JSON_HEADER_MAX_BUFFER];
+            char mode[JSON_HEADER_MAX_BUFFER];
+            char timeSilentString [JSON_HEADER_MAX_BUFFER];
             int timeSilent;
 
-            if (extractField(receivedMessage, "\"SUCS\"", success, sizeof(success)) == false) {
-                snprintf(logMessage, sizeof(logMessage), "Corrupted Server Message\r\n");
-                uartUSB.write(logMessage, strlen(logMessage));
+            if (extractField(receivedMessage, JSON_MESSAGE_FIELD_EXCHANGE_SUCCESS, success, sizeof(success)) == false) {
+                uartUSB.write(LOG_MESSAGE_CORRUPTED_SERVER_MESSAGE, LOG_MESSAGE_CORRUPTED_SERVER_MESSAGE_LEN);
 
                 newDataAvailable = false;
                 enableTransceiver = false;
@@ -124,13 +206,12 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
                 this->tracker->changeState (new FormattingMessage (this->tracker, this->currentStatus));
                 return;
             }
-            snprintf(logMessage, sizeof(logMessage), "SUCCESS: %s\r\n", success);
+            snprintf(logMessage, sizeof(logMessage), "%s %s\r\n",LOG_MESSAGE_SUCCESS_PREFIX, success);
             uartUSB.write(logMessage, strlen(logMessage));
 
 
-            if (strcmp (success, "true") != 0 && strcmp (success, "TRUE") != 0) {
-                snprintf(logMessage, sizeof(logMessage), "Server returns error\r\n");
-                uartUSB.write(logMessage, strlen(logMessage));
+            if (strcmp (success, JSON_SUCCESS_OK_1) != 0 && strcmp (success, JSON_SUCCESS_OK_2) != 0) {
+                uartUSB.write(LOG_MESSAGE_SERVER_RETURN_ERROR, LOG_MESSAGE_SERVER_RETURN_ERROR_LEN);
 
                 newDataAvailable = false;
                 enableTransceiver = false;
@@ -152,13 +233,13 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
             this->tracker->progressOnHashChain ();
             this->tracker->increaseSequenceNumber ();
 
-            if (extractField(receivedMessage, "\"LTCY\"", latency, sizeof(latency)) == false) {    
+            if (extractField(receivedMessage, JSON_MESSAGE_FIELD_LATENCY, latency, sizeof(latency)) == false) {    
                 newDataAvailable = false;
                 enableTransceiver = false;
                 this->tracker->changeState (new LoadingMessage (this->tracker));
                 return;
             }
-            snprintf(logMessage, sizeof(logMessage), "LATENCY: %s\r\n", latency);
+            snprintf(logMessage, sizeof(logMessage), "%s %s\r\n",LOG_MESSAGE_LATENCY_PREFIX, latency);
             uartUSB.write(logMessage, strlen(logMessage));
             LatencyLevel_t newLatencyLevel;
             if (this->parseLatencyLevel(latency, &newLatencyLevel)) {
@@ -166,7 +247,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
             }
             
 
-            if (extractField(receivedMessage, "\"MODE\"", mode, sizeof(mode)) == false) {
+            if (extractField(receivedMessage, JSON_MESSAGE_FIELD_OPERATION_MODE, mode, sizeof(mode)) == false) {
                 newDataAvailable = false;
                 enableTransceiver = false;
                 this->tracker->changeState (new LoadingMessage (this->tracker));
@@ -176,7 +257,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
             int hoursSilentMode;
             if (this->parseOperationMode(mode, &newOperationMode)) {
                 if (newOperationMode == SILENT_OPERATION_MODE) {
-                    if (extractField(receivedMessage, "\"TSOP\"", timeSilentString, sizeof(timeSilentString)) == false) {
+                    if (extractField(receivedMessage, JSON_MESSAGE_FIELD_TIME_SILENT, timeSilentString, sizeof(timeSilentString)) == false) {
                         newDataAvailable = false;
                         enableTransceiver = false;
                         this->tracker->changeState (new LoadingMessage (this->tracker));
@@ -189,7 +270,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
                         this->tracker->changeState (new LoadingMessage (this->tracker));
                         return;
                     }
-                    snprintf(logMessage, sizeof(logMessage), "Setted Silent mode of %i hours\r\n", timeSilent );
+                    snprintf(logMessage, sizeof(logMessage), "%s %i %s",LOG_MESSAGE_SILENT_MODE_PREFIX, timeSilent, LOG_MESSAGE_SILENT_MODE_SUFFIX );
                     uartUSB.write(logMessage, strlen(logMessage));
                     this->tracker->setOperationMode(newOperationMode);
                     this->tracker->setSilentTimer(timeSilent);
@@ -199,7 +280,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
 
             }
 
-            snprintf(logMessage, sizeof(logMessage), "MODE: %s\r\n", mode);
+            snprintf(logMessage, sizeof(logMessage), "%s %s\r\n",LOG_MESSAGE_MODE_PREFIX, mode);
             uartUSB.write(logMessage, strlen(logMessage));
             
 
@@ -211,8 +292,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
             ////////////////////////////////////////////////////////////////
             
             } else {
-                snprintf(logMessage, sizeof(logMessage),"No Messages received:");
-                uartUSB.write (logMessage , strlen (logMessage));  // debug only
+                uartUSB.write (LOG_MESSAGE_NO_MESSAGES_RECEIVED , LOG_MESSAGE_NO_MESSAGES_RECEIVED_LEN);  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only}
                 newDataAvailable = false;
                 enableTransceiver = false;
@@ -222,8 +302,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
         }  else if (currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND
         && currentTransmitionStatus != CELLULAR_TRANSCEIVER_STATUS_UNAVAIBLE) {
 
-            snprintf(logMessage, sizeof(logMessage),"The message couldn't be sent");
-            uartUSB.write (logMessage , strlen (logMessage));  // debug only
+            uartUSB.write (LOG_MESSAGE_MESSAGE_COULD_NOT_BE_SENT , LOG_MESSAGE_MESSAGE_COULD_NOT_BE_SENT_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             newDataAvailable = false;
             enableTransceiver = false;
@@ -243,17 +322,9 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
         }
     } else if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA || 
     this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA) {
-        /// LORAS STUFF
-        snprintf(logMessage, sizeof(logMessage),"LoRa Sending");
-        uartUSB.write (logMessage , strlen (logMessage));  // debug only
+        uartUSB.write (LOG_MESSAGE_REDIRECT_TO_LORA , LOG_MESSAGE_REDIRECT_TO_LORA_LEN);  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only}
-        
-        // try with LoRa
-        // NOTA: ESTA PARTE DEBERIA DE SER UNO O DOS ESTADOS APARTE
 
-        snprintf(logMessage, sizeof(logMessage),"LoRa Unavailable");
-        uartUSB.write (logMessage , strlen (logMessage));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
         if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA ){
             this->tracker->changeState (new FormattingMessage (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE));
             return;
@@ -267,8 +338,6 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
 }
  
 //=====[Implementations of private methods]==================================
-
-
 bool ExchangingMessages::extractField(const char* json, const char* key, char* output, size_t maxLen) {
     const char* found = strstr(json, key);
     if (!found) return false;
@@ -276,7 +345,7 @@ bool ExchangingMessages::extractField(const char* json, const char* key, char* o
     found = strchr(found, ':');
     if (!found) return false;
 
-    found++; // avanzar al valor
+    found++; 
     while (*found == ' ' || *found == '\"') found++; // salteamos espacios o comillas
 
     size_t i = 0;
@@ -288,60 +357,63 @@ bool ExchangingMessages::extractField(const char* json, const char* key, char* o
 }
 
 bool ExchangingMessages::parseLatencyLevel(const char* latencyStr, LatencyLevel_t * newLatencyLevel) {
-    if (strcmp(latencyStr, "ELL") == 0) {
-        uartUSB.write("\r\nLatency level: EXTREMELY_LOW_LATENCY\r\n", strlen("\r\nLatency level: EXTREMELY_LOW_LATENCY\r\n"));
+
+    if (strcmp(latencyStr, JSON_LATENCY_EXTREMELY_LOW) == 0) {
+        uartUSB.write(LOG_MESSAGE_LATENCY_EXTREMELY_LOW, LOG_MESSAGE_LATENCY_EXTREMELY_LOW_LEN);
         *newLatencyLevel = EXTREMELY_LOW_LATENCY;
         return true;
-    } 
-    if (strcmp(latencyStr, "VLL") == 0) {
-         uartUSB.write("\r\nLatency level: VERY_LOW_LATENCY\r\n", strlen("\r\nLatency level: VERY_LOW_LATENCY\r\n"));
+    }
+    if (strcmp(latencyStr, JSON_LATENCY_VERY_LOW) == 0) {
+        uartUSB.write(LOG_MESSAGE_LATENCY_VERY_LOW, LOG_MESSAGE_LATENCY_VERY_LOW_LEN);
         *newLatencyLevel = VERY_LOW_LATENCY;
         return true;
-    } 
-    if (strcmp(latencyStr, "LL") == 0) {
-        uartUSB.write("\r\nLatency level: LOW_LATENCY\r\n", strlen("\r\nLatency level: LOW_LATENCY\r\n"));
+    }
+    if (strcmp(latencyStr, JSON_LATENCY_LOW) == 0) {
+        uartUSB.write(LOG_MESSAGE_LATENCY_LOW, LOG_MESSAGE_LATENCY_LOW_LEN);
         *newLatencyLevel = LOW_LATENCY;
         return true;
-    } 
-    if (strcmp(latencyStr, "ML") == 0) {
-         uartUSB.write("\r\nLatency level: MEDIUM_LATENCY\r\n", strlen("\r\nLatency level: MEDIUM_LATENCY\r\n"));
+    }
+    if (strcmp(latencyStr, JSON_LATENCY_MEDIUM) == 0) {
+        uartUSB.write(LOG_MESSAGE_LATENCY_MEDIUM, LOG_MESSAGE_LATENCY_MEDIUM_LEN);
         *newLatencyLevel = MEDIUM_LATENCY;
         return true;
-    } 
-    if (strcmp(latencyStr, "HL") == 0) {
-        uartUSB.write("\r\nLatency level: HIGH_LATENCY\r\n", strlen("\r\nLatency level: MEDIUM_LATENCY\r\n"));
+    }
+    if (strcmp(latencyStr, JSON_LATENCY_HIGH) == 0) {
+        uartUSB.write(LOG_MESSAGE_LATENCY_HIGH, LOG_MESSAGE_LATENCY_HIGH_LEN);
         *newLatencyLevel = HIGH_LATENCY;
         return true;
-    } 
-    if (strcmp(latencyStr, "VHL") == 0) {
-        uartUSB.write("\r\nLatency level: VERY_HIGH_LATENCY\r\n", strlen("\r\nLatency level: VERY_HIGH_LATENCY\r\n"));
+    }
+    if (strcmp(latencyStr, JSON_LATENCY_VERY_HIGH) == 0) {
+        uartUSB.write(LOG_MESSAGE_LATENCY_VERY_HIGH, LOG_MESSAGE_LATENCY_VERY_HIGH_LEN);
         *newLatencyLevel = VERY_HIGH_LATENCY;
         return true;
-    } 
-    if (strcmp(latencyStr, "EHL") == 0) {
-        uartUSB.write("\r\nLatency level: EXTREMELY_HIGH_LATENCY\r\n", strlen("\r\nLatency level: EXTREMELY_HIGH_LATENCY\r\n"));
+    }
+    if (strcmp(latencyStr, JSON_LATENCY_EXTREMELY_HIGH) == 0) {
+        uartUSB.write(LOG_MESSAGE_LATENCY_EXTREMELY_HIGH, LOG_MESSAGE_LATENCY_EXTREMELY_HIGH_LEN);
         *newLatencyLevel = EXTREMELY_HIGH_LATENCY;
         return true;
-    } 
+    }
+
     return false;
 }
 
-
 bool ExchangingMessages::parseOperationMode(const char* operationModeStr, OperationMode_t * newOperationMode) {
-    if (strcmp(operationModeStr, "NOPM") == 0) {
-         uartUSB.write("\r\nOperation Mode: NORMAL_OPERATION_MODE\r\n", strlen("\r\nOperation Mode: NORMAL_OPERATION_MODE\r\n"));
+
+    if (strcmp(operationModeStr, JSON_OPERATION_MODE_NORMAL_OPERATION) == 0) {
+        uartUSB.write(LOG_MESSAGE_OPERATION_MODE_NORMAL, LOG_MESSAGE_OPERATION_MODE_NORMAL_LEN);
         *newOperationMode = NORMAL_OPERATION_MODE;
         return true;
-    } 
-    if (strcmp(operationModeStr, "POPM") == 0) {
-         uartUSB.write("\r\nOperation Mode: PURSUIT_OPERATION_MODE\r\n", strlen("\r\nOperation Mode: PURSUIT_OPERATION_MODE\r\n"));
+    }
+    if (strcmp(operationModeStr, JSON_OPERATION_MODE_PURSUIT_OPERATION) == 0) {
+        uartUSB.write(LOG_MESSAGE_OPERATION_MODE_PURSUIT, LOG_MESSAGE_OPERATION_MODE_PURSUIT_LEN);
         *newOperationMode = PURSUIT_OPERATION_MODE;
         return true;
-    } 
-    if (strcmp(operationModeStr, "SOPM") == 0) {
-         uartUSB.write("\r\nOperation Mode: SILENT_OPERATION_MODE\r\n", strlen("\r\nOperation Mode: SILENT_OPERATION_MODE\r\n"));
+    }
+    if (strcmp(operationModeStr, JSON_OPERATION_MODE_SILENT_OPERATION) == 0) {
+        uartUSB.write(LOG_MESSAGE_OPERATION_MODE_SILENT, LOG_MESSAGE_OPERATION_MODE_SILENT_LEN);
         *newOperationMode = SILENT_OPERATION_MODE;
         return true;
-    } 
+    }
+
     return false;
 }

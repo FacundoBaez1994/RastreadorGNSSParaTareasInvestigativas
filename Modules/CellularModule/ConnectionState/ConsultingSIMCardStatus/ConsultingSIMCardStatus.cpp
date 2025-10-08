@@ -88,7 +88,7 @@ CellInformation * currentCellInformation) {
     }
 
     if ( this->simCardDetected == false) {
-        if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
+        if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true ) {
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
              if (strcmp (StringToBeRead, noSimCardError) == 0 || strcmp (StringToBeRead, noSimCardError) == 0) {
@@ -105,7 +105,7 @@ CellInformation * currentCellInformation) {
      
 
     if (this->simCardDetected == true) {
-        if  (ATHandler->readATResponse ( StringToBeRead) == true) {
+        if  (ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
             if (strcmp (StringToBeRead, expectedResponse) == 0) {
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only     

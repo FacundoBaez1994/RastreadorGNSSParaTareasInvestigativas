@@ -7,7 +7,46 @@
 #include "ExchangingLoRaMessages.h"
 
 //=====[Declaration of private defines]========================================
+#define LOG_FORMATTING_MN_GNSS "Formatting MN,GNSS message\r\n"
+#define LOG_FORMATTING_MN_GNSS_LEN (sizeof(LOG_FORMATTING_MN_GNSS) - 1)
 
+#define LOG_FORMATTING_MN_MN "Formatting MN,MN message\r\n"
+#define LOG_FORMATTING_MN_MN_LEN (sizeof(LOG_FORMATTING_MN_MN) - 1)
+
+#define LOG_FORMATTING_GNSS_RELOADED "Formatting GNSS message (reloaded)\r\n"
+#define LOG_FORMATTING_GNSS_RELOADED_LEN (sizeof(LOG_FORMATTING_GNSS_RELOADED) - 1)
+
+#define LOG_FORMATTING_IMU_RELOADED "Formatting IMU message (reloaded)\r\n"
+#define LOG_FORMATTING_IMU_RELOADED_LEN (sizeof(LOG_FORMATTING_IMU_RELOADED) - 1)
+
+#define LOG_FORMATTING_LORA_GNSS "Formatting LORA,GNSS message\r\n"
+#define LOG_FORMATTING_LORA_GNSS_LEN (sizeof(LOG_FORMATTING_LORA_GNSS) - 1)
+
+#define LOG_FORMATTING_LORA_LORA "Formatting LORA,LORA message\r\n"
+#define LOG_FORMATTING_LORA_LORA_LEN (sizeof(LOG_FORMATTING_LORA_LORA) - 1)
+
+#define LOG_FORMATTING_MN_GNSS_SAVING "Formatting MN,GNSS message to be saved\r\n"
+#define LOG_FORMATTING_MN_GNSS_SAVING_LEN (sizeof(LOG_FORMATTING_MN_GNSS_SAVING) - 1)
+
+#define LOG_FORMATTING_MN_MN_SAVING "Formatting MN,MN message to be saved\r\n"
+#define LOG_FORMATTING_MN_MN_SAVING_LEN (sizeof(LOG_FORMATTING_MN_MN_SAVING) - 1)
+
+#define LOG_FORMATTING_GNSS_SAVING "Formatting GNSS message to be saved\r\n"
+#define LOG_FORMATTING_GNSS_SAVING_LEN (sizeof(LOG_FORMATTING_GNSS_SAVING) - 1)
+
+#define LOG_FORMATTING_IMU_SAVING "Formatting IMU message to be saved\r\n"
+#define LOG_FORMATTING_IMU_SAVING_LEN (sizeof(LOG_FORMATTING_IMU_SAVING) - 1)
+
+#define LOG_SWITCHING_STATE_EXCHANGING "Switching State to ExchangingMessages\r\n"
+#define LOG_SWITCHING_STATE_EXCHANGING_LEN (sizeof(LOG_SWITCHING_STATE_EXCHANGING) - 1)
+
+#define LOG_SWITCHING_STATE_EXCHANGING_LORA "Switching State to ExchangingLoRaMessages\r\n"
+#define LOG_SWITCHING_STATE_EXCHANGING_LORA_LEN (sizeof(LOG_SWITCHING_STATE_EXCHANGING_LORA) - 1)
+
+#define LOG_SWITCHING_STATE_SAVING "Switching State to SavingMessage\r\n"
+#define LOG_SWITCHING_STATE_SAVING_LEN (sizeof(LOG_SWITCHING_STATE_SAVING) - 1)
+
+#define TEMPORAL_BUFFER_MAX_SIZE 256
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -56,19 +95,10 @@ bool hash_and_base64(const char *input, char *output, size_t output_size) {
 FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
-    //this->jwt = new JWTManager ();
-    //this->sizeOfMessageBuffer = 2248;
-    //this->messageBuffer = new char [this->sizeOfMessageBuffer];
 }
 
 FormattingMessage::~FormattingMessage () {
     this->tracker = nullptr;
-   //delete this->jwt;
-    //this->jwt = nullptr;
-
-    //delete [] this->messageBuffer;
-   // this->messageBuffer = nullptr;
-
 }
 
 void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
@@ -81,148 +111,116 @@ void FormattingMessage::formatMessage (char * formattedMessage, const CellInform
     const GNSSData* GNSSInfo, const std::vector<CellInformation*> &neighborsCellInformation,
     const IMUData_t * imuData, const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus) {
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
-    char StringToSendUSB [50];
-    char trackerEvent [20];
+    char trackerEvent [STRING_TRACKER_EVENT_SIZE];
 
     this->tracker->getMovementEvent(trackerEvent);
     watchdog.kick();
     switch (this->currentStatus ) {
         ///////////// MN Modem Messages //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,GNSS message\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_MN_GNSS , LOG_FORMATTING_MN_GNSS_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_EXCHANGING , LOG_SWITCHING_STATE_EXCHANGING_LEN);  // debug only
             this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
             break;
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,MN message:\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_MN_MN , LOG_FORMATTING_MN_MN_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo, 
             neighborsCellInformation, imuData, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_EXCHANGING , LOG_SWITCHING_STATE_EXCHANGING_LEN);  // debug only
             this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
             break;
 
         case TRACKER_STATUS_GNSS_LOADED_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting GNSS message (reloaded):\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_GNSS_RELOADED, LOG_FORMATTING_GNSS_RELOADED_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo->IMEI, GNSSInfo, imuData, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_EXCHANGING , LOG_SWITCHING_STATE_EXCHANGING_LEN);  // debug only
             this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
             break;
 
         case TRACKER_STATUS_IMU_LOADED_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting IMU message (reloaded)\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_IMU_RELOADED, LOG_FORMATTING_IMU_RELOADED_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMessage(formattedMessage, aCellInfo->IMEI, imuData, IMUDataSamples, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_EXCHANGING , LOG_SWITCHING_STATE_EXCHANGING_LEN);  // debug only
             this->tracker->changeState (new ExchangingMessages (this->tracker, this->currentStatus));
             break;
 
         ///////////// Lora Messages //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting LORA,GNSS message:\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_LORA_GNSS, LOG_FORMATTING_LORA_GNSS_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatLoRaMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_EXCHANGING_LORA , LOG_SWITCHING_STATE_EXCHANGING_LORA_LEN);  // debug only
             this->tracker->changeState (new ExchangingLoRaMessages (this->tracker, this->currentStatus));
             break;
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA:
-
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting LORA,LORA message:\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_LORA_LORA , LOG_FORMATTING_LORA_LORA_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatLoRaMessage(formattedMessage, aCellInfo, imuData, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to ExchangingMessages"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_EXCHANGING_LORA , LOG_SWITCHING_STATE_EXCHANGING_LORA_LEN);  // debug only
             this->tracker->changeState (new ExchangingLoRaMessages (this->tracker, this->currentStatus));
             break;
 
 
         /////// Saving cases //////////////////////////////
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,GNSS message to be saved\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_MN_GNSS_SAVING, LOG_FORMATTING_MN_GNSS_SAVING_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMemoryMessage(formattedMessage, aCellInfo, GNSSInfo, imuData, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write ( "\r\n",  3 );  // debug only} 
+            uartUSB.write (LOG_SWITCHING_STATE_SAVING , LOG_SWITCHING_STATE_SAVING_LEN);  // debug only
             this->tracker->changeState (new SavingMessage (this->tracker));
             break;
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK_SAVING_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting MN,MN message to be saved:\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_MN_MN_SAVING , LOG_FORMATTING_MN_MN_SAVING_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
 
             this->formatMNMNMemoryMessage(formattedMessage, aCellInfo, 
             neighborsCellInformation, imuData, batteryStatus, trackerEvent);
             
-            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
+            uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only 
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_SAVING , LOG_SWITCHING_STATE_SAVING_LEN);  // debug only
             this->tracker->changeState (new SavingMessage (this->tracker));
             break;
 
         case TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting GNSS message to be saved\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_GNSS_SAVING , LOG_FORMATTING_GNSS_SAVING_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatGNSSMemoryMessage(formattedMessage, GNSSInfo, imuData, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_SAVING , LOG_SWITCHING_STATE_SAVING_LEN);  // debug only
             this->tracker->changeState (new SavingMessage (this->tracker));
             break;
 
         case TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERED_INERTIAL_INFO_SAVING_MESSAGE:
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "Formatting IMU message to be saved\r\n");
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+            uartUSB.write (LOG_FORMATTING_IMU_SAVING, LOG_FORMATTING_IMU_SAVING_LEN);  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
             this->formatMemoryMessage(formattedMessage, imuData, IMUDataSamples, batteryStatus, trackerEvent);
             uartUSB.write (formattedMessage , strlen (formattedMessage));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only}
-            snprintf(StringToSendUSB, sizeof(StringToSendUSB),"Switching State to SavingMessage"); 
-            uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-            uartUSB.write ( "\r\n",  3 );  // debug only}
+            uartUSB.write (LOG_SWITCHING_STATE_SAVING , LOG_SWITCHING_STATE_SAVING_LEN);  // debug only
             this->tracker->changeState (new SavingMessage (this->tracker));
             break;
 
@@ -249,22 +247,8 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     char  timestampJson [sizeOfTimeStamp];
     char timestampJsonExpiration [sizeOfTimeStamp];
 
-    ////////////////////
-    //char * urlPathChannel;
-    //urlPathChannel = new char [sizeOfHash];
-    //char * hashPrevJson;
-    //hashPrevJson = new char [sizeOfHash];
-    //char * deviceIdentifier;
-    ////////////////
-
-   // this->tracker->getUrlPathChannel(urlPathChannel);
-   // this->tracker->getDeviceIdentifier(deviceIdentifier);
-   // this->tracker->getPrevHashChain(hashPrevJson);
-
-    // Calcular hash del payload base
     hash_and_base64(messageToAddMetaData, hashCanonicData, sizeOfHash);
 
-    // Timestamp actual y de expiración
     time_t seconds = time(NULL);
 
     epochToTimestamp(seconds, timestampJson, sizeOfTimeStamp);
@@ -272,7 +256,6 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     time_t secondsToExpire = seconds + 24 * 60 * 60; // +24h
     epochToTimestamp(secondsToExpire, timestampJsonExpiration, sizeOfTimeStamp);
 
-    // Armar JSON intermedio en workBuffer
     int written = snprintf(this->messageBuffer, sizeOfBuffer,
         "{\"iss\":\"%s\","
         "\"aud\":\"%s\","
@@ -288,25 +271,24 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
         timestampJsonExpiration, // exp
         hashCanonicData,         // d
         this->tracker->getSequenceNumber(),   // seq
-         this->tracker->getPrevHashChain(),            // prev
-        messageToAddMetaData                  // payload original
+         this->tracker->getPrevHashChain(),   // prev
+        messageToAddMetaData                  // original payload 
     );
 
     if (written < 0 || (size_t)written >= sizeOfBuffer) {
-        this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0'; // protección
+        this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0'; 
     }
 
-    // Calcular hash del JSON completo
     hash_and_base64(this->messageBuffer, hashCurrentJson, sizeOfHash);
 
-    // Quitar llaves externas { }
+    // extract { }
     size_t len = strlen(this->messageBuffer);
     if (len > 2 && this->messageBuffer[0] == '{' && this->messageBuffer[len - 1] == '}') {
         this->messageBuffer[len - 1] = '\0';                 // saco '}'
         memmove(this->messageBuffer, this->messageBuffer + 1, len-1); // corro eliminando '{'
     }
 
-    // JSON final se escribe directo en message
+    //  final JSON
     written = snprintf(messageToAddMetaData, sizeOfBuffer,
         "{\"curr\":\"%s\",%s}",
         hashCurrentJson,
@@ -325,7 +307,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
      const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char tempBuffer[250]; 
+    static char tempBuffer[TEMPORAL_BUFFER_MAX_SIZE]; 
     size_t currentLen = 0;
 
     currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
@@ -401,10 +383,9 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         //neighborsCellInformation.clear();
         strncat(this->messageBuffer, "]", this->sizeOfMessageBuffer - strlen(this->messageBuffer) - 1);
     }
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 
-   this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
-
-   strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+    strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
 
     this->addMetaData(formattedMessage);
 
@@ -413,6 +394,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }
 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo,
@@ -490,6 +473,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
 
     strcat(formattedMessage, "\n");
 
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
+
 }
 
 
@@ -552,6 +537,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
 
     strcat(formattedMessage, "\n");
 
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
+
 }
 
 
@@ -560,7 +547,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     const IMUData_t * inertialData,  const std::vector<IMUData_t*> &IMUDataSamples, 
     const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char tempBuffer[250];
+    static char tempBuffer[TEMPORAL_BUFFER_MAX_SIZE];
     size_t currentLen = 0;
 
     currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
@@ -629,6 +616,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
     this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }
 
 /////////////////////////// LoRa Messages //////////////////////////////
@@ -674,7 +663,9 @@ void FormattingMessage::formatLoRaMessage(char * formattedMessage, const CellInf
     this->messageBuffer[originalLength + 1] = '|';     
     this->messageBuffer[originalLength + 2] = '\0';      // Asegurar terminación nula
 
-    strcpy (formattedMessage, this->messageBuffer);
+    strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }
 
 
@@ -713,12 +704,10 @@ void FormattingMessage::formatLoRaMessage (char * formattedMessage, const CellIn
     this->messageBuffer[originalLength + 1] = '|';     
     this->messageBuffer[originalLength + 2] = '\0';      // Asegurar terminación nula
 
-    strcpy (formattedMessage, this->messageBuffer);
+    strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }
-
-
-
-
 
 
 /////////////////////////// saving cases //////////////////////////////
@@ -727,14 +716,10 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
      const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char tempBuffer[250];
+    static char tempBuffer[TEMPORAL_BUFFER_MAX_SIZE];
     size_t currentLen = 0;
 
-
-    char StringToSendUSB [100];
-    
-    snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "MN,MN save:\r\n");
-    uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+    uartUSB.write ("MN,MN save:\r\n" , strlen ("MN,MN save:\r\n" ));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only}
 
     currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
@@ -780,8 +765,9 @@ void FormattingMessage::formatMNMNMemoryMessage(char * formattedMessage, const C
         }
     }
     this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
-    strcpy(formattedMessage, this->messageBuffer);
-    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
+    strncpy(formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }
 
 //// MNGNSS for save on memory
@@ -818,8 +804,10 @@ void FormattingMessage::formatMemoryMessage(char * formattedMessage, const CellI
         imuData->angles.pitch               // 26 %.2f
             );
     this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';       
-    strcpy(formattedMessage, this->messageBuffer);
-    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
+    strncpy(formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }
 
 //// GNSS for save on memory
@@ -847,22 +835,20 @@ void FormattingMessage::formatGNSSMemoryMessage(char * formattedMessage, const G
         imuData->angles.pitch               // 17 %.2f
             );
     this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';       
-    strcpy(formattedMessage, this->messageBuffer);
-    //formattedMessage[sizeof(formattedMessage) - 1] = '\0';
+    strncpy(formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }
 
 //// IMU for save on memory
 void FormattingMessage::formatMemoryMessage(char * formattedMessage, const IMUData_t * imuData,
 const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatus, char * trackerEvent) {
 
-    static char tempBuffer[250]; 
+    static char tempBuffer[TEMPORAL_BUFFER_MAX_SIZE]; 
     size_t currentLen = 0;
 
 
-    char StringToSendUSB [100];
-    
-    snprintf(StringToSendUSB, sizeof(StringToSendUSB),  "IMU save:\r\n");
-    uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
+    uartUSB.write ("IMU save:\r\n" , strlen ("IMU save:\r\n"));  // debug only
     uartUSB.write ( "\r\n",  3 );  // debug only}
 
     currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
@@ -899,5 +885,7 @@ const std::vector<IMUData_t*> &IMUDataSamples, const BatteryData  * batteryStatu
         }
     }
     this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
-    strcpy(formattedMessage, this->messageBuffer);
+    strncpy(formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
 }

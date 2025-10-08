@@ -67,6 +67,36 @@ bool ATCommandHandler::readATResponse (char * StringToBeRead) {
     return false;
 }
 
+bool ATCommandHandler::readATResponse(char *StringToBeRead, size_t bufferSize) {
+    char receivedCharLocal;
+
+    if (this->serialComunicationUART->readable()) {
+        this->serialComunicationUART->read(&receivedCharLocal, 1);
+
+        if (receivedCharLocal == '\r' || receivedCharLocal == '\n') {
+            if (this->bufferIndex > 0) {
+                this->buffer[this->bufferIndex] = '\0';
+
+                strncpy(StringToBeRead, this->buffer, bufferSize - 1);
+                StringToBeRead[bufferSize - 1] = '\0';
+                this->bufferIndex = 0;
+                return true;
+            }
+        } 
+        else {
+            if (this->bufferIndex < sizeof(this->buffer) - 1) {
+                this->buffer[this->bufferIndex++] = receivedCharLocal;
+            } 
+            else {
+                this->bufferIndex = 0;
+            }
+        }
+    }
+
+    return false;
+}
+
+
 bool ATCommandHandler::readChar (char * charRead) {
     char receivedCharLocal;
     char StringToBeSendUSB [2] = "";

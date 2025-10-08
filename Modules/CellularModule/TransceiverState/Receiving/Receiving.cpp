@@ -97,7 +97,7 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
         //refreshTime->restart();
     }
 
-    if (ATHandler->readATResponse(StringToBeRead)) {
+    if (ATHandler->readATResponse(StringToBeRead, BUFFER_LEN)) {
         uartUSB.write(StringToBeRead, strlen(StringToBeRead));
         uartUSB.write("\r\n", 3);
 
@@ -105,7 +105,8 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
             thereIsDataToRetrieve = false;
             dataRetrieved = true;
 
-            strcpy(receivedMessage, StringToBeRead);
+            strncpy(receivedMessage, StringToBeRead, BUFFER_LEN);
+            receivedMessage [BUFFER_LEN] = '\0';
 
             uartUSB.write("Message retrieved\r\n", strlen("Message retrieved\r\n"));
         }

@@ -10,7 +10,7 @@
 #define MAX_LENGTH_CELL_INFO_STRING 128
 
 #define MAX_TIME_WATING_RESPONSE_MS 10000
-#define MAX_TIMEOUT_RETRIES 6
+#define MAX_TIMEOUT_RETRIES 8
 
 #define AT_CMD_CELL_INFO_GATHERING      "AT+QOPS"
 #define AT_CMD_CELL_INFO_GATHERING_LEN  (sizeof(AT_CMD_CELL_INFO_GATHERING) - 1)
@@ -107,7 +107,7 @@ bool ConnectedState::retrivNeighborCellsInformation(ATCommandHandler * handler,
         uartUSB.write("\r\n", 3);  // debug only
         readyToSend = false;
     }
-    if (handler->readATResponse(StringToBeRead) == true) {
+    if (handler->readATResponse(StringToBeRead, MAX_LENGTH_CELL_INFO_STRING) == true) {
 
         if (strcmp (StringToBeRead, ExpectedResponse)  == 0) {
             cellDataRetrived = true;

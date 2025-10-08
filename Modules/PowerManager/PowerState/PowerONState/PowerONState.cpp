@@ -31,7 +31,7 @@
 #define LOG_MESSAGE_DEVICE_REBOOTING "Rebooting\r\n"
 #define LOG_MESSAGE_DEVICE_REBOOTING_LEN (sizeof(LOG_MESSAGE_DEVICE_REBOOTING ) - 1)
 
-#define BUFFER 128
+#define BUFFER_LEN 128
 
 #define AT_CMD_SLEEP "AT+QSCLK=1"
 #define AT_CMD_SLEEP_LEN (sizeof(AT_CMD_SLEEP) - 1)
@@ -150,7 +150,7 @@ powerStatus_t PowerONState::startStopUpdate (ATCommandHandler  * AThandler, NonB
 bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool readyToSend = true;
     char StringToSend [AT_CMD_POWER_DOWN_LEN + 1] = AT_CMD_POWER_DOWN;
-    char StringToBeRead [BUFFER];
+    char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [ AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE_LEN + 1] =  AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE;
     char StringToSendUSB [LOG_MESSAGE_DEVICE_REBOOTING_LEN + 1] = LOG_MESSAGE_DEVICE_REBOOTING;
 
@@ -164,7 +164,7 @@ bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
     }
 
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
 
@@ -187,7 +187,7 @@ bool PowerONState::reboot (ATCommandHandler  * AThandler, NonBlockingDelay * pow
 bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
    static bool readyToSend = true;
     char StringToSend [ AT_CMD_SLEEP_LEN + 1] =  AT_CMD_SLEEP;
-    char StringToBeRead [ BUFFER];
+    char StringToBeRead [ BUFFER_LEN];
     char ExpectedResponse [AT_CMD_SLEEP_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_SLEEP_EXPECTED_RESPONSE;
     char StringToSendUSB [LOG_MESSAGE_SLEEP_LEN + 1] = LOG_MESSAGE_SLEEP;
 
@@ -201,7 +201,7 @@ bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * 
     }
 
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
@@ -231,7 +231,7 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
     static bool hardPowerOffUnderProcess = false;
     static int retryCounter = 0;
     char StringToSend [AT_CMD_POWER_DOWN_LEN + 1] = AT_CMD_POWER_DOWN;
-    char StringToBeRead [BUFFER];
+    char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE;
     char StringToSendUSB [LOG_MESSAGE_DEVICE_TURNING_DOWN_LEN + 1] = LOG_MESSAGE_DEVICE_TURNING_DOWN;
 
@@ -247,7 +247,7 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
         ////   ////   ////   ////   ////   ////   
     }
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {         
@@ -287,7 +287,7 @@ bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDel
     ,  BatteryData * currentBatteryData) {
     static bool readyToSend = true;
     char StringToSend [AT_CMD_BATTERY_MEASURE_LEN + 1] = AT_CMD_BATTERY_MEASURE;
-    char StringToBeRead [BUFFER];
+    char StringToBeRead [BUFFER_LEN];
     char StringToSendUSB [LOG_MESSAGE_BATTERY_MEASURE_LEN + 1] = LOG_MESSAGE_BATTERY_MEASURE;
 
     if (readyToSend == true) {
@@ -299,7 +299,7 @@ bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDel
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse (StringToBeRead, BUFFER_LEN) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if (this->retrivBatteryData (StringToBeRead, currentBatteryData) == true) {

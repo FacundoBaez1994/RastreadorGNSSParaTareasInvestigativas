@@ -7,6 +7,11 @@
 #include "GatheringInertialData.h"
 
 //=====[Declaration of private defines]========================================
+#define LOG_MESSAGE_GNSS_OBTAIN               "GNSS OBTAIN!!!!\r\n"
+#define LOG_MESSAGE_GNSS_OBTAIN_LEN           (sizeof(LOG_MESSAGE_GNSS_OBTAIN) - 1)
+
+#define LOG_MESSAGE_GNSS_UNAVAILABLE          "GNSS UNAVAILABLE!!!!\r\n"
+#define LOG_MESSAGE_GNSS_UNAVAILABLE_LEN      (sizeof(LOG_MESSAGE_GNSS_UNAVAILABLE) - 1)
 
 //=====[Declaration of private data types]=====================================
 
@@ -38,7 +43,6 @@ void GettingGNSSPosition::updatePowerStatus (CellularModule * cellularTransceive
 
 void GettingGNSSPosition::obtainGNSSPosition (GNSSModule * currentGNSSModule, GNSSData * currentGNSSdata) {
    static GNSSState_t GnssCurrentStatus;
-   char logMessage [40]; 
    OperationMode_t operationMode = this->tracker->getOperationMode();
 
     // SIN GNSS
@@ -48,9 +52,7 @@ void GettingGNSSPosition::obtainGNSSPosition (GNSSModule * currentGNSSModule, GN
     currentGNSSModule->enableGNSS();
     GnssCurrentStatus = currentGNSSModule->retrivGeopositioning(currentGNSSdata);
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {
-        snprintf(logMessage, sizeof(logMessage), "GNSS OBTAIN!!!!");
-        uartUSB.write (logMessage , strlen (logMessage ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only
+        uartUSB.write (LOG_MESSAGE_GNSS_OBTAIN, LOG_MESSAGE_GNSS_OBTAIN_LEN);  // debug only
         if (operationMode == SILENT_OPERATION_MODE) {
             this->tracker->changeState (new FormattingMessage (this->tracker,TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_SAVING_MESSAGE));
             return;
@@ -59,9 +61,7 @@ void GettingGNSSPosition::obtainGNSSPosition (GNSSModule * currentGNSSModule, GN
         return;
     }
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_UNAVAILABLE ) {
-        snprintf(logMessage, sizeof(logMessage), "GNSS UNAVAILABLE!!!!");
-        uartUSB.write (logMessage , strlen (logMessage ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
+        uartUSB.write (LOG_MESSAGE_GNSS_UNAVAILABLE , LOG_MESSAGE_GNSS_UNAVAILABLE_LEN);  // debug only
         if (operationMode == SILENT_OPERATION_MODE) {
             this->tracker->changeState (new GatheringInertialData (this->tracker,TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_LORA_UNAVAILABLE_GATHERING_INERTIAL_INFO));
             return;

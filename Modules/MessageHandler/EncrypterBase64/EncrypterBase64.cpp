@@ -54,6 +54,7 @@ MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned i
     uartUSB.write("\r\nEncrypted message:\r\n", strlen("\r\nEncrypted message:\r\n"));
     uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
     uartUSB.write("\r\n", 2);
+    uartUSB.write("\r\n", 2);
 
 
     size_t olen = 0;

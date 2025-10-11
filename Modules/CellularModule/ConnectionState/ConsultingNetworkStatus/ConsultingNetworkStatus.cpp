@@ -68,6 +68,10 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
     char StringToSend2 [AT_CMD_CONSULT_NETWORK_STATUS_2_LEN + 1] = AT_CMD_CONSULT_NETWORK_STATUS_2;
     char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
 
+    if (ATHandler == nullptr || refreshTime == nullptr || currentCellInformation == nullptr) {
+        return CELLULAR_CONNECTION_STATUS_ERROR_NULL_POINTER;
+    }
+
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
         this->readyToSend = false;
@@ -82,7 +86,7 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
     }
 
     if ( this->cellDataRetrived == false) {
-        if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
+        if ( ATHandler->readATResponse (StringToBeRead, BUFFER_LEN) == true ) {
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
              refreshTime->restart();
@@ -94,7 +98,7 @@ CellularConnectionStatus_t ConsultingNetworkStatus::connect (ATCommandHandler * 
     
 
     if (this->cellDataRetrived == true) {
-        if  (ATHandler->readATResponse ( StringToBeRead) == true) {
+        if  (ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only

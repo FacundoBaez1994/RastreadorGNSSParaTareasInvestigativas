@@ -47,7 +47,7 @@ public:
     virtual MessageHandlerStatus_t handleMessage (char* message,  unsigned int sizeOfMessage) override;
 private:
 //=====[Declaration of privates atributes]=========================================
-    char* base64_encoded;           //< Pointer to hold Base64-encoded result
+    char base64_encoded [3048];           //< Pointer to hold Base64-encoded result
     size_t sizeOfBuffer = 3048;      //< Internal buffer size for encoded data
     AES* aes;                     //< AES encryption helper instance
 

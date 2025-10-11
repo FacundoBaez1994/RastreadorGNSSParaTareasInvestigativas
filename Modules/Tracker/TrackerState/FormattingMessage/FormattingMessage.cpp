@@ -57,7 +57,7 @@ FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t tracker
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
     //this->jwt = new JWTManager ();
-    //this->sizeOfMessageBuffer = 2248;
+    //this->sizeOfMessageBuffer = 2500;
     //this->messageBuffer = new char [this->sizeOfMessageBuffer];
 }
 
@@ -413,6 +413,8 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
+
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
 }
 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo,

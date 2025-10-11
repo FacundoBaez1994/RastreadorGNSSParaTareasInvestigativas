@@ -29,8 +29,8 @@ DecrypterBase64::~DecrypterBase64 () {
     this->aes = nullptr;
     this->nextHandler = nullptr;
 
-    delete [] this->base64_decoded ;
-    this->base64_decoded = nullptr;
+    //delete [] this->base64_decoded ;
+    //this->base64_decoded = nullptr;
 }
 
 MessageHandlerStatus_t  DecrypterBase64::handleMessage (char * message, unsigned int sizeOfMessage) {
@@ -39,10 +39,12 @@ MessageHandlerStatus_t  DecrypterBase64::handleMessage (char * message, unsigned
     size_t decoded_len = 0;
     static bool initialization = false;
 
+/*
     if (initialization  == false) {
          this->base64_decoded = new char [this->sizeOfBuffer];
         initialization = true;
     }
+    */
 
     ret = mbedtls_base64_decode((unsigned char*)this->base64_decoded, this->sizeOfBuffer, &decoded_len,
                                 (unsigned char*)message, strlen (message));
@@ -77,13 +79,13 @@ MessageHandlerStatus_t  DecrypterBase64::handleMessage (char * message, unsigned
 
     if (this->nextHandler == nullptr) {
         initialization = false;
-        delete [] this->base64_decoded ;
-        this->base64_decoded = nullptr;
+       // delete [] this->base64_decoded ;
+       // this->base64_decoded = nullptr;
         return  MESSAGE_HANDLER_STATUS_PROCESSED;
     } else {
-        delete [] this->base64_decoded ;
+        //delete [] this->base64_decoded ;
         initialization = false;
-        this->base64_decoded = nullptr;
+        //this->base64_decoded = nullptr;
         return this->nextHandler->handleMessage ( message, sizeOfMessage);
     }
     

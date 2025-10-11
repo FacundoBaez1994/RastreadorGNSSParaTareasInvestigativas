@@ -191,6 +191,10 @@ bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * 
     char ExpectedResponse [AT_CMD_SLEEP_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_SLEEP_EXPECTED_RESPONSE;
     char StringToSendUSB [LOG_MESSAGE_SLEEP_LEN + 1] = LOG_MESSAGE_SLEEP;
 
+    if (powerChangeDurationTimer == nullptr || AThandler == nullptr  ) {
+        return false; 
+    }
+
     if (readyToSend == true) {
         AThandler->sendATCommand(StringToSend);
         readyToSend = false;
@@ -201,7 +205,7 @@ bool PowerONState::goToSleep (ATCommandHandler  * AThandler, NonBlockingDelay * 
     }
 
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse ( StringToBeRead, BUFFER) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
@@ -235,6 +239,10 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
     char ExpectedResponse [AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_POWER_DOWNN_EXPECTED_RESPONSE;
     char StringToSendUSB [LOG_MESSAGE_DEVICE_TURNING_DOWN_LEN + 1] = LOG_MESSAGE_DEVICE_TURNING_DOWN;
 
+    if (powerChangeDurationTimer == nullptr || AThandler == nullptr ) {
+        return false; 
+    }
+
     if (readyToSend == true) {
         AThandler->sendATCommand(StringToSend);
         this->turnOfWasCall  = true;
@@ -247,7 +255,7 @@ bool PowerONState::turnOff (ATCommandHandler  * AThandler, NonBlockingDelay * po
         ////   ////   ////   ////   ////   ////   
     }
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse ( StringToBeRead, BUFFER) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if (strcmp (StringToBeRead, ExpectedResponse) == 0) {         
@@ -290,6 +298,11 @@ bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDel
     char StringToBeRead [BUFFER];
     char StringToSendUSB [LOG_MESSAGE_BATTERY_MEASURE_LEN + 1] = LOG_MESSAGE_BATTERY_MEASURE;
 
+    if (powerChangeDurationTimer == nullptr || AThandler == nullptr 
+    || currentBatteryData == nullptr ) {
+        return false; 
+    }
+
     if (readyToSend == true) {
         AThandler->sendATCommand(StringToSend);
         readyToSend = false;
@@ -299,7 +312,7 @@ bool PowerONState::measureBattery (ATCommandHandler  * AThandler, NonBlockingDel
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
 
-    if ( AThandler->readATResponse ( StringToBeRead) == true) {
+    if ( AThandler->readATResponse ( StringToBeRead, BUFFER) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if (this->retrivBatteryData (StringToBeRead, currentBatteryData) == true) {

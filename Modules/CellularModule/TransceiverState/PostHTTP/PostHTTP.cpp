@@ -108,6 +108,11 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
     static bool watingForResponse = false;
     static bool urlSet = false;
 
+    if (ATHandler == nullptr ||  refreshTime == nullptr || 
+     message == nullptr || receivedMessage == nullptr || serverTargetted == nullptr) {
+        return CELLULAR_TRANSCEIVER_STATUS_ERROR_NULL_POINTER;
+    }
+
     int urlLength = strlen(url);
 
     int inputTimeout = INPUT_TIMEOUT;
@@ -138,7 +143,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 refreshTime->restart();
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -157,6 +162,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 if (strcmp (StringToBeRead, ExpectedResponse1) == 0 && urlSet == true) { // OK
                     ////   ////   ////   ////   ////   ////     
                     this->currentStatus = POSTING_DATA;
+                    this->Attempts = 0; 
                     this->readyToSend = true;
                     urlSet = false;
                 }
@@ -171,7 +177,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 ////   ////   ////   ////   ////   ////   
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) { //
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) { //
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -201,6 +207,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     refreshTime->restart();
                     this->currentStatus = READING_DATA;
+                    this->Attempts = 0; 
                     this->readyToSend  = true;      
                     return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 }
@@ -218,7 +225,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                 ////   ////   ////   ////   ////   ////   
             }
             if ( watingForResponse == false) {
-                if ( ATHandler->readATResponse ( StringToBeRead) == true) { //
+                if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) { //
                     ////   ////   ////   ////   ////   ////
                     uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
@@ -233,7 +240,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     }
                 }
             } else {
-                if ( ATHandler->readATResponse ( StringToBeRead ) == true) { //
+                if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) { //
                     ////   ////   ////   ////   ////   ////
                     StringToBeRead [dataLen] = '\0';
                     refreshTime->restart();
@@ -241,6 +248,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
                     uartUSB.write (StringToBeRead  , strlen (StringToBeRead ));  // debug only
                     uartUSB.write ( "\r\n",  3 );  // debug only
                     watingForResponse = false;
+                    this->Attempts = 0; 
                     this->currentStatus = DECODING_DATA;
                     this->readyToSend = false;
                     
@@ -255,7 +263,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
             //if (this->jwt->decodeJWT(StringToBeRead , payloadRetrived) == false) {
                 uartUSB.write (LOG_ERROR_MESSAGE , strlen (LOG_ERROR_MESSAGE ));  // debug only
                 this->readyToSend  = true;
-                this->currentStatus = READING_DATA;
+                this->currentStatus = READING_DATA; // return one state back
                 return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
                 break;
             }
@@ -264,6 +272,7 @@ CellularTransceiverStatus_t PostHTTP::exchangeMessages (ATCommandHandler * ATHan
             uartUSB.write (receivedMessage , strlen (receivedMessage ));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             this->currentStatus = SETTING_URL;
+            this->Attempts = 0; 
             this->mobileNetworkModule->changeTransceiverState  (new DeactivatePDP (this->mobileNetworkModule, true) );
             return CELLULAR_TRANSCEIVER_STATUS_TRYNING_TO_SEND;
             break;

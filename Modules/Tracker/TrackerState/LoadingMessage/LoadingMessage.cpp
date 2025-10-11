@@ -38,21 +38,21 @@ LoadingMessage::~LoadingMessage  () {
 void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples,  BatteryData  * batteryStatus, char * buffer) {
-    //static char  poppedString [2248] = {0};
+    //static char  poppedString [2500] = {0};
     char  log [50];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;
     static bool init = false;
 
     if (init == false) {
-        memset(buffer, 0, 2248);
+        memset(buffer, 0, 2500);
         init = true;
     }
     
     EEPROMStatus state;
     if (popProcessFinished  == false) {
         //state = memory->popStringFromEEPROM( this->poppedString, this->sizeOfPoppedString);
-        state = memory->popStringFromEEPROM( buffer, 2248);
+        state = memory->popStringFromEEPROM( buffer, 2500);
         if (state == EEPROMStatus::POPPEDSTRINGOK) {
             snprintf(log, sizeof(log), "popped string From Memory\n\r");
             uartUSB.write(log, strlen(log));
@@ -70,7 +70,7 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             return;
         }
     } else {
-        if (this->tracker->decryptMessage(buffer, 2248) == true) {
+        if (this->tracker->decryptMessage(buffer, 2500) == true) {
             snprintf(log, sizeof(log), "\n\rultimo string descifrado:\n\r");
             uartUSB.write(log, strlen(log));
             uartUSB.write(buffer, strlen(buffer));
@@ -133,24 +133,24 @@ void LoadingMessage::parseMNGNSS(const char* message,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
     
-    char * buffer;
+    //char * buffer;
     size_t sizeOfBuffer = 1024;
 
-    buffer = new char [sizeOfBuffer];
+    char buffer [sizeOfBuffer];
 
-    if (!buffer) {
-        delete [] buffer;
-        buffer = nullptr;
-        return;
-    }
+   // if (!buffer) {
+        //delete [] buffer;
+        //buffer = nullptr;
+  //      return;
+  //  }
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer -1] = '\0';
 
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "MNGNSS") != 0) {
-        delete [] buffer;
-        buffer = nullptr;
+        //delete [] buffer;
+        //buffer = nullptr;
         return;
     }
      
@@ -217,8 +217,8 @@ void LoadingMessage::parseMNGNSS(const char* message,
     token = strtok(NULL, ",");
     imuData->angles.pitch = atof(token);
 
-    delete [] buffer;
-    buffer = nullptr;
+    //delete [] buffer;
+    //buffer = nullptr;
 }
 
 
@@ -237,24 +237,24 @@ void LoadingMessage::parseMNMN(const char* message,
     if (!message || strncmp(message, "MNMN,", 5) != 0) return;
 
     size_t sizeOfBuffer = 1024;
-    char* buffer = new char[sizeOfBuffer];
-    char* neighborsBuffer = new char[sizeOfBuffer];
+    char buffer [sizeOfBuffer];
+    char neighborsBuffer [sizeOfBuffer];
 
-    if (!buffer || !neighborsBuffer) {
-        delete[] buffer;
-        delete[] neighborsBuffer;
-        buffer = nullptr;
-        neighborsBuffer = nullptr;
-        return;
-    }
+   // if (!buffer || !neighborsBuffer) {
+        //delete[] buffer;
+        //delete[] neighborsBuffer;
+    //    buffer = nullptr;
+     //   neighborsBuffer = nullptr;
+      //  return;
+    //}
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer - 1] = '\0';
 
     char* mainPart = strtok(buffer, "|");
     if (!mainPart) {
-        delete[] buffer;
-        delete[] neighborsBuffer;
+        //delete[] buffer;
+        //delete[] neighborsBuffer;
         return;
     }
 
@@ -356,10 +356,10 @@ void LoadingMessage::parseMNMN(const char* message,
         neighborPart = strtok(nullptr, "|");
     }
 
-    delete[] buffer;
-    buffer = nullptr;
-    delete[] neighborsBuffer;
-    neighborsBuffer = nullptr;
+   // delete[] buffer;
+   // buffer = nullptr;
+   // delete[] neighborsBuffer;
+    //neighborsBuffer = nullptr;
 }
 
 
@@ -369,21 +369,21 @@ void LoadingMessage::parseGNSS(const char* message,
     BatteryData* batteryStatus) {
 
     size_t sizeOfBuffer = 1024;
-    char* buffer = new char[sizeOfBuffer];
+    char buffer [sizeOfBuffer];
 
-    if (!buffer) {
-        delete[] buffer;
-        buffer = nullptr;
-        return;
-    }
+    //if (!buffer) {
+        //delete[] buffer;
+        //buffer = nullptr;
+    //    return;
+    //}
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer - 1] = '\0';
 
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "GNSS") != 0) {
-        delete[] buffer;
-        buffer = nullptr;
+        //delete[] buffer;
+        //buffer = nullptr;
         return;
     }
 
@@ -424,8 +424,8 @@ void LoadingMessage::parseGNSS(const char* message,
     token = strtok(NULL, ","); 
     imuData->angles.pitch = atof(token);
 
-    delete[] buffer;
-    buffer = nullptr;
+    //delete[] buffer;
+    //buffer = nullptr;
 }
 
 
@@ -443,15 +443,15 @@ void LoadingMessage::parseIMU(const char* message,
     IMUDataSamples.clear();
 
     // Copia del mensaje original
-    char* fullCopy = new char[1024];
+    char fullCopy [1024];
     strncpy(fullCopy, message, 1024);
     fullCopy[1023] = '\0';
 
     // Separar la parte principal del resto usando strchr
     char* separator = strchr(fullCopy, '|');
     if (!separator) {
-        delete[] fullCopy;
-        fullCopy = nullptr;
+        //delete[] fullCopy;
+        //fullCopy = nullptr;
         return;
     }
 
@@ -533,7 +533,7 @@ void LoadingMessage::parseIMU(const char* message,
     snprintf(log, sizeof(log), "Total muestras IMU: %zu\r\n", IMUDataSamples.size());
     uartUSB.write(log, strlen(log));
 
-    delete[] fullCopy;
-    fullCopy = nullptr;
+    //delete[] fullCopy;
+    //fullCopy = nullptr;
 }
 

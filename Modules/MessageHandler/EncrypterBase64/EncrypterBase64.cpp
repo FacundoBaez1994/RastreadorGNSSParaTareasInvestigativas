@@ -29,18 +29,18 @@ EncrypterBase64::~EncrypterBase64 () {
     this->aes = nullptr;
     this->nextHandler = nullptr;
 
-    delete [] this->base64_encoded ;
-    this->base64_encoded  = nullptr;
+    //delete [] this->base64_encoded ;
+    //this->base64_encoded  = nullptr;
 }
 
 MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned int sizeOfMessage) {
     static char log [120];
     static bool initialization = false;
 
-    if (initialization  == false) {
-        this->base64_encoded = new char [this->sizeOfBuffer];
-        initialization = true;
-    }
+   // if (initialization  == false) {
+   //     this->base64_encoded = new char [this->sizeOfBuffer];
+   //     initialization = true;
+   // }
 
     uartUSB.write("\r\nOriginal message:\r\n", strlen("\r\nOriginal message:\r\n"));
     uartUSB.write(message, strlen(message));  // advertencia: puede fallar si hay '\0'
@@ -79,13 +79,13 @@ MessageHandlerStatus_t EncrypterBase64::handleMessage(char* message,  unsigned i
     // Llamada al siguiente handler
     if (this->nextHandler != nullptr) {
         initialization = false;
-        delete [] this->base64_encoded ;
-        this->base64_encoded  = nullptr;
+        //delete [] this->base64_encoded ;
+        //this->base64_encoded  = nullptr;
         return this->nextHandler->handleMessage(message, sizeOfMessage);
     } else {
         initialization = false;
-        delete [] this->base64_encoded ;
-        this->base64_encoded  = nullptr;
+        //delete [] this->base64_encoded ;
+        //this->base64_encoded  = nullptr;
         return MESSAGE_HANDLER_STATUS_PROCESSED;
     }
 }

@@ -27,10 +27,8 @@
 
 //=====[Implementations of public methods]===================================
 ExchangingMessages::ExchangingMessages (Tracker * tracker, trackerStatus_t trackerStatus) {
-    uartUSB.write ("CONSTRUCTOR 1 ExchangingMessages\r\n" , strlen ("CONSTRUCTOR 1 ExchangingMessages\r\n"));  // debug only
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
-    uartUSB.write ("CONSTRUCTOR 2 ExchangingMessages\r\n", strlen ("CONSTRUCTOR 2 ExchangingMessages\r\n"));  // debug only
 }
 
 ExchangingMessages::~ExchangingMessages () {
@@ -45,12 +43,15 @@ void ExchangingMessages::updatePowerStatus (CellularModule * cellularTransceiver
 
 void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
     char* message,  RemoteServerInformation* serverTargetted, char* receivedMessage ) {
-
     static CellularTransceiverStatus_t currentTransmitionStatus;
     static bool newDataAvailable = false;
     static bool enableTransceiver = false;
     char logMessage [100];
     char payloadRetrieved [256];
+
+    if (message == nullptr || cellularTransceiver  == nullptr || serverTargetted == nullptr || receivedMessage == nullptr) {
+        uartUSB.write ("NULLPTR!!!\r\n" , strlen ("NULLPTR!!!\r\n"));  // debug only
+    }
     
     // if conected to mobile network send the message throght LTE Modem
     if (this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK
@@ -58,7 +59,9 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
      || this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE
      || this->currentStatus ==  TRACKER_STATUS_IMU_LOADED_MESSAGE) {
         if (enableTransceiver == false) {
+             uartUSB.write ("enable 1\r\n" , strlen ("enable 1\r\n"));  // debug only
             cellularTransceiver->enableTransceiver();
+            uartUSB.write ("enable 2\r\n" , strlen ("enable 2\r\n"));  // debug only
             enableTransceiver = true; 
         }
        currentTransmitionStatus = cellularTransceiver->exchangeMessages (message, serverTargetted,

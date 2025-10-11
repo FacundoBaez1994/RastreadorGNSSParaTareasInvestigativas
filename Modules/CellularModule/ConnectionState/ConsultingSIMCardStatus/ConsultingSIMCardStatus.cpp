@@ -29,24 +29,15 @@
 
 //=====[Declaration and initialization of public global objects]===============
 
-
 //=====[Declaration of external public global variables]=======================
 
 //=====[Declaration and initialization of public global variables]=============
 
 //=====[Declaration and initialization of private global variables]============
 
-
-
-
 //=====[Declarations (prototypes) of private functions]========================
 
-
 //=====[Implementations of private methods]===================================
-/** 
-* @brief attachs the callback function to the ticker
-*/
-
 
 //=====[Implementations of public methods]===================================
 
@@ -75,6 +66,10 @@ CellInformation * currentCellInformation) {
     char StringToSendUSB [LOG_MESSAGE_1_LEN + 1] = LOG_MESSAGE_1;
     char StringToSendUSB2 [LOG_MESSAGE_2_LEN + 1] = LOG_MESSAGE_2;
    
+    if (ATHandler == nullptr || refreshTime == nullptr || currentCellInformation == nullptr) {
+        return CELLULAR_CONNECTION_STATUS_ERROR_NULL_POINTER;
+    }
+
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -88,7 +83,7 @@ CellInformation * currentCellInformation) {
     }
 
     if ( this->simCardDetected == false) {
-        if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
+        if ( ATHandler->readATResponse (StringToBeRead, BUFFER_LEN) == true ) {
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
              if (strcmp (StringToBeRead, noSimCardError) == 0 || strcmp (StringToBeRead, noSimCardError) == 0) {
@@ -103,9 +98,8 @@ CellInformation * currentCellInformation) {
         }
     } 
      
-
     if (this->simCardDetected == true) {
-        if  (ATHandler->readATResponse ( StringToBeRead) == true) {
+        if  (ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
             if (strcmp (StringToBeRead, expectedResponse) == 0) {
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only     

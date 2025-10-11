@@ -58,6 +58,10 @@ ManualPowerOFFState::~ManualPowerOFFState () {
 
 powerStatus_t ManualPowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
 
+    if (powerChangeDurationTimer == nullptr || AThandler == nullptr ) {
+        return this->status; 
+    }
+
     // If powerStatus is in OFF status the power is ON (negate logic)
     if (this->manager->readPowerStatus()  == OFF && buttonPushed == true) {
         if (this->turnONCounter > TURN_ON_COUNTER)  {
@@ -122,6 +126,11 @@ void ManualPowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay
 
 bool ManualPowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool SignalTurningOn = false;
+
+    if (powerChangeDurationTimer == nullptr || AThandler == nullptr ) {
+        return false; 
+    }
+
     this->manager->changePowerDownSignal (ON);
     // If powerStatus is in OFF status the power is ON (negate logic)
     if (this->manager->readPowerStatus()  == OFF) {

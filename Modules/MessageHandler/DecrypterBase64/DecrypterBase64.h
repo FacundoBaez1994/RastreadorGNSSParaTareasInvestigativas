@@ -44,7 +44,7 @@ public:
 
 private:
 //=====[Declaration of privates atributes]=========================================
-    char* base64_decoded; ///< Buffer used to store Base64-decoded binary data
+    char base64_decoded [2564]; ///< Buffer used to store Base64-decoded binary data
     size_t sizeOfBuffer = 2564; ///< Internal buffer size
     AES* aes; ///< AES cipher instance
 //=====[Declaration of privates constants]=========================================

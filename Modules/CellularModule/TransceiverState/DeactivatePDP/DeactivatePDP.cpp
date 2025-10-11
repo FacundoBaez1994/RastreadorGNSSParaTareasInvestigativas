@@ -55,6 +55,11 @@ CellularTransceiverStatus_t DeactivatePDP::exchangeMessages (ATCommandHandler * 
     int connectID = 0; 
     int contextID = 1; 
 
+    if (ATHandler == nullptr ||  refreshTime == nullptr || 
+     message == nullptr || receivedMessage == nullptr || serverTargetted == nullptr) {
+        return CELLULAR_TRANSCEIVER_STATUS_ERROR_NULL_POINTER;
+    }
+
     snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d", ATcommand, contextID );
 
     if (this->readyToSend == true) {
@@ -68,7 +73,7 @@ CellularTransceiverStatus_t DeactivatePDP::exchangeMessages (ATCommandHandler * 
         ////   ////   ////   ////   ////   ////   
     }
 
-    if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+    if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
          ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only

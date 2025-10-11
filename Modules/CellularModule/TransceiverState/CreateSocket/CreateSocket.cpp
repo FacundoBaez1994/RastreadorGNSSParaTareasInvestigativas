@@ -82,6 +82,11 @@ void CreateSocket::enableTransceiver () {
     int connectID = 0; // could be a value beetween 0 y 11
     int access_mode = 0; // buffer access mode
 
+    if (ATHandler == nullptr ||  refreshTime == nullptr || 
+     message == nullptr || receivedMessage == nullptr || serverTargetted == nullptr) {
+        return CELLULAR_TRANSCEIVER_STATUS_ERROR_NULL_POINTER;
+    }
+
     int result = snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d,%d,%s,\"%s\",%d,%d", ATcommand, contextID,
      connectID, protocol, serverTargetted->IpDirection , serverTargetted->TcpPort , access_mode);
     snprintf(ExpectedResponse, sizeof(ExpectedResponse), "+QIOPEN: %d,%d", connectID, noErrorCode);
@@ -95,7 +100,7 @@ void CreateSocket::enableTransceiver () {
         uartUSB.write ( "\r\n",  3 );  // debug only 
     }
 
-    if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+    if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
         if ((strstr(StringToBeRead, ExpectedResponse) != nullptr) ) {  

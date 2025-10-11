@@ -80,6 +80,11 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
     char StringToSend3 [AT_CMD_SETTING_SSL_CIPHER_SUITE_LEN + 1] = AT_CMD_SETTING_SSL_CIPHER_SUITE;
     char StringToSend4 [AT_CMD_SETTING_SSL_SECLEVEL_LEN + 1] = AT_CMD_SETTING_SSL_SECLEVEL;
 
+    if (ATHandler == nullptr ||  refreshTime == nullptr || 
+     message == nullptr || receivedMessage == nullptr || serverTargetted == nullptr) {
+        return CELLULAR_TRANSCEIVER_STATUS_ERROR_NULL_POINTER;
+    }
+
    switch (this->currentStatus) {
        case SETTING_SSL_CONTEXT:
             if (this->readyToSend == true) {
@@ -95,7 +100,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 refreshTime->restart();
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -119,7 +124,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 ////   ////   ////   ////   ////   ////  
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -145,7 +150,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 ////   ////   ////   ////   ////   ////  
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 ////   ////   ////   ////   ////   ////
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
@@ -168,7 +173,7 @@ CellularTransceiverStatus_t ConfigureSSL::exchangeMessages (ATCommandHandler * A
                 uartUSB.write ( "\r\n",  3 );  // debug only 
             }
                 
-            if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+            if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only
 

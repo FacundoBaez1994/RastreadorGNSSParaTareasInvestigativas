@@ -210,8 +210,8 @@ private:
     trackerStatus_t currentStatus; ///< Current tracker status
     JWTManager* jwt; ///< Pointer to JWT manager for token/signature management
     
-    char messageBuffer [2248]; ///< intermediate buffer to allow message formating, works with dinamic memory.
-    int sizeOfMessageBuffer = 2248; ///< size of the intermediate buffer
+    char messageBuffer [2500]; ///< intermediate buffer to allow message formating, works with dinamic memory.
+    int sizeOfMessageBuffer = 2500; ///< size of the intermediate buffer
 };
 
 

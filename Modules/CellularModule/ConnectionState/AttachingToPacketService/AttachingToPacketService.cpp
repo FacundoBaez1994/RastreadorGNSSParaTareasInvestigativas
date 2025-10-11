@@ -68,11 +68,14 @@ NonBlockingDelay * refreshTime,
     char StringToSend [AT_CMD_ATTACHING_TO_PACKET_SERVICE_LEN + 1] = AT_CMD_ATTACHING_TO_PACKET_SERVICE;
     char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [AT_CMD_ATTACHING_TO_PACKET_SERVICE_EXPECTED_RESPONSE_LEN + 1] = AT_CMD_ATTACHING_TO_PACKET_SERVICE_EXPECTED_RESPONSE;
-
     char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
 
+    if (ATHandler == nullptr || refreshTime == nullptr || currentCellInformation == nullptr) {
+        return CELLULAR_CONNECTION_STATUS_ERROR_NULL_POINTER;
+    }
+
     if (this->readyToSend == true) {
-        ATHandler->sendATCommand(StringToSend);
+        ATHandler->sendATCommand(StringToSend, AT_CMD_ATTACHING_TO_PACKET_SERVICE_LEN);
         this->readyToSend = false;
         uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
@@ -80,7 +83,7 @@ NonBlockingDelay * refreshTime,
         uartUSB.write ( "\r\n",  3 );  // debug only
     }
 
-    if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+    if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only
 

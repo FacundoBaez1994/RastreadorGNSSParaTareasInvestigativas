@@ -83,6 +83,10 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
     char sessionNoTActive [AT_CMD_GNSS_ERROR_NO_ACTIVE_SESSION_LEN + 1] = AT_CMD_GNSS_ERROR_NO_ACTIVE_SESSION;
     char StringToSendUSB [LOG_MESSAGE_LEN + 1] =  LOG_MESSAGE;
 
+    if (Geodata == nullptr || ATHandler == nullptr || refreshTime == nullptr) {
+        return GNSS_STATE_ERROR_NULL_POINTER;
+    }
+
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(ChangeLatLongFormat);
         ATHandler->sendATCommand(StringToSend);
@@ -97,7 +101,7 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
         ////   ////   ////   ////   ////   ////   
     }
 
-    if ( ATHandler->readATResponse ( StringToBeRead) == true) {
+    if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
          ////   ////   ////   ////   ////   ////
         uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
         uartUSB.write ( "\r\n",  3 );  // debug only

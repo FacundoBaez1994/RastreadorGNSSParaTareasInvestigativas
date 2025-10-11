@@ -71,6 +71,11 @@ CellInformation * currentCellInformation) {
     char StringToSendUSB [LOG_MESSAGE_INITIAL_LEN + 1] = LOG_MESSAGE_INITIAL;
     char StringToSendUSB2 [LOG_MESSAGE_WARNING_LEN + 1] = LOG_MESSAGE_WARNING;
 
+    if (ATHandler == nullptr || refreshTime == nullptr || currentCellInformation == nullptr) {
+        return CELLULAR_CONNECTION_STATUS_ERROR_NULL_POINTER;
+    }
+
+
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
         this->readyToSend = false;
@@ -82,7 +87,7 @@ CellInformation * currentCellInformation) {
     }
 
     if ( this->signalLevelRetrived == false) {
-        if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
+        if ( ATHandler->readATResponse (StringToBeRead, BUFFER_LEN) == true ) {
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
             this->ATFirstResponseRead = true;
@@ -94,7 +99,7 @@ CellInformation * currentCellInformation) {
      } 
   
     if (this->signalLevelRetrived == true) {
-        if  (ATHandler->readATResponse ( StringToBeRead) == true) {
+        if  (ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only     

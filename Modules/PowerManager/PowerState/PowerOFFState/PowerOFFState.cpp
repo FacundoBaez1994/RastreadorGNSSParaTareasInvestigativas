@@ -44,6 +44,10 @@ PowerOFFState::~PowerOFFState () {
 powerStatus_t PowerOFFState::startStopUpdate (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     static bool turningPower = false;
 
+    if (powerChangeDurationTimer == nullptr || AThandler == nullptr ) {
+        return this->status; 
+    }
+
     // If powerStatus is in OFF status the power is ON (negate logic)
     if (this->manager->readPowerStatus()  == OFF) {
         this->manager->changePowerState (new PowerONState ( this->manager) );
@@ -80,6 +84,11 @@ void PowerOFFState::awake (ATCommandHandler  * AThandler, NonBlockingDelay * pow
 
 bool PowerOFFState::turnOn (ATCommandHandler  * AThandler, NonBlockingDelay * powerChangeDurationTimer) {
     powerStatus_t currentPowerStatus;
+
+    if (powerChangeDurationTimer == nullptr || AThandler == nullptr ) {
+        return false; 
+    }
+
     currentPowerStatus = this->startStopUpdate (AThandler, powerChangeDurationTimer);
     if (currentPowerStatus == POWER_ON) {
         return true;

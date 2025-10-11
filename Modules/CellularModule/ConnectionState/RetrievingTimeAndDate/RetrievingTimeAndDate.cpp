@@ -60,8 +60,11 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
     static char StringToBeRead [BUFFER_LEN];
     char ExpectedResponse [AT_CMD_QUERY_TIME_AND_DATE_EXPECTED_RESPONSE_LEN + 1 ] = AT_CMD_QUERY_TIME_AND_DATE_EXPECTED_RESPONSE;
     char StringToSend [AT_CMD_QUERY_TIME_AND_DATE_LEN + 1] =  AT_CMD_QUERY_TIME_AND_DATE;
-
     char StringToSendUSB [LOG_MESSAGE_LEN + 1] = LOG_MESSAGE;
+
+    if (ATHandler == nullptr || refreshTime == nullptr || currentCellInformation == nullptr) {
+        return CELLULAR_CONNECTION_STATUS_ERROR_NULL_POINTER;
+    }
 
     if (this->readyToSend == true) {
         ATHandler->sendATCommand(StringToSend);
@@ -74,7 +77,7 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
     }
 
     if ( this->timeAndDateRetrived == false) {
-        if ( ATHandler->readATResponse ( StringToBeRead) == true ) {
+        if ( ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true ) {
             uartUSB.write (StringToBeRead , strlen (StringToBeRead));  // debug only
             uartUSB.write ( "\r\n",  3 );  // debug only
              refreshTime->restart();
@@ -85,7 +88,7 @@ CellularConnectionStatus_t RetrievingTimeAndDate::connect (ATCommandHandler * AT
     } 
 
     if (this->timeAndDateRetrived  == true) {
-        if  (ATHandler->readATResponse ( StringToBeRead) == true) {
+        if  (ATHandler->readATResponse ( StringToBeRead, BUFFER_LEN) == true) {
             if (strcmp (StringToBeRead, ExpectedResponse) == 0) {
                 uartUSB.write (StringToBeRead , strlen (StringToBeRead ));  // debug only
                 uartUSB.write ( "\r\n",  3 );  // debug only      

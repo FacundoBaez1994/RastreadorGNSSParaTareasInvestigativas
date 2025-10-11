@@ -81,6 +81,12 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
 
     int connectID = 0;
 
+    if (ATHandler == nullptr ||  refreshTime == nullptr || 
+     message == nullptr || receivedMessage == nullptr || serverTargetted == nullptr) {
+        return CELLULAR_TRANSCEIVER_STATUS_ERROR_NULL_POINTER;
+    }
+
+
     snprintf(StringToBeSend, sizeof(StringToBeSend), "%s%d", ATcommandFirstPart, connectID);
 
     if (readyToSend) {
@@ -97,7 +103,7 @@ CellularTransceiverStatus_t Receiving::exchangeMessages(
         //refreshTime->restart();
     }
 
-    if (ATHandler->readATResponse(StringToBeRead)) {
+    if (ATHandler->readATResponse(StringToBeRead, BUFFER_LEN)) {
         uartUSB.write(StringToBeRead, strlen(StringToBeRead));
         uartUSB.write("\r\n", 3);
 

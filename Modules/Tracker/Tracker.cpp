@@ -190,7 +190,7 @@ Tracker::~Tracker() {
 }
 
 void Tracker::update () {
-    static char formattedMessage [2248];
+    static char formattedMessage [2500];
     static char receivedMessage [512];
 
     static int numberOfNeighbors = 0;

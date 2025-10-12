@@ -4,6 +4,7 @@
 #include "Tracker.h" //debido a declaracion adelantada
 #include "Debugger.h" // due to global usbUart
 #include "GatheringInertialData.h"
+#include "GoingToSleep.h"
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
@@ -37,6 +38,11 @@ void GatheringCellInformation::updatePowerStatus (CellularModule * cellularTrans
 
 void GatheringCellInformation::obtainNeighborCellsInformation (CellularModule* cellularTransceiver, 
     std::vector<CellInformation*> &neighborsCellInformation, int numberOfNeighbors ) {
+
+    if (cellularTransceiver == nullptr ) {
+        this->tracker->changeState  (new GoingToSleep(this->tracker));
+        return;
+    }
 
     if (cellularTransceiver->retrivNeighborCellsInformation(neighborsCellInformation,
      numberOfNeighbors) == true){

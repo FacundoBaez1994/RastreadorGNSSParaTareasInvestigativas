@@ -6,6 +6,8 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+
+#define LOG_MESSAGE_SILENT_MODE_TIMEOUT "\n\r**SILENT MODE TIMEOUT**\n\r"
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -50,7 +52,7 @@ void Slepping::awake (CellularModule * cellularTransceiver, NonBlockingDelay * l
 
      if (currentOperationMode == SILENT_OPERATION_MODE ) {
          if (silentKeepAliveTimer->read()) {
-            uartUSB.write("\n\r**SILENT MODE TIMEOUT**\n\r", strlen("\n\r**SILENT MODE TIMEOUT**\n\r"));
+            uartUSB.write(LOG_MESSAGE_SILENT_MODE_TIMEOUT, strlen(LOG_MESSAGE_SILENT_MODE_TIMEOUT));
             this->tracker->setOperationMode(NORMAL_OPERATION_MODE);
         }
      }

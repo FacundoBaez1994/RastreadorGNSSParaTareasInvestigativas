@@ -9,6 +9,9 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+
+#define LOG_MESSAGE_NO_MOBILE_NETWORK               "Access to mobile network UNAVAILABLE!!!!\r\n"
+#define LOG_MESSAGE_NO_MOBILE_NETWORK_LEN           (sizeof(LOG_MESSAGE_NO_MOBILE_NETWORK) - 1)
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -41,8 +44,12 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
  void ConnectingToMobileNetwork::connectToMobileNetwork (CellularModule * cellularTransceiver,
     CellInformation * currentCellInformation) {
     static CellularConnectionStatus_t currentConnectionStatus;
-    char logMessage [40];
     
+    if (cellularTransceiver == nullptr || currentCellInformation == nullptr) {
+         this->tracker->changeState  (new GoingToSleep(this->tracker));
+        return;
+    }
+
     cellularTransceiver->enableConnection();
     currentConnectionStatus = cellularTransceiver->connectToMobileNetwork (currentCellInformation);
     
@@ -61,9 +68,7 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
         }
     } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE && 
         currentConnectionStatus != CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT) {
-        char StringToSendUSB [50] = "Access to mobile network UNAVAILABLE!!!!";
-        uartUSB.write (StringToSendUSB , strlen (StringToSendUSB ));  // debug only
-        uartUSB.write ( "\r\n",  3 );  // debug only}
+        uartUSB.write (LOG_MESSAGE_NO_MOBILE_NETWORK , LOG_MESSAGE_NO_MOBILE_NETWORK_LEN);  // debug only
         
         if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN) {
             // NO MN, TRY TO SEND GNSS DATA THROUGH LORA after gather inertial data

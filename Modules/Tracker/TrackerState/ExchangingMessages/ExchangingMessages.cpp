@@ -50,7 +50,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
     char payloadRetrieved [256];
 
     if (message == nullptr || cellularTransceiver  == nullptr || serverTargetted == nullptr || receivedMessage == nullptr) {
-        uartUSB.write ("NULLPTR!!!\r\n" , strlen ("NULLPTR!!!\r\n"));  // debug only
+        return;
     }
     
     // if conected to mobile network send the message throght LTE Modem
@@ -59,9 +59,7 @@ void ExchangingMessages::exchangeMessages (CellularModule* cellularTransceiver,
      || this->currentStatus == TRACKER_STATUS_GNSS_LOADED_MESSAGE
      || this->currentStatus ==  TRACKER_STATUS_IMU_LOADED_MESSAGE) {
         if (enableTransceiver == false) {
-             uartUSB.write ("enable 1\r\n" , strlen ("enable 1\r\n"));  // debug only
             cellularTransceiver->enableTransceiver();
-            uartUSB.write ("enable 2\r\n" , strlen ("enable 2\r\n"));  // debug only
             enableTransceiver = true; 
         }
        currentTransmitionStatus = cellularTransceiver->exchangeMessages (message, serverTargetted,

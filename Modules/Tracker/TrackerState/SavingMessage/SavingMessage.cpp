@@ -8,6 +8,13 @@
 
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+
+#define LOG_MESSAGE_PUSHED_INTO_MEMORY            "Pushed string:\n\r"
+#define LOG_MESSAGE_PUSHED_INTO_MEMORY_LEN        (sizeof(LOG_MESSAGE_PUSHED_INTO_MEMORY) - 1)
+
+#define LOG_MESSAGE_EEPROM_NO_MEMORY_LEFT                  "EEPROM has no memory left\n\r"
+#define LOG_MESSAGE_EEPROM_NO_MEMORY_LEFT_LEN              (sizeof(LOG_MESSAGE_EEPROM_NO_MEMORY_LEFT) - 1)
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -33,13 +40,17 @@ SavingMessage::~SavingMessage  () {
 }
 
 void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
-    char log [50];
     static bool bufferCharged = false;
     static bool encryptionProcessFinished = false;
     EEPROMStatus state;
 
+    if (memory == nullptr || message == nullptr ) {
+        this->tracker->changeState  (new GoingToSleep(this->tracker));
+        return;
+    }
+
     if ( encryptionProcessFinished  == false) {
-        if (this->tracker->encryptMessage (  message, strlen ( message)) == true) {
+        if (this->tracker->encryptMessage (message, strlen ( message)) == true) {
             encryptionProcessFinished  = true;
         }
     }
@@ -47,16 +58,13 @@ void SavingMessage::saveMessage (EEPROMManager * memory, char * message) {
     if ( encryptionProcessFinished  == true) {
         state = memory->pushStringToEEPROM (message);
         if ( state == EEPROMStatus::PUSHOK) {
-            snprintf(log, sizeof(log), "Pushed string:\n\r");
-            uartUSB.write(log, strlen(log));
+            uartUSB.write(LOG_MESSAGE_PUSHED_INTO_MEMORY, LOG_MESSAGE_PUSHED_INTO_MEMORY_LEN);
             uartUSB.write(message, strlen(message));
             encryptionProcessFinished = false;
-            //this->tracker->changeState  (new LoadingMessage (this->tracker));
             this->tracker->changeState  (new GoingToSleep (this->tracker));
             return;
         }  else if (state ==  EEPROMStatus::NOMEMORY) {
-            snprintf(log, sizeof(log), "EEPROM has no memory left\n\r");
-            uartUSB.write(log, strlen(log));
+            uartUSB.write(LOG_MESSAGE_EEPROM_NO_MEMORY_LEFT, LOG_MESSAGE_EEPROM_NO_MEMORY_LEFT_LEN);
             encryptionProcessFinished = false;
             bufferCharged = false;
             this->tracker->changeState  (new GoingToSleep (this->tracker));

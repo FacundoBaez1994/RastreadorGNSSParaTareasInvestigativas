@@ -5,12 +5,12 @@
 #include "Debugger.h" // due to global usbUart
 
 //=====[Declaration of private defines]========================================
-#define MAX_CELLS_ON_VECTOR 11
+#define MAX_CELLS_ON_VECTOR 13
 #define MAX_ROWS_TO_READ 30
 #define MAX_LENGTH_CELL_INFO_STRING 128
 
 #define MAX_TIME_WATING_RESPONSE_MS 10000
-#define MAX_TIMEOUT_RETRIES 12
+#define MAX_TIMEOUT_RETRIES 15
 
 #define AT_CMD_CELL_INFO_GATHERING      "AT+QOPS"
 #define AT_CMD_CELL_INFO_GATHERING_LEN  (sizeof(AT_CMD_CELL_INFO_GATHERING) - 1)

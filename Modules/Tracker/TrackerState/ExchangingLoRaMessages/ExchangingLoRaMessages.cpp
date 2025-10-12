@@ -50,8 +50,6 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
     static size_t stringIndex = 0;
 
     char logMessage [100];
-
-    static char receptionBuffer[2500] = {0};
     static char processedMessageReceived  [2500];
     static bool messageReceived = false; 
     static std::vector<char> accumulatedBuffer; // Acumulador de fragmentos

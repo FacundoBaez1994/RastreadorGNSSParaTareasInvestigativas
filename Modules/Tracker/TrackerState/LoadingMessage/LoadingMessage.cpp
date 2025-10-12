@@ -6,9 +6,26 @@
 #include "GoingToSleep.h"
 #include "FormattingMessage.h"
 
-
 //=====[Declaration of private defines]========================================
 #define MAXATTEMPTS 20
+
+#define LOG_MESSAGE_POPPED_FROM_MEMORY            "Popped string from memory\r\n"
+#define LOG_MESSAGE_POPPED_FROM_MEMORY_LEN        (sizeof(LOG_MESSAGE_POPPED_FROM_MEMORY) - 1)
+
+#define LOG_MESSAGE_EEPROM_EMPTY                  "EEPROM empty\r\n"
+#define LOG_MESSAGE_EEPROM_EMPTY_LEN              (sizeof(LOG_MESSAGE_EEPROM_EMPTY) - 1)
+
+#define LOG_MESSAGE_LAST_DECRYPTED_STRING         "\r\nLast string decrypted:\r\n"
+#define LOG_MESSAGE_LAST_DECRYPTED_STRING_LEN     (sizeof(LOG_MESSAGE_LAST_DECRYPTED_STRING) - 1)
+
+#define LOG_MESSAGE_PARSE_ERROR                   "\r\nParse error\r\n"
+#define LOG_MESSAGE_PARSE_ERROR_LEN               (sizeof(LOG_MESSAGE_PARSE_ERROR) - 1)
+
+#define MOBILE_NETWORK_POSITION_MOBILE_NETWORK_SENDER_PREFIX  "MNMN"
+#define GNSS_POSITION_MOBILE_NETWORK_SENDER_PREFIX  "MNGNSS"
+#define GNSS_POSITION_NO_MOBILE_NETWORK_PREFIX  "GNSS"
+#define INERTIAL_POSITION_PREFIX  "IMU"
+
 //=====[Declaration of private data types]=====================================
 
 //=====[Declaration and initialization of public global objects]===============
@@ -26,43 +43,41 @@
 //=====[Implementations of public methods]===================================
 LoadingMessage::LoadingMessage  (Tracker * tracker) {
     this->tracker = tracker;
-    //this->poppedString = new char [this->sizeOfPoppedString];
 }
 
 LoadingMessage::~LoadingMessage  () {
     this->tracker = nullptr;
-    //delete [] this->poppedString;
-    //this->poppedString = nullptr;
 }
 
 void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCellInfo,
     GNSSData* GNSSInfo, std::vector<CellInformation*> &neighborsCellInformation,
     IMUData_t * imuData, std::vector<IMUData_t*> &IMUDataSamples,  BatteryData  * batteryStatus, char * buffer) {
-    //static char  poppedString [2500] = {0};
-    char  log [50];
     static bool decryptionProcessFinished = false;
     static bool popProcessFinished = false;
     static bool init = false;
 
+    if (memory == nullptr || aCellInfo == nullptr || GNSSInfo == nullptr ||
+    imuData == nullptr || batteryStatus == nullptr || buffer == nullptr) {
+        this->tracker->changeState  (new GoingToSleep(this->tracker));
+        return;
+    }
+
     if (init == false) {
-        memset(buffer, 0, 2500);
+        memset(buffer, 0, MESSAGE_BUFFER_SIZE);
         init = true;
     }
     
     EEPROMStatus state;
     if (popProcessFinished  == false) {
-        //state = memory->popStringFromEEPROM( this->poppedString, this->sizeOfPoppedString);
-        state = memory->popStringFromEEPROM( buffer, 2500);
+        state = memory->popStringFromEEPROM( buffer, MESSAGE_BUFFER_SIZE);
         if (state == EEPROMStatus::POPPEDSTRINGOK) {
-            snprintf(log, sizeof(log), "popped string From Memory\n\r");
-            uartUSB.write(log, strlen(log));
+            uartUSB.write(LOG_MESSAGE_POPPED_FROM_MEMORY, LOG_MESSAGE_POPPED_FROM_MEMORY_LEN);
             uartUSB.write(buffer, strlen(buffer));
             uartUSB.write("\n\r", strlen("\n\r"));
 
             popProcessFinished = true;
         } else if (state ==  EEPROMStatus::EMPTY) {
-            snprintf(log, sizeof(log), "EEPROM empty\n\r");
-            uartUSB.write(log, strlen(log));
+            uartUSB.write(LOG_MESSAGE_EEPROM_EMPTY, LOG_MESSAGE_EEPROM_EMPTY_LEN);
             decryptionProcessFinished = false;
             popProcessFinished = false;
             init = false;
@@ -70,17 +85,15 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             return;
         }
     } else {
-        if (this->tracker->decryptMessage(buffer, 2500) == true) {
-            snprintf(log, sizeof(log), "\n\rultimo string descifrado:\n\r");
-            uartUSB.write(log, strlen(log));
+        if (this->tracker->decryptMessage(buffer, MESSAGE_BUFFER_SIZE) == true) {
+            uartUSB.write(LOG_MESSAGE_LAST_DECRYPTED_STRING, LOG_MESSAGE_LAST_DECRYPTED_STRING_LEN);
             uartUSB.write(buffer, strlen(buffer));
             uartUSB.write("\n\r", strlen("\n\r"));
             trackerStatus_t currentStatus;
             currentStatus = this->parseDecryptedMessage(buffer, aCellInfo, GNSSInfo, 
             neighborsCellInformation, imuData, IMUDataSamples, batteryStatus);
             if ( currentStatus == TRACKER_STATUS_PARSE_ERROR) {
-                snprintf(log, sizeof(log), "\n\rparse error:\n\r");
-                uartUSB.write(log, strlen(log));
+                uartUSB.write(LOG_MESSAGE_PARSE_ERROR, LOG_MESSAGE_PARSE_ERROR_LEN);
                 decryptionProcessFinished = false;
                 popProcessFinished = false;
                 init = false;
@@ -91,8 +104,6 @@ void LoadingMessage::loadMessage (EEPROMManager * memory, CellInformation* aCell
             popProcessFinished = false;
             init = false;
 
-            //this->tracker->changeState  (new SavingMessage (this->tracker));
-            //this->tracker->changeState  (new GoingToSleep (this->tracker));
             this->tracker->changeState  (new FormattingMessage (this->tracker, currentStatus));
             return;
         }
@@ -110,17 +121,16 @@ trackerStatus_t LoadingMessage::parseDecryptedMessage(const char* decryptedStrin
     std::vector<IMUData_t*>& IMUDataSamples,
     BatteryData* batteryStatus) {
 
-    if (strncmp(decryptedString, "MNMN", 4) == 0) {
-        uartUSB.write("parseMNMN IN\n\r", strlen("parseMNMN IN\n\r")); // ELIMINIAR
+    if (strncmp(decryptedString, MOBILE_NETWORK_POSITION_MOBILE_NETWORK_SENDER_PREFIX, 4) == 0) {
         parseMNMN(decryptedString, aCellInfo, neighborsCellInformation, imuData, batteryStatus);
         return TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTED_TO_MOBILE_NETWORK;
-    } else if (strncmp(decryptedString, "MNGNSS", 6) == 0) {
+    } else if (strncmp(decryptedString, GNSS_POSITION_MOBILE_NETWORK_SENDER_PREFIX, 6) == 0) {
         parseMNGNSS(decryptedString, aCellInfo, GNSSInfo, imuData, batteryStatus);
         return TRACKER_STATUS_GNSS_OBTAIN_CONNECTED_TO_MOBILE_NETWORK; 
-    }  else if (strncmp(decryptedString, "GNSS", 4) == 0) {
+    }  else if (strncmp(decryptedString, GNSS_POSITION_NO_MOBILE_NETWORK_PREFIX, 4) == 0) {
         parseGNSS(decryptedString, GNSSInfo, imuData, batteryStatus);
         return TRACKER_STATUS_GNSS_LOADED_MESSAGE;
-    } else if (strncmp(decryptedString, "IMU", 3) == 0) {
+    } else if (strncmp(decryptedString, INERTIAL_POSITION_PREFIX, 3) == 0) {
         parseIMU(decryptedString, imuData, IMUDataSamples, batteryStatus);
         return TRACKER_STATUS_IMU_LOADED_MESSAGE;
     }
@@ -133,24 +143,15 @@ void LoadingMessage::parseMNGNSS(const char* message,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
     
-    //char * buffer;
-    size_t sizeOfBuffer = 1024;
-
+    size_t sizeOfBuffer = MESSAGE_BUFFER_SIZE / 2;
     char buffer [sizeOfBuffer];
-
-   // if (!buffer) {
-        //delete [] buffer;
-        //buffer = nullptr;
-  //      return;
-  //  }
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer -1] = '\0';
 
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "MNGNSS") != 0) {
-        //delete [] buffer;
-        //buffer = nullptr;
+
         return;
     }
      
@@ -216,9 +217,6 @@ void LoadingMessage::parseMNGNSS(const char* message,
     imuData->angles.roll = atof(token);
     token = strtok(NULL, ",");
     imuData->angles.pitch = atof(token);
-
-    //delete [] buffer;
-    //buffer = nullptr;
 }
 
 
@@ -236,25 +234,15 @@ void LoadingMessage::parseMNMN(const char* message,
 
     if (!message || strncmp(message, "MNMN,", 5) != 0) return;
 
-    size_t sizeOfBuffer = 1024;
+    size_t sizeOfBuffer = MESSAGE_BUFFER_SIZE / 2;
     char buffer [sizeOfBuffer];
     char neighborsBuffer [sizeOfBuffer];
-
-   // if (!buffer || !neighborsBuffer) {
-        //delete[] buffer;
-        //delete[] neighborsBuffer;
-    //    buffer = nullptr;
-     //   neighborsBuffer = nullptr;
-      //  return;
-    //}
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer - 1] = '\0';
 
     char* mainPart = strtok(buffer, "|");
     if (!mainPart) {
-        //delete[] buffer;
-        //delete[] neighborsBuffer;
         return;
     }
 
@@ -355,11 +343,6 @@ void LoadingMessage::parseMNMN(const char* message,
 
         neighborPart = strtok(nullptr, "|");
     }
-
-   // delete[] buffer;
-   // buffer = nullptr;
-   // delete[] neighborsBuffer;
-    //neighborsBuffer = nullptr;
 }
 
 
@@ -368,22 +351,15 @@ void LoadingMessage::parseGNSS(const char* message,
     IMUData_t* imuData,
     BatteryData* batteryStatus) {
 
-    size_t sizeOfBuffer = 1024;
+    size_t sizeOfBuffer = MESSAGE_BUFFER_SIZE / 2;
     char buffer [sizeOfBuffer];
 
-    //if (!buffer) {
-        //delete[] buffer;
-        //buffer = nullptr;
-    //    return;
-    //}
 
     strncpy(buffer, message, sizeOfBuffer);
     buffer[sizeOfBuffer - 1] = '\0';
 
     char* token = strtok(buffer, ",");
     if (!token || strcmp(token, "GNSS") != 0) {
-        //delete[] buffer;
-        //buffer = nullptr;
         return;
     }
 
@@ -423,9 +399,6 @@ void LoadingMessage::parseGNSS(const char* message,
     imuData->angles.roll = atof(token);
     token = strtok(NULL, ","); 
     imuData->angles.pitch = atof(token);
-
-    //delete[] buffer;
-    //buffer = nullptr;
 }
 
 
@@ -443,8 +416,8 @@ void LoadingMessage::parseIMU(const char* message,
     IMUDataSamples.clear();
 
     // Copia del mensaje original
-    char fullCopy [1024];
-    strncpy(fullCopy, message, 1024);
+    char fullCopy [MESSAGE_BUFFER_SIZE / 2];
+    strncpy(fullCopy, message, MESSAGE_BUFFER_SIZE / 2);
     fullCopy[1023] = '\0';
 
     // Separar la parte principal del resto usando strchr

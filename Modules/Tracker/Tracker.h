@@ -41,6 +41,7 @@
 #include "DecrypterBase64.h"
 #include "EncrypterBase64.h"
 
+#include "BufferSizes.h"
 
 //=====[Declaration of public defines]=========================================
 /**

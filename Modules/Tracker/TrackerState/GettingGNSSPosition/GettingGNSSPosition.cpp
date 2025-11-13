@@ -58,8 +58,26 @@ void GettingGNSSPosition::obtainGNSSPosition (GNSSModule * currentGNSSModule, GN
     //this->tracker->changeState  (new ConnectingToMobileNetwork (this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE));
     //return;
 
+
     currentGNSSModule->enableGNSS();
     GnssCurrentStatus = currentGNSSModule->retrivGeopositioning(currentGNSSdata);
+
+    
+    //test only
+    /*
+    GnssCurrentStatus = GNSS_STATE_CONNECTION_OBTAIN;
+    currentGNSSdata->latitude = -34.640829;
+    currentGNSSdata->longitude = -58.3662581;
+    strcpy (currentGNSSdata->timestamp, "06112025110435");
+    currentGNSSdata->hdop = 2.31;
+    currentGNSSdata->altitude = 10;
+    currentGNSSdata->fix = 2;
+    currentGNSSdata->cog = 1;
+    currentGNSSdata->spkm = 2;
+    currentGNSSdata->spkn = 1;
+    currentGNSSdata->nsat = 6;
+    */
+
     if (GnssCurrentStatus == GNSS_STATE_CONNECTION_OBTAIN ) {
         uartUSB.write (LOG_MESSAGE_GNSS_OBTAIN, LOG_MESSAGE_GNSS_OBTAIN_LEN);  // debug only
         if (operationMode == SILENT_OPERATION_MODE) {

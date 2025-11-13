@@ -168,7 +168,7 @@ Tracker::Tracker () {
     /// eliminate this lines on production
    while (! this->memory->clearAll()) {
         
- }
+    }
     //snprintf(StringToSendUSB, sizeof(StringToSendUSB), "STRINGS LIMPIADAS\n\r");
     //uartUSB.write(StringToSendUSB, strlen(StringToSendUSB));
 }

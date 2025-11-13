@@ -208,10 +208,10 @@ private:
 //=====[Declaration of privates atributes]=========================================
     Tracker* tracker; ///< Pointer to tracker instance for state transitions and data access
     trackerStatus_t currentStatus; ///< Current tracker status
-    JWTManager* jwt; ///< Pointer to JWT manager for token/signature management
+    //JWTManager jwt; ///< Pointer to JWT manager for token/signature management
     
-    char messageBuffer [2500]; ///< intermediate buffer to allow message formating, works with dinamic memory.
-    int sizeOfMessageBuffer = 2500; ///< size of the intermediate buffer
+    char * messageBuffer; ///< intermediate buffer to allow message formating, works with dinamic memory.
+    int sizeOfMessageBuffer = 2100; ///< size of the intermediate buffer
 };
 
 

@@ -44,13 +44,13 @@ ExchangingLoRaMessages::~ExchangingLoRaMessages() {
 void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * message, char * receivedMessage ) {
     //char buffer [1024] = "helloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwhelloooooooooooooooooooooooooooowwwwwwwwwwhelloooooooooooooooooooowwwwwwwwwwwwwF-16";
     Watchdog &watchdog = Watchdog::get_instance(); // singletom
-    char buffer [2500];
+    char buffer [2100];
     static bool firstChunkSent = false;
     //static bool firstDelayPassed = false;
     static size_t stringIndex = 0;
 
     char logMessage [100];
-    static char processedMessageReceived  [2500];
+    static char processedMessageReceived  [2100];
     static bool messageReceived = false; 
     static std::vector<char> accumulatedBuffer; // Acumulador de fragmentos
     static std::string fullMessage;

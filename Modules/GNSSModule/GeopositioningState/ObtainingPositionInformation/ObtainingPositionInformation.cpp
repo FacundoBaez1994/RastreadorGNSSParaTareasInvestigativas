@@ -83,6 +83,13 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
     char sessionNoTActive [AT_CMD_GNSS_ERROR_NO_ACTIVE_SESSION_LEN + 1] = AT_CMD_GNSS_ERROR_NO_ACTIVE_SESSION;
     char StringToSendUSB [LOG_MESSAGE_LEN + 1] =  LOG_MESSAGE;
 
+
+    if (!this->startTimeCaptured) { //test
+        this->startGNSSFixTime =  Kernel::Clock::now();   // usa RTC interno configurado con UTC
+        this->startTimeCaptured = true;
+    }
+
+
     if (Geodata == nullptr || ATHandler == nullptr || refreshTime == nullptr) {
         return GNSS_STATE_ERROR_NULL_POINTER;
     }
@@ -126,8 +133,21 @@ GNSSState_t ObtainingPositionInformation::retrivGeopositioning (GNSSData * Geoda
             set_time(timestampToEpoch (Geodata->timestamp));  // save the epoch into RTC
 
             Geodata->nsat = this->nsat; 
+
+
+            auto endTime = Kernel::Clock::now();
+            auto elapsed = endTime - this->startGNSSFixTime;
+            double elapsedSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(elapsed).count();
+            char elapsedSecondsString [100];
+            sprintf(elapsedSecondsString, "time elapsed GNSS : %.2f seconds",elapsedSeconds);
+            uartUSB.write ( elapsedSecondsString,  strlen(elapsedSecondsString) );  // debug only   
+            this->startTimeCaptured = false;
+
+
             this->currentGNSSModule->changeGeopositioningState (new TurningOffGNSS (this->currentGNSSModule));
             return GNSS_STATE_CONNECTION_OBTAIN;
+
+            
         }
         if (strcmp (StringToBeRead, sessionNoTActive) == 0 ) {
             uartUSB.write (LOG_MESSAGE_GNSS_NOT_ACTIVE_WARNING , strlen (LOG_MESSAGE_GNSS_NOT_ACTIVE_WARNING ));  // debug only

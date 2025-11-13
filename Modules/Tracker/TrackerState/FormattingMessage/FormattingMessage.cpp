@@ -22,30 +22,22 @@
 bool hash_and_base64(const char *input, char *output, size_t output_size) {
     if (!input || !output) return false;
 
-    unsigned char hash[32]; // SHA-256 -> 32 bytes
+    unsigned char hash[32];
     size_t olen = 0;
 
-    // 1. Calcular SHA-256
+    // SHA-256
     mbedtls_sha256_context ctx;
     mbedtls_sha256_init(&ctx);
-    mbedtls_sha256_starts_ret(&ctx, 0); // 0 = SHA-256, 1 = SHA-224
+    mbedtls_sha256_starts_ret(&ctx, 0);
     mbedtls_sha256_update_ret(&ctx, (const unsigned char*)input, strlen(input));
     mbedtls_sha256_finish_ret(&ctx, hash);
     mbedtls_sha256_free(&ctx);
 
-    // 2. Codificar en Base64
+    // Base64 estándar
     if (mbedtls_base64_encode((unsigned char*)output, output_size, &olen,
                               hash, sizeof(hash)) != 0) {
         return false;
     }
-
-    // Asegurar terminación de string
-    if (olen < output_size) {
-        output[olen] = '\0';
-    } else {
-        return false;
-    }
-
     return true;
 }
 
@@ -56,19 +48,17 @@ bool hash_and_base64(const char *input, char *output, size_t output_size) {
 FormattingMessage::FormattingMessage (Tracker * tracker, trackerStatus_t trackerStatus) {
     this->tracker = tracker;
     this->currentStatus = trackerStatus;
-    //this->jwt = new JWTManager ();
-    //this->sizeOfMessageBuffer = 2500;
-    //this->messageBuffer = new char [this->sizeOfMessageBuffer];
+    this->sizeOfMessageBuffer = 2100;
+    this->messageBuffer = new char [this->sizeOfMessageBuffer];
 }
 
 FormattingMessage::~FormattingMessage () {
     this->tracker = nullptr;
-   //delete this->jwt;
+    //delete this->jwt;
     //this->jwt = nullptr;
 
-    //delete [] this->messageBuffer;
-   // this->messageBuffer = nullptr;
-
+    delete [] this->messageBuffer;
+    this->messageBuffer = nullptr;
 }
 
 void FormattingMessage::updatePowerStatus (CellularModule * cellularTransceiver,
@@ -320,6 +310,7 @@ void FormattingMessage::addMetaData(char *messageToAddMetaData) {
     this->tracker->setCurrentHashChain(hashCurrentJson);
 }
 
+
 //////////////////////// MN messages /// 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo, 
     const std::vector<CellInformation*> &neighborsCellInformation, const IMUData_t * imuData,
@@ -403,6 +394,10 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     }
 
    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+  this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+
+    uartUSB.write (this->messageBuffer , strlen (this->messageBuffer));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only}
 
    strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
 
@@ -414,7 +409,13 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
 
     strcat(formattedMessage, "\n");
 
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
     this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+
+    uartUSB.write ("JWT FINAL OUTPUT:\r\n" , strlen ("JWT FINAL OUTPUT:\r\n"));  // debug only
+    uartUSB.write (formattedMessage , strlen(formattedMessage));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only}
+    
 }
 
 void FormattingMessage::formatMessage(char * formattedMessage, const CellInformation* aCellInfo,
@@ -438,7 +439,7 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         "\"LAC\":\"%X\","
         "\"CID\":\"%X\","
         "\"SLVL\":%.2f,"
-        "\"TECH\":%d,"
+        "\"TECH\":%d,"  
         "\"REGS\":%d,"
         "\"CHNL\":%d,"
         "\"BAND\":\"%s\","
@@ -480,7 +481,11 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
         imuData->angles.roll,        // 27
         imuData->angles.pitch        // 28
     );
+
    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+
+    uartUSB.write (this->messageBuffer , strlen (this->messageBuffer));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only}
 
    strncpy (formattedMessage, this->messageBuffer, this->sizeOfMessageBuffer);
 
@@ -491,6 +496,13 @@ void FormattingMessage::formatMessage(char * formattedMessage, const CellInforma
     this->tracker->encodeJWT (this->messageBuffer, formattedMessage);
 
     strcat(formattedMessage, "\n");
+
+    formattedMessage[this->sizeOfMessageBuffer - 1] = '\0';
+    this->messageBuffer[this->sizeOfMessageBuffer - 1] = '\0';
+
+    uartUSB.write ("JWT FINAL OUTPUT:\r\n" , strlen ("JWT FINAL OUTPUT:\r\n"));  // debug only
+    uartUSB.write (formattedMessage , strlen(formattedMessage));  // debug only
+    uartUSB.write ( "\r\n",  3 );  // debug only}
 
 }
 
@@ -505,15 +517,15 @@ void FormattingMessage::formatMessage(char * formattedMessage, long long int IME
 
     currentLen = snprintf(this->messageBuffer, this->sizeOfMessageBuffer,
         "\"Type\":\"GNSS\","
-        "\"IMEI\":%lld,"
-        "\"EVNT\":\"%s\","
-        "\"LAT\":%.6f,"
-        "\"LONG\":%.6f,"
-        "\"HDOP\":%.2f,"
-        "\"ALT\":%.2f,"
-        "\"COG\":%.2f,"
-        "\"SPD\":%.2f,"
-        "\"TIME\":\"%s\","
+        "\"IMEI\":%lld,"  // -1 
+        "\"EVNT\":\"%s\"," // 0
+        "\"LAT\":%.6f," // 1
+        "\"LONG\":%.6f," // 2
+        "\"HDOP\":%.2f," // 3
+        "\"ALT\":%.2f," // 4
+        "\"COG\":%.2f," // 5
+        "\"SPD\":%.2f," // 6
+        "\"TIME\":\"%s\"," // 7
         "\"BSTA\":%d,"
         "\"BLVL\":%d,"
         "\"SIMU\":%d,"
@@ -829,7 +841,7 @@ void FormattingMessage::formatGNSSMemoryMessage(char * formattedMessage, const G
  const IMUData_t * imuData, const BatteryData  * batteryStatus, char * trackerEvent) {
 
     snprintf(this->messageBuffer, this->sizeOfMessageBuffer, 
-    "GNSS,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
+    "GNSS,%s,%.6f,%.6f,%.2f,%.2f,%.2f,%.2f,%s,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", 
         trackerEvent,                       // 1 %s
         GNSSInfo->latitude,                 // 2 %.6f
         GNSSInfo->longitude,                // 3 %.6f

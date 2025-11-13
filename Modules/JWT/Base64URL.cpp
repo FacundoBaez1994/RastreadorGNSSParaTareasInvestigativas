@@ -20,6 +20,52 @@ static const uint8_t base64urlDecTable[128] =
         0xFF, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28,
         0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+void Base64URL::base64urlEncode(const void *input, size_t inputLen, char *output, size_t *outputLen)
+{
+    size_t n;
+    uint8_t a, b, c, d;
+    const uint8_t *p = (const uint8_t *)input;
+    n = inputLen / 3;
+    size_t outIndex = 0;
+
+    for (size_t i = 0; i < n; i++)
+    {
+        a = (p[i * 3] & 0xFC) >> 2;
+        b = ((p[i * 3] & 0x03) << 4) | ((p[i * 3 + 1] & 0xF0) >> 4);
+        c = ((p[i * 3 + 1] & 0x0F) << 2) | ((p[i * 3 + 2] & 0xC0) >> 6);
+        d = p[i * 3 + 2] & 0x3F;
+
+        output[outIndex++] = base64urlEncTable[a];
+        output[outIndex++] = base64urlEncTable[b];
+        output[outIndex++] = base64urlEncTable[c];
+        output[outIndex++] = base64urlEncTable[d];
+    }
+
+    size_t rem = inputLen % 3;
+    if (rem == 1)
+    {
+        a = (p[n * 3] & 0xFC) >> 2;
+        b = (p[n * 3] & 0x03) << 4;
+        output[outIndex++] = base64urlEncTable[a];
+        output[outIndex++] = base64urlEncTable[b];
+    }
+    else if (rem == 2)
+    {
+        a = (p[n * 3] & 0xFC) >> 2;
+        b = ((p[n * 3] & 0x03) << 4) | ((p[n * 3 + 1] & 0xF0) >> 4);
+        c = (p[n * 3 + 1] & 0x0F) << 2;
+        output[outIndex++] = base64urlEncTable[a];
+        output[outIndex++] = base64urlEncTable[b];
+        output[outIndex++] = base64urlEncTable[c];
+    }
+
+    output[outIndex] = '\0'; //
+    if (outputLen != nullptr)
+        *outputLen = outIndex;
+}
+
+
+/*
 void Base64URL::base64urlEncode(const void *input, size_t inputLen, char *output,
                            size_t *outputLen)
 {
@@ -120,7 +166,7 @@ void Base64URL::base64urlEncode(const void *input, size_t inputLen, char *output
             output[n * 4 + 3] = base64urlEncTable[d];
         }
     }
-}
+}*/
 
 bool Base64URL::base64urlDecode(const char *input, size_t inputLen, void *output,
                            size_t *outputLen)

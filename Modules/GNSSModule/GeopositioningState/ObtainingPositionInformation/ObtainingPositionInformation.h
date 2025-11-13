@@ -89,6 +89,9 @@ private:
     int nsat;                      /**< Number of satellites used. */
     int numberOfTries;             /**< Current retry count. */
     int maxTries;                  /**< Maximum number of allowed retries. */
+
+    Kernel::Clock::time_point startGNSSFixTime;
+    bool startTimeCaptured = false; // test
 };
 
 //=====[Declarations (prototypes) of public functions]=========================

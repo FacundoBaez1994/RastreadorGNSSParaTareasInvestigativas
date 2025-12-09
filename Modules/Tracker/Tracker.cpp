@@ -151,6 +151,9 @@ Tracker::Tracker () {
     //this->currentState =  new LoadingMessage (this);
 
     this->LoRaTransciever = new LoRaClass ();
+    //this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
+    //this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
+    //this->LoRaTransciever->setSignalBandwidth(125E3); // 125 kHz
 
      //this->encrypter = new Encrypter ();
     this->encrypterBase64 = new EncrypterBase64 ();

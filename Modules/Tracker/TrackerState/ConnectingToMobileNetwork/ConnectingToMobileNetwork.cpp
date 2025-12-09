@@ -50,6 +50,16 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
         return;
     }
 
+    // no connection turning off MN module
+    if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA
+     || this->currentStatus == TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA) {
+        if (cellularTransceiver->turnOff()) {
+            this->tracker->changeState  (new GatheringInertialData(this->tracker, this->currentStatus));
+            return;
+        }
+        return;
+    }
+
     cellularTransceiver->enableConnection();
     currentConnectionStatus = cellularTransceiver->connectToMobileNetwork (currentCellInformation);
     
@@ -69,14 +79,14 @@ void ConnectingToMobileNetwork::updatePowerStatus (CellularModule * cellularTran
     } else if (currentConnectionStatus != CELLULAR_CONNECTION_STATUS_UNAVAIBLE && 
         currentConnectionStatus != CELLULAR_CONNECTION_STATUS_TRYING_TO_CONNECT) {
         uartUSB.write (LOG_MESSAGE_NO_MOBILE_NETWORK , LOG_MESSAGE_NO_MOBILE_NETWORK_LEN);  // debug only
-        
+        cellularTransceiver->turnOff();
         if (this->currentStatus == TRACKER_STATUS_GNSS_OBTAIN) {
             // NO MN, TRY TO SEND GNSS DATA THROUGH LORA after gather inertial data
-            this->tracker->changeState  (new GatheringInertialData (this->tracker, TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA));
+            this->currentStatus = TRACKER_STATUS_GNSS_OBTAIN_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA;
             return;
         } else {
              // NO MN AND NO GNSS, TRY TO SEND SOME DATA THROUGH LORA inertial data
-            this->tracker->changeState  (new GatheringInertialData(this->tracker, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA));
+             this->currentStatus = TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA;
             return;
         }
         return;

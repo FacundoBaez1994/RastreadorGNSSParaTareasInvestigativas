@@ -57,6 +57,8 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
     static int stringInsertCount = 0;
     static int timeoutCounter = 0;
 
+    //uartUSB.write ("switch\r\n", strlen ("switch\r\n"));
+
     switch ( this->currentExchangingLoRaMessagesStatus) {
     case  INITIALIZE_TRANSCIEVER:
         watchdog.kick();
@@ -77,25 +79,35 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
 
         watchdog.kick();
         if (this->backoffTime->read() || firstChunkSent == false) {
+            uint8_t testPayload[32];
+            for (int i = 0; i < 32; i++) {
+                testPayload[i] = 0xAA;
+            }
+
+
+
             firstChunkSent = true;
             this->backoffTime->write(FLY_TIME);
             this->backoffTime->restart();
 
-            size_t totalLength = strlen(buffer);
-            size_t chunkSize = MAX_CHUNK_SIZE;  // Fragmentos de 50 bytes
+            //size_t totalLength = strlen(testPayload);
+            //size_t chunkSize = MAX_CHUNK_SIZE;  // Fragmentos de 50 bytes
             LoRaModule->idle();                          // set standby mode
             LoRaModule->disableInvertIQ();               // normal mode
-            size_t currentChunkSize = (totalLength - stringIndex < chunkSize) ? (totalLength - stringIndex) : chunkSize;
+            //size_t currentChunkSize = (totalLength - stringIndex < chunkSize) ? (totalLength - stringIndex) : chunkSize;
             uartUSB.write("\r\n", strlen("\r\n"));
             uartUSB.write ( buffer, strlen (buffer));  // debug only
             uartUSB.write("\r\n", strlen("\r\n"));
             LoRaModule->beginPacket();
-            LoRaModule->write((uint8_t*)(buffer + stringIndex), currentChunkSize);
+            LoRaModule->write(testPayload, sizeof (testPayload));
             //LoRaModule->write(reinterpret_cast<const uint8_t*>(buffer), strlen(buffer));
 
             //LoRaModule->write((uint8_t*)(buffer), strlen (buffer));
             LoRaModule->endPacket();
+            uartUSB.write ("PacketSent\r\n", strlen ("PacketSent\r\n"));
             watchdog.kick();
+
+            /*
             stringIndex += chunkSize;
             if (stringIndex  > totalLength) {
                 uartUSB.write("\r\n", strlen("\r\n"));
@@ -112,7 +124,7 @@ void ExchangingLoRaMessages::exchangeMessages (LoRaClass * LoRaModule, char * me
                 this->currentExchangingLoRaMessagesStatus = WAITING_FOR_ACK;
                 //this->tracker->changeState(new WaitingAcknowledgement (this->tracker));
                 return;
-            }
+            }*/
         }
         break;
 

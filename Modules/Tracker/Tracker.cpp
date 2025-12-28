@@ -5,6 +5,7 @@
 #include "IMUManager.h"
 #include "SavingMessage.h"
 #include "LoadingMessage.h"
+#include "ExchangingLoRaMessages.h"
 
 
 //=====[Declaration of private defines]========================================
@@ -146,14 +147,25 @@ Tracker::Tracker () {
     this->inertialSensor = new IMUManager (); 
     this->memory = new EEPROMManager ();
 
-    this->currentState =  new CalibratingInertialSensor (this);
+  
     //this->currentState =  new SavingMessage (this);
     //this->currentState =  new LoadingMessage (this);
 
     this->LoRaTransciever = new LoRaClass ();
     this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
     this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
-    this->LoRaTransciever->setSignalBandwidth(125E3); // 125 kHz
+    this->LoRaTransciever->setSignalBandwidth(125E3);
+    
+     //this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
+     //this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
+     //this->LoRaTransciever->setSignalBandwidth(31.25E3); // 31.25kHZ 125 kHz
+     //this->LoRaTransciever->setCodingRate4(5);
+     // this->LoRaTransciever->setPreambleLength(12);
+    //this->LoRaTransciever->setTxPower(11);
+
+  this->currentState =  new ExchangingLoRaMessages (this, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA);
+
+     uartUSB.write ("build 1\r\n", strlen ("build 1\r\n"));
 
      //this->encrypter = new Encrypter ();
     this->encrypterBase64 = new EncrypterBase64 ();
@@ -167,6 +179,9 @@ Tracker::Tracker () {
     this->decrypterBase64 = new DecrypterBase64 ();
 
     this->jwt = new JWTManager ();
+
+     uartUSB.write ("build 2\r\n", strlen ("build 2\r\n"));
+
 
     /// eliminate this lines on production
    while (! this->memory->clearAll()) {
@@ -249,6 +264,9 @@ void Tracker::update () {
     static int numberOfNeighbors = 0;
     Watchdog &watchdog = Watchdog::get_instance(); // singleton
     watchdog.kick();
+
+     // uartUSB.write ("update\r\n", strlen ("update\r\n"));
+ /*
     this->currentState->awake(this->cellularTransceiver, this->latency, this->silentKeepAliveTimer);
     this->currentState->calibrateIMU (this->inertialSensor);
     this->currentState->updatePowerStatus (this->cellularTransceiver, this->batteryStatus);
@@ -263,11 +281,14 @@ void Tracker::update () {
     this->currentGNSSdata, this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus); 
     this->currentState->exchangeMessages (this->cellularTransceiver,
     formattedMessage, this->serverTargetted, receivedMessage );
+       */
     this->currentState->exchangeMessages (this->LoRaTransciever, formattedMessage, receivedMessage);
+    /*
     this->currentState->saveMessage(this->memory, formattedMessage);
     this->currentState->loadMessage(this->memory, this->currentCellInformation, this->currentGNSSdata,
      this->neighborsCellInformation, this->imuData, this->IMUDataSamples, this->batteryStatus, formattedMessage);
     this->currentState->goToSleep (this->cellularTransceiver);
+    */
     watchdog.kick();
     
 }

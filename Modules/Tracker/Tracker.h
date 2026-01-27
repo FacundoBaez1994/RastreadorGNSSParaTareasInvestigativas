@@ -273,9 +273,19 @@ public:
     */
     char* getPrevHashChain ( );
 
-    
+     /**
+     * @brief encodes an string with JSON format to a JWT
+     * @param payloadToJWT a string with JSON
+     * @param jwtEncoded a string with the JSON codified into a JWT
+     */
     void encodeJWT (char * payloadToJWT, char * jwtEncoded);
 
+
+     /**
+     * @brief decodes an string codified as a JWT to a JSON format plainmessage
+     * @param jwtToDecode a string codified a a JWT
+     * @param payloadRetrived a string decoded from JWT to JSON
+     */
     bool decodeJWT (char * jwtToDecode, char * payloadRetrived);
     
 private:

@@ -74,8 +74,8 @@ Outside the ones written by mbed Microcontroller Library this Firmware make uses
 various authors customized to fit into the project and work properly with mbed-os. 
 The following list shows all the libraries used:
 
-- [LoRa]() by
-- [CustomJWT]() by ,
+- [LoRa](https://github.com/sandeepmistry/arduino-LoRa) by Sandeep Mistry
+- [CustomJWT](https://github.com/Ant2000/CustomJWT) by Antony Jose Kuruvilla,
 - [Cypher AES](https://os.mbed.com/users/neilt6/code/AES/) by Neil Thiessen,
 - [Adafruit_BNO08x](https://github.com/adafruit/Adafruit_BNO08x) Adafruit library, which in turn is based on the
  CEVA [library SH2](https://github.com/ceva-dsp/sh2)

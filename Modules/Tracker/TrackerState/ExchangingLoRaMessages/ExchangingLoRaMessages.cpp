@@ -9,7 +9,7 @@
 #include "GatheringInertialData.h"
 
 //=====[Declaration of private defines]========================================
-#define BACKOFFTIME        250
+#define BACKOFFTIME        25
 #define MAX_CHUNK_SIZE     255
 #define FLY_TIME           800
 #define TIMEOUT          5000

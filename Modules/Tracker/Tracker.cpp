@@ -152,16 +152,12 @@ Tracker::Tracker () {
     //this->currentState =  new LoadingMessage (this);
 
     this->LoRaTransciever = new LoRaClass ();
+    this->LoRaTransciever->setPreambleLength(12); 
     this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
     this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
-    this->LoRaTransciever->setSignalBandwidth(125E3);
-    
-     //this->LoRaTransciever->setSpreadingFactor(12);   // ranges from 6-12,default 7
-     //this->LoRaTransciever->setSyncWord(0xF3);  // ranges from 0-0xFF, default 0x34,
-     //this->LoRaTransciever->setSignalBandwidth(31.25E3); // 31.25kHZ 125 kHz
-     //this->LoRaTransciever->setCodingRate4(5);
-     // this->LoRaTransciever->setPreambleLength(12);
-    //this->LoRaTransciever->setTxPower(11);
+    this->LoRaTransciever->setSignalBandwidth(31.25E3);
+    this->LoRaTransciever->setCodingRate4(8);
+    this->LoRaTransciever->setTxPower(20);
 
   this->currentState =  new ExchangingLoRaMessages (this, TRACKER_STATUS_GNSS_UNAVAILABLE_CONNECTION_TO_MOBILE_NETWORK_UNAVAILABLE_TRYING_LORA);
 

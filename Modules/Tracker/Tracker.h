@@ -1,13 +1,52 @@
 //=====[#include guards - begin]===============================================
 /**
- * @file Tracker.h
- * @brief Declares the Tracker class, which manages the state machine for tracking operations.
+ * @mainpage Tracker GNSS Tracking Firmware
  *
- * This class is responsible for controlling the device's tracking behavior,
- * including state transitions, message handling, and management of
- * communication modules. It follows the State design pattern, where
- * different states encapsulate specific behavior.
+ * @section intro_sec Introduction
+ *
+ * This project implements the firmware of a GNSS tracking device based on a
+ * state machine architecture. It is responsible for acquiring positioning
+ * data, managing inertial sensors, and transmitting information through
+ * different communication modules.
+ *
+ * The system is designed following the *State* design pattern, where each
+ * state encapsulates a specific behavior of the device. This approach enables
+ * a modular, scalable, and maintainable architecture, well suited for
+ * embedded systems.
+ *
+ * @section features_sec Main Features
+ * - State machine management for tracker operation
+ * - GNSS and inertial sensor (IMU) integration
+ * - Communication via cellular and/or LoRa modules
+ * - Efficient power and resource management
+ * - Modular architecture oriented to embedded systems
+ *
+ * @section hardware_sec Supported Hardware
+ * - Microcontroller: STM32 (Nucleo-L432KC)
+ * - IMU: BNO08x 9-DOF Orientation IMU Fusion
+ * - Cellular and GNSS Quectel EC21 module
+ * - EEPROM Memory AT24C258
+ * - RFM95 LoRa Module
+ *
+ *
+ * @section dependencies_sec Dependencies
+ * This firmware depends on the following libraries:
+ * - Adafruit BusIO library
+ * - Adafruit Unified Sensor library
+ * - LoRa by Sandeep Mistry
+ * - CustomJWT by Antony Jose Kuruvilla
+ * - Cypher AES by Neil Thiessen
+ * - NonBlocking Delay and Miscellaneous codes from Arm Book A Beginner's-Guide-to-Designing-Embedded-System-Applications-on-Arm-Cortex-M-Microcontrollers
+ *
+ * @section author_sec Author
+ * Facundo Baez 
+ * Elordi Joaquin
+ * Students from Faculty of Engineering, University of Buenos Aires (FIUBA)
+ *
+ * @section history_sec Version History
+ * v1.0 First functional release of the tracker firmware
  */
+
 
 #ifndef _TRACKER_H_
 #define _TRACKER_H_

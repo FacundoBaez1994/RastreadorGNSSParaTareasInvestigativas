@@ -1,7 +1,6 @@
 /*!
  *  @file Adafruit_BNO08x.cpp
  *
- *  @mainpage Adafruit BNO08x 9-DOF Orientation IMU Fusion Breakout
  *
  *  @section intro_sec Introduction
  *
